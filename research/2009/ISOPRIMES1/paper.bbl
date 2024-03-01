@@ -1,0 +1,135 @@
+\begin{thebibliography}{10}
+
+\bibitem{DBLP:journals/tit/Pippenger05}
+Pippenger, N.:
+\newblock The average amount of information lost in multiplication.
+\newblock IEEE Transactions on Information Theory \textbf{51}(2) (2005)
+  684--687
+
+\bibitem{arxiv:fISO}
+Tarau, P.:
+\newblock {Declarative Combinatorics: Isomorphisms, Hylomorphisms and
+  Hereditarily Finite Data Types in Haskell} (January 2009)
+  http://arXiv.org/abs/0808.2953, unpublished draft, 104 pages.
+
+\bibitem{sac09fISO}
+Tarau, P.:
+\newblock {Isomorphisms, Hylomorphisms and Hereditarily Finite Data Types in
+  Haskell}.
+\newblock In: {Proceedings of ACM SAC'09}, Honolulu, Hawaii, ACM (March 2009)
+  1898--1903
+
+\bibitem{multisetOver}
+Singh, D., Ibrahim, A.M., Yohanna, T., Singh, J.N.:
+\newblock An overview of the applications of multisets.
+\newblock Novi Sad J. Math \textbf{52}(2) (2007)  73--92
+
+\bibitem{CP2005}
+Crandall, R., Pomerance, C.:
+\newblock Prime Numbers--a Computational Approach. Second edn.
+\newblock Springer, New York (2005)
+
+\bibitem{Young98}
+Young, J.:
+\newblock Large primes and {Fermat} factors.
+\newblock Math. Comp. \textbf{67}(244) (1998)  1735--1738
+
+\bibitem{Riesel85}
+Riesel, H.:
+\newblock Prime Numbers and Computer Methods for Factorization. Volume~57 of
+  Progress in Mathematics., Boston, MA (1985) Current edition is
+  \cite{Riesel94}.
+
+\bibitem{Keller83}
+Keller, W.:
+\newblock Factors of {Fermat} numbers and large primes of the form $k\cdot 2^n
+  +1$.
+\newblock Math. Comp. \textbf{41} (1983)  661--673
+
+\bibitem{journals/fuin/CegielskiRV07}
+CŽgielski, P., Richard, D., Vsemirnov, M.:
+\newblock On the additive theory of prime numbers.
+\newblock Fundam. Inform. \textbf{81}(1-3) (2007)  83--96
+
+\bibitem{Goedel:31}
+G\"{o}del, K.:
+\newblock \"{U}ber formal unentscheidbare {S\"{a}tze der Principia Mathematica
+  und verwandter Systeme I}.
+\newblock Monatshefte f\"{u}r Mathematik und Physik \textbf{38} (1931)
+  173--198
+
+\bibitem{conf/icalp/HartmanisB74}
+Hartmanis, J., Baker, T.P.:
+\newblock On simple goedel numberings and translations.
+\newblock In Loeckx, J., ed.: ICALP. Volume~14 of Lecture Notes in Computer
+  Science., Springer (1974)  301--316
+
+\bibitem{conf/mfcs/MartinezM03}
+Martinez, C., Molinero, X.:
+\newblock Generic algorithms for the generation of combinatorial objects.
+\newblock In Rovan, B., Vojtas, P., eds.: MFCS. Volume 2747 of Lecture Notes in
+  Computer Science., Springer (2003)  572--581
+
+\bibitem{knuth06draft}
+Knuth, D.:
+\newblock {The Art of Computer Programming, Volume 4, draft} (2006)
+  http://www-cs-faculty.stanford.edu/$\sim$knuth/taocp.html.
+
+\bibitem{Ruskey90generatingbinary}
+Ruskey, F., Proskurowski, A.:
+\newblock Generating binary trees by transpositions.
+\newblock J. Algorithms \textbf{11} (1990)  68--84
+
+\bibitem{Myrvold01rankingand}
+Myrvold, W., Ruskey, F.:
+\newblock Ranking and unranking permutations in linear time.
+\newblock Information Processing Letters \textbf{79} (2001)  281--284
+
+\bibitem{finitemath}
+Takahashi, M.o.:
+\newblock {A Foundation of Finite Mathematics}.
+\newblock Publ. Res. Inst. Math. Sci. \textbf{12}(3) (1976)  577--708
+
+\bibitem{kaye07}
+Kaye, R., Wong, T.L.:
+\newblock {On Interpretations of Arithmetic and Set Theory}.
+\newblock Notre Dame J. Formal Logic Volume \textbf{48}(4) (2007)  497--510
+
+\bibitem{abian78}
+Abian, A., Lamacchia, S.:
+\newblock On the consistency and independence of some set-theoretical
+  constructs.
+\newblock Notre Dame Journal of Formal Logic \textbf{X1X}(1) (1978)  155--158
+
+\bibitem{avigad97}
+Avigad, J.:
+\newblock {The Combinatorics of Propositional Provability}.
+\newblock In: ASL Winter Meeting, San Diego (January 1997)
+
+\bibitem{DBLP:journals/mlq/Kirby07}
+Kirby, L.:
+\newblock {Addition and multiplication of sets}.
+\newblock Math. Log. Q. \textbf{53}(1) (2007)  52--65
+
+\bibitem{bijarrows}
+Alimarine, A., Smetsers, S., van Weelden, A., van Eekelen, M., Plasmeijer, R.:
+\newblock There and back again: arrows for invertible programming.
+\newblock In: Haskell '05: Proceedings of the 2005 ACM SIGPLAN workshop on
+  Haskell, New York, NY, USA, ACM Press (2005)  86--97
+
+\bibitem{bijeliot}
+{Conal Elliott}:
+\newblock {Data.Bijections Haskell Module}.
+\newblock http://haskell.org/haskellwiki/TypeCompose.
+
+\bibitem{hughes:arrows}
+Hughes, J.:
+\newblock {Generalizing Monads to Arrows} Science of Computer Programming 37,
+  pp. 67-111, May 2000.
+
+\bibitem{matcat}
+Mac~Lane, S.:
+\newblock Categories for the Working Mathematician.
+\newblock Springer-Verlag, New York, NY, USA (1998)
+
+\end{thebibliography}

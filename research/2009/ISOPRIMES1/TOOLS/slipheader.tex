@@ -1,0 +1,56 @@
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{verbatim} 
+\usepackage{pdfpages}
+\usepackage{listings}
+\lstloadlanguages{Haskell}
+% parameters in this will be overriden by same for {code}
+% so this will look the same - except that it will not be treated as code
+\lstnewenvironment{codex}
+    {\lstset{}%
+      \csname lst@SetFirstLabel\endcsname}
+    {\csname lst@SaveFirstLabel\endcsname}
+    \lstset{
+      basicstyle=\large\ttfamily,
+      flexiblecolumns=false,
+      basewidth={0.5em,0.45em},
+      literate={+}{{$+$}}1         
+    }    
+\lstnewenvironment{code}
+    {\lstset{}%
+      \csname lst@SetFirstLabel\endcsname}
+    {\csname lst@SaveFirstLabel\endcsname}
+    \lstset{
+      basicstyle=\small\ttfamily,
+      flexiblecolumns=false,
+      basewidth={0.5em,0.45em},
+      literate={+}{{$+$}}1 {*}{{$*$}}1 {=}{{$=$}}1
+               {>}{{$>$}}1 {<}{{$<$}}1
+               {<-}{{$\leftarrow$}}2
+               {|}{{$\mid$}}1               
+    }
+
+% \FIG{Label}{Title}[scale]{file.suf}
+\newcommand{\FIG}[4]{
+\begin{figure}[htbp]
+\centering
+{\includegraphics[scale=#3]{./figs/#4}}
+%\caption{#2}
+\label{#1}
+\end{figure}
+}
+
+\newtheorem{prop}{Proposition}
+\newtheorem{df}{Definition}
+\newcommand{\BFT}[1]{\begin{frame}[fragile]\frametitle<presentation>{#1}}
+\newcommand{\BFR}[0]{\begin{frame}}
+\newcommand{\EFR}[0]{\end{frame}}
+\newcommand{\BI}[0]{\begin{itemize}}
+\newcommand{\EI}[0]{\end{itemize}}
+\newcommand{\I}[0]{\item}
+\newcommand{\BE}[0]{\begin{enumerate}}
+\newcommand{\EE}[0]{\end{enumerate}}
+\newcommand{\PP}[0]{ \vskip 0.6cm }
+
+

@@ -1,0 +1,342 @@
+THIS IS REALLY A SCRATCHPAD FOR NOW - STILL, SOME OF IT  MIGHT 
+BECOME UNDERSTANDABLE (AND UNDERSTOOD:-)) AS TIME GOES BY.
+=============================================================
+
+HFS: a variable seen as a feature "is present" if 1 and "is absent if 0".
+Presence of each feature is determined by presence/absence of
+subfeatures. 2^N features can be encoded as presence/absence of N subfeatures.
+The proecess is recursive and paralels hereditarily finite sets seen as
+representations of integers through a reverse Ackerman mapping. The model
+can assume k "ur-features" where decomposition stops. Or we
+can think that evrything is encoded in terms of a single undecomposable
+ur-feature that denotes the absence of any features (the empty set in 
+HFS decomposition).
+
+
+K levels
+
+funs from Os (1 per node) at 0..K-1 to Is at K (2 inputs / node)
+expressed as var/var bindings
+
+each input depends on exactly one output => this gives the function step
+
+adding a K-input node:
+
+enumerate functions from the set of outputs to the inputs of the node
+
+modifier calculus:
+
+q in {0,1} 
+
+p:q modifier - p seen as mapping function q into q'
+
+===
+
+rebuilding "evrything" as composition of finite functions
+
+spec: a truth table n vars: v0...vn-1
+
+can be seen as a finite function tf from [0..n-1] to {0,1} (or alternatively as a subset of [0..n-1] - but that introduces something more complex?
+
+the synthesis problem:
+
+find a minimal set of functions that can be "assembled" together to emulate tf
+
+2 bit MUX f(c,x,y): {0,1}^3->{0,1} is universal
+
+f(0,x,y)=x
+f(1,x,y)=y
+
+set theoretical view:
+
+ts is a subset of [0..n-1]
+
+the synthesis problem would be:
+
+build a minimal representation of ts in terms of
+0={} and 1={{}} - likely to be different from classic set theoretic reconstruction of natural numbers i.e. the well known:
+
+0={}
+1={0}
+2={0,1}
+3={0,1,2}
+etc.
+
+
+===
+functions simpler than a 2-bit MUX:
+
+0: f[]=0   set encoding: {} i.e. 0
+1: f[]=1   set encoding {{}} i.e. 1
+
+(x,y) encoded as {{x},{x,y}} (Dedekind?)
+      (x,x) is {{x},{x}} => {{x}}
+      (y,y) is => {{y}}
+      (y,x) is => {{y},{x,y}}
+
+id: f[0]=0  set encoding: 01
+               (0,1)= {0,{0,1}}={{}, {{},{{}}} }
+    f[1]=1
+
+~: f[0]=1   set encoding: 10
+   f[1]=0
+
+false:      set encoding 00
+true:       set encoding 11
+   
+nand: set encoding: 1110 - universal
+
+simpler encoding: the address of the 0 (or 1) in the string: 11 - assuming
+there's exactly 1 0 in it, out of 3. 
+
+0-11 means exactly 1 occ of 0 in pos 11  
+
+(comment: what about 3 bit encodings - what do they map to? - is their anything there that can be seen as a universal building bloc)
+     
+automatic discovery of "logic(s)" seen as composition properties of primitive functions
+    
+is there an alternative "logic" that is "simpler" in the sense that its everage expressions have lower structural complexity?
+
+to answer this, we would try out increasing subsets of small finite functions, seen as libraries and use them to generate larger functions
+
+a precise notion of complexity - something like a universal bitstring/"goedel number" representation could be devised - to actually measure progress
+===
+
+motivation: simple functions have a direct mapping to the most fundamental observables in the world: associations between events
+
+interesting models for digital physics, space, time etc. can be built on top of that - besides the obvious electronic devices
+
+===
+
+use IO cones in the form of Horn clause defs
+
+i(I1....In):-Gates,o(O1...Om)
+
+or
+
+io([I1....In],[O1....Om]):-Gates.
+
+ComplexGate(BinEncoding,[I1...Im],[O1...On]):-SimpleGates.
+
+[I1...Im] all distinct, [O1...On] all distinct, but Is and Os may intersect
+
+hash on encoding
+
+===
+
+encoding sets of sets as bitmaps
+
+0={}
+1={{}}
+
+====
+
+limited discernability logic/set theory
+
+element equality is weekened as sets grow
+
+====
+
+what's in a natural number < 2^n
+
+a Peano arithmetics object
+a set seen as a bitstring of length n
+the truth table of a boolean function with n variables
+the hereditarily finite set obtained by reversing Ackerman's encoding
+various Herbrand terms
+a hypergraph - same as hfs, stop after one step
+a bipartite graph
+
+idea: use the Nat bijections to map from one view to another - solve
+computationally difficult problems by mapping them into equivalent
+ones
+
+====
+truth tables == hypergraphs (ONSET or OFFSET)
+==> hypergraph ISO is O(c^N) c const, N number of vertices
+algo proposal: iso if they have the same goedel number
+
+algo on DNF/CNF
+
+(y1+y2+..+yk) + ~(n1+n2...nj) + ?
+
+group a 0 val Ns in tt with a 1 val Ys as Ns<Ys
+
+for each line Ls (a Ns or Ys)
+   group them as L<R
+
+====
+logic functions as f: TTn x TTm --> TT(m union n)
+====
+
+to test syn:
+
+For n=3 a worst f is X XOR Y XOR Z, which can be realized by (X*Z'+X'*Z+Y')*(X*Z+X'*Z'+Y).
+For n=4 a worst f is W XOR X XOR Y XOR Z, which can be realized by ((X XOR Z)'+(W XOR Y)')*((X XOR Z)+(W XOR Y)) = (X*Z'+X'*Z+W'*Y+W*Y')*(X*Z+X'*Z'+W*Y+W'*Y') 
+
+=== TODO ===
+
+association learning
+
+DNF learning as synthesis
+
+============
+
+P x Q : cartesian product of 2 boolean vars or functions
+
+============
+
+modifier logic, instead of predicate calculus
+
+P:A:B
+
+P same as p(A,B) with A,B vars
+giving values to A,B restricts p(A,B) 
+i.e. instances of p(0,B) are a subset of the instances of p(A,B)
+
+this suggests:
+
+P:A:B to be P*A*B
+
+distinction between nouns (concepts) and adjectives (properties) removed
+
+unified ancestor: Observables - anything provided by a sensor
+
+what makes concepts special: at least one of them needs to be in a string
+of observables:
+
+quick* silver* FOX+
+
+the world: hereditarily finite set with observables as urelements
+
+time/space: a mapping from ordinals to the world
+
+primary causal structure - posets
+
+space: causally independent observables
+
+time: a linear ordering of causal entailments within a region of the space
+
+=============
+reversible operations might be simpler to synthetise - intermadiate layers
+should conserve all information - this limits the search
+=====
+
+
+hereditarily finite sets with N urelements
+
+how this provides functional decomposition:
+
+each variable is represented as an urelement - we assume there are 2^k of them
+each set of urelements is a truth table (as we see them as 1's in a 2^n vector) 
+i.e. a boolean function.
+
+for N urelements we have K=log2(N) variables - we look ar the urelements
+as functions of K vars
+
+to evaluate the urelement tree representation of a number M:
+
+let v1=.. v2..  vk=.. be a variable assignment to 0..1
+using urelements as tts they either are on or off
+a list of urelements is on if all its urelements are on
+by propagating this upward - one gets a 0..1 value ???
+
+number in 0..2^n-1 seen as a function from
+0..2^i-1 to 0..j-1 where i*j=n as 2^(i*j)=(2^i)^j
+
+the sequence:
+0->2^0=1->2^1=2->2^2=4->2^4=16->2^16=...
+
+follows the hereditarily finite set hierarchy
+====
+
+what is a truth table with N vars?
+
+a function from 0..N-1 to 0..1
+
+====
+
+0..MaxUr urelements, truth table with N vars N bit integer from 0..2^N-1
+
+what's a var assignment? a subset of the 0..N-1 vars (the ones=1)
+== a line in the truthtable from 0..2^N-1
+
+input: 0..2^N-1 + big truth table in 0..2^(2^N)-1, bitstring of len 2^N => output: 0,1
+same as: a bitstring of len N
+
+input: subset of 0..N-1, output: subset of PowSetOf(0..N-1)
+       subset of 0..3 output subset of 0..15 ???
+       
+       
+each layer in the hfs representation can be seen as a 0<n to 0<2^n mux
+
+decoders: from N binary bits to 2^N bits unary set representation
+
+10 + 0000 -> 0010 
+ 2     2^n bits
+ 
+01 ----/    0011
+
+==============
+1-bit decoder
+
+2^n: 00 --> 01 ---> 11
+  n:  0      1
+
+decoders build successive addresses
+==============
+
+N vars --> 2^N input pattern rows (seen as sets of vars that are 1) --> tt seen as a number from 0..(2^2^N) indicating which function it represents as a subset of the 2^N rows for which the tt is 1
+==============
+
+cascaded function building:
+
+ur2int
+
+each function contributes a bit to a truth table
+the truth table is then applied to the input pattern
+and the resulting bit will provide 1 bit of a new truth
+table - the process propagates from leaves to root
+
+tt of size 2^0=1 is either 0 or 1
+tt of size 2^1=2 is 00,01,10,11
+ 
+ 
+ ====
+ 
+ cartesian product + projection (decoder)
+ 
+ decoder: 0..n-1 -> 0..2^n-1 
+    (converts a integer n in base 2 to a subset 
+    of 2^n 0....1....0 with 1 in nth position)
+    
+=====
+
+part hierarchies for numbers
+
+unpairing vs. number as set of smaller numbers - hereditarily
+finite set decomposition
+
+
+==== visualizing with colors & shapes
+
+r=red,g=green,b=blue,l=light,o=oversized,s=square,p=pulsing
+
+=====
+
+what's in an (attributed) morphism?
+
+dict D:Key->Vals (seen as I->I)
+
+C: VxV->E*
+
+prolog terms
+
+f,g funs or consts nums included
+
+f(... g ...)
+      i
+      
+f->i->g
+
+[....]-> i --> [.....]      

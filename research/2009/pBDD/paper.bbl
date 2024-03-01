@@ -1,0 +1,126 @@
+\begin{thebibliography}{10}
+
+\bibitem{Goedel:31}
+G\"{o}del, K.:
+\newblock \"{U}ber formal unentscheidbare {S\"{a}tze der Principia Mathematica
+  und verwandter Systeme I}.
+\newblock Monatshefte f\"{u}r Mathematik und Physik \textbf{38} (1931)
+  173--198
+
+\bibitem{knuth06draft}
+Knuth, D.:
+\newblock {The Art of Computer Programming, Volume 4, draft} (2006)
+  http://www-cs-faculty.stanford.edu/$\sim$knuth/taocp.html.
+
+\bibitem{bryant86graphbased}
+Bryant, R.E.:
+\newblock Graph-based algorithms for boolean function manipulation.
+\newblock {IEEE} Transactions on Computers \textbf{35}(8) (1986)  677--691
+
+\bibitem{shannon_all}
+Shannon, C.E.:
+\newblock {Claude Elwood Shannon: collected papers}.
+\newblock IEEE Press, Piscataway, NJ, USA (1993)
+
+\bibitem{robinson50}
+Robinson, J.:
+\newblock General recursive functions.
+\newblock Proceedings of the American Mathematical Society \textbf{1}(6) (dec
+  1950)  703--718
+
+\bibitem{DBLP:journals/tcs/CegielskiR01}
+C{\'e}gielski, P., Richard, D.:
+\newblock Decidability of the theory of the natural integers with the cantor
+  pairing function and the successor.
+\newblock Theor. Comput. Sci. \textbf{257}(1-2) (2001)  51--77
+
+\bibitem{DBLP:conf/ipps/Rosenberg02a}
+Rosenberg, A.L.:
+\newblock Efficient pairing functions - and why you should care.
+\newblock International Journal of Foundations of Computer Science
+  \textbf{14}(1) (2003)  3--17
+
+\bibitem{pigeon}
+Pigeon, S.:
+\newblock Contributions \`{a} la compression de donn\'{e}es.
+\newblock Ph.d. thesis, Universit\'{e} de Montr\'{e}al, Montr\'{e}al (2001)
+
+\bibitem{ciclops08:pBDD}
+Tarau, P.:
+\newblock {Pairing Functions, Boolean Evaluation and Binary Decision Diagrams}.
+\newblock In Carro, M., Demoen, B., eds.: Proceedings of CICLOPS 2008, 8th
+  International Colloquium on Implementation of Constraint and LOgic
+  Programming Systems. (December 2008)  139--153
+
+\bibitem{pepis}
+Pepis, J.:
+\newblock Ein verfahren der mathematischen logik.
+\newblock The Journal of Symbolic Logic \textbf{3}(2) (jun 1938)  61--76
+
+\bibitem{kalmar1}
+Kalmar, L.:
+\newblock On the reduction of the decision problem. first paper. ackermann
+  prefix, a single binary predicate.
+\newblock The Journal of Symbolic Logic \textbf{4}(1) (mar 1939)  1--9
+
+\bibitem{conf/icalp/HartmanisB74}
+Hartmanis, J., Baker, T.P.:
+\newblock On simple goedel numberings and translations.
+\newblock In Loeckx, J., ed.: ICALP. Volume~14 of Lecture Notes in Computer
+  Science., Springer (1974)  301--316
+
+\bibitem{conf/mfcs/MartinezM03}
+Martinez, C., Molinero, X.:
+\newblock Generic algorithms for the generation of combinatorial objects.
+\newblock In Rovan, B., Vojtas, P., eds.: MFCS. Volume 2747 of Lecture Notes in
+  Computer Science., Springer (2003)  572--581
+
+\bibitem{DBLP:journals/tcad/DrechslerSF04}
+Drechsler, R., Shi, J., Fey, G.:
+\newblock Synthesis of fully testable circuits from bdds.
+\newblock IEEE Trans. on CAD of Integrated Circuits and Systems \textbf{23}(3)
+  (2004)  440--443
+
+\bibitem{DBLP:conf/ices/SakanashiHIK96}
+Sakanashi, H., Higuchi, T., Iba, H., Kakazu, Y.:
+\newblock Evolution of binary decision diagrams for digital circuit design
+  using genetic programming.
+\newblock In Higuchi, T., Iwata, M., Liu, W., eds.: ICES. Volume 1259 of
+  Lecture Notes in Computer Science., Springer (1996)  470--481
+
+\bibitem{DBLP:journals/heuristics/ChenLHW04}
+Chen, S.T., Lin, S.S., Huang, L.T., Wei, C.J.:
+\newblock Towards the exact minimization of bdds-an elitism-based distributed
+  evolutionary algorithm.
+\newblock J. Heuristics \textbf{10}(3) (2004)  337--355
+
+\bibitem{DBLP:journals/ml/RaedtKKRT08}
+Raedt, L.D., Kersting, K., Kimmig, A., Revoredo, K., Toivonen, H.:
+\newblock Compressing probabilistic prolog programs.
+\newblock Machine Learning \textbf{70}(2-3) (2008)  151--168
+
+\bibitem{DBLP:conf/padl/HawkinsS06}
+Hawkins, P., Stuckey, P.J.:
+\newblock A hybrid bdd and sat finite domain constraint solver.
+\newblock In Hentenryck, P.V., ed.: PADL. Volume 3819 of Lecture Notes in
+  Computer Science., Springer (2006)  103--117
+
+\bibitem{cf08}
+Tarau, P., Luderman, B.:
+\newblock Exact combinational logic synthesis and non-standard circuit design.
+\newblock In: CF '08: Proceedings of the 2008 conference on Computing
+  frontiers, New York, NY, USA, ACM (2008)  179--188
+
+\bibitem{iclp07}
+Tarau, P., Luderman, B.:
+\newblock {A Logic Programming Framework for Combinational Circuit Synthesis}.
+\newblock In: {23rd International Conference on Logic Programming (ICLP), LNCS
+  4670}, Porto, Portugal, Springer (September 2007)  180--194
+
+\bibitem{koza92}
+Koza, J.R.:
+\newblock Genetic Programming: On the Programming of Computers by Means of
+  Natural Selection.
+\newblock MIT Press, Cambridge, MA, USA (1992)
+
+\end{thebibliography}

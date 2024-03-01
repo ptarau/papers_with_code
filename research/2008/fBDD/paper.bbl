@@ -1,0 +1,74 @@
+\begin{thebibliography}{10}
+
+\bibitem{bryant86graphbased}
+R.~E. Bryant.
+\newblock Graph-based algorithms for boolean function manipulation.
+\newblock {\em {IEEE} Transactions on Computers}, 35(8):677--691, 1986.
+
+\bibitem{CBGP08}
+F.~Ciesinski, C.~Baier, M.~Groesser, and D.~Parker.
+\newblock Generating compact {MTBDD}-representations from {Probmela}
+  specifications.
+\newblock In {\em Proc. 15th International SPIN Workshop on Model Checking of
+  Software (SPIN'08)}, 2008.
+
+\bibitem{DBLP:journals/fmsd/FujitaMY97}
+M.~Fujita, P.~C. McGeer, and J.~C.-Y. Yang.
+\newblock Multi-terminal binary decision diagrams: An efficient data structure
+  for matrix representation.
+\newblock {\em Formal Methods in System Design}, 10(2/3):149--169, 1997.
+
+\bibitem{knuth06draft}
+D.~Knuth.
+\newblock {The Art of Computer Programming, Volume 4, draft}, 2006.
+\newblock http://www-cs-faculty.stanford.edu/$\sim$knuth/taocp.html.
+
+\bibitem{koza92}
+J.~R. Koza.
+\newblock {\em Genetic Programming: On the Programming of Computers by Means of
+  Natural Selection}.
+\newblock MIT Press, Cambridge, MA, USA, 1992.
+
+\bibitem{DBLP:journals/jcsc/MeinelT99}
+C.~Meinel and T.~Theobald.
+\newblock Ordered binary decision diagrams and their significance in
+  computer-aided design of vlsi circuits.
+\newblock {\em Journal of Circuits, Systems, and Computers}, 9(3-4):181--198,
+  1999.
+
+\bibitem{pigeon}
+S.~Pigeon.
+\newblock {\em Contributions \`{a} la compression de donn\'{e}es.}
+\newblock Ph.d. thesis, Universit\'{e} de Montr\'{e}al, Montr\'{e}al, 2001.
+
+\bibitem{robinson50}
+J.~Robinson.
+\newblock General recursive functions.
+\newblock {\em Proceedings of the American Mathematical Society},
+  1(6):703--718, dec 1950.
+
+\bibitem{DBLP:conf/ices/SakanashiHIK96}
+H.~Sakanashi, T.~Higuchi, H.~Iba, and Y.~Kakazu.
+\newblock Evolution of binary decision diagrams for digital circuit design
+  using genetic programming.
+\newblock In T.~Higuchi, M.~Iwata, and W.~Liu, editors, {\em ICES}, volume 1259
+  of {\em Lecture Notes in Computer Science}, pages 470--481. Springer, 1996.
+
+\bibitem{shannon_all}
+C.~E. Shannon.
+\newblock {\em {Claude Elwood Shannon: collected papers}}.
+\newblock IEEE Press, Piscataway, NJ, USA, 1993.
+
+\bibitem{iclp07}
+P.~Tarau and B.~Luderman.
+\newblock {A Logic Programming Framework for Combinational Circuit Synthesis}.
+\newblock In {\em {23rd International Conference on Logic Programming (ICLP),
+  LNCS 4670}}, pages 180--194, Porto, Portugal, Sept. 2007. Springer.
+
+\bibitem{cf08}
+P.~Tarau and B.~Luderman.
+\newblock Exact combinational logic synthesis and non-standard circuit design.
+\newblock In {\em CF '08: Proceedings of the 2008 conference on Computing
+  frontiers}, pages 179--188, New York, NY, USA, 2008. ACM.
+
+\end{thebibliography}

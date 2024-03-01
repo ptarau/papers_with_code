@@ -1,0 +1,612 @@
+\pdfoutput=1
+% paper 50 COCOON'09 submission
+\documentclass[]{INCLUDES/llncs}
+\usepackage{TOOLS/dcpic,pictexwd}
+\input TOOLS/jhheader.tex
+\title{
+    Emulating Primality: Experimental Combinatorics in Haskell
+ }
+\author{Paul Tarau}
+\institute{
+   Department of Computer Science and Engineering\\
+   University of North Texas\\
+   {\em E-mail: tarau@cs.unt.edu}
+}
+
+\begin{document}
+\maketitle
+\date{}
+
+\begin{abstract}
+We emulate interesting properties of prime numbers
+through a groupoid of isomorphisms connecting them to
+computationally simpler representations involving multisets.
+The paper is
+organized as a self-contained literate Haskell program inviting the reader to
+explore its content independently. Interactive use is 
+facilitated by an embedded combinator language
+providing any-to-any isomorphisms between heterogenous
+types.
+
+{\bf Keywords}:
+{\em 
+multiset encodings and prime numbers,
+ranking/unranking bijections,
+experimental combinatorics,
+computational mathematics
+}
+\end{abstract}
+
+\begin{comment}
+\begin{code}
+module ISOPRIMES where
+import Data.List
+import Data.Graph
+import Data.Graph.Inductive
+import Graphics.Gnuplot.Simple
+import ISO0
+\end{code}
+\end{comment}
+
+\section{Introduction}
+
+A number of breakthroughs in various sciences involve small scale emulation of
+complex phenomena. Common sense analogies thrive on our ability to extrapolate
+from simpler (or, at least, more frequently occurring and well understood)
+mechanisms to infer surprising properties in a more distant ontology.
+
+Prime numbers exhibit a number of fundamental properties of natural phenomena
+and human artifacts in an unusually pure form. For instance, {\em
+reversibility} is present as the ability to recover the operands of a
+product of distinct primes. This relates to the information
+theoretical view of multiplication \cite{DBLP:journals/tit/Pippenger05} and it
+suggests exploring connections between 
+ combinatorial properties and
+operations on multisets and multiplicative
+number theory.
+
+With such methodological hints in mind, this paper will explore in the form of
+a literate Haskell program some unusual analogies involving prime numbers, that
+have emerged from our effort to provide a compositional and extensible data transformation
+framework connecting most of the fundamental data types used in computer
+science with a {\em groupoid of isomorphisms} \cite{arxiv:fISO}.
+
+The paper uses a pure subset of Haskell as a formal executable specification
+language. Given that it faithfully embodies typed $\lambda$-calculus
+we hope the reader will forgive our assumption that it is a safe replacement for
+conventional mathematical notation. While our effort is sometimes driven 
+by basic category theoretical concepts, we have limited unfamiliar terminology
+to a bare minimum and provided self-contained intuitions through an extensive
+set of examples and executable specifications.
+
+The paper is organized as follows: section \ref{msetiso} introduces an
+isomorphism between finite multisets and sequences  which is then extended to
+sets in subsection \ref{isosets} and natural numbers in subsection \ref{natset}.
+Section \ref{pmset} connects multiset encodings and primes.
+Section \ref{fact} explores the analogy between multiset decompositions and
+factoring and describes a multiplicative monoid structure on multisets
+that ``emulates'' interesting properties of its natural number counterpart.
+Section \ref{related} overviews some related work and section \ref{concl}
+concludes the paper by pointing out its main contributions.
+
+In \cite{sac09fISO}
+an embedded data transformation language is introduced, specified as a set of operations
+on a groupoid of isomorphisms connecting various data types. To make this paper
+self-contained as a literate Haskell program, we will provide in the
+{\tt Appendix} the relevant code borrowed from \cite{sac09fISO}.
+
+\section{An Isomorphism between Finite Multisets and Finite Functions}
+\label{msetiso}
+
+Multisets \cite{multisetOver} are unordered collections with repeated
+elements. 
+Non-decreasing sequences provide a canonical representation for
+multisets of natural numbers. 
+The isomorphism between finite multisets and finite functions (seen as
+finite sequences of natural numbers is
+specified with two bijections {\tt mset2fun} and {\tt fun2mset}.
+\begin{code}
+mset :: Encoder [Nat]
+mset = Iso mset2fun fun2mset
+\end{code}
+While finite multisets and sequences representing finite functions share a
+common representation $[Nat]$, multisets are subject to the implicit constraint that their
+ordering is immaterial.
+This suggest that a multiset like $[4,4,1,3,3,3]$ could be
+represented canonically as sequence by first ordering it as $[1,3,3,3,4,4]$ and
+then computing the differences between consecutive elements i.e.
+$[x_0 \ldots x_i, x_{i+1} \ldots] \rightarrow [x_0 \ldots x_{i+1}-x_i
+\ldots]$.
+This gives $[1,2,0,0,1,0]$, with
+the first element $1$ followed by the increments $[2,0,0,1,0]$,
+as implemented by {\tt mset2fun}:
+\begin{code}
+mset2fun = to_diffs . sort
+to_diffs xs = zipWith (-) (xs) (0:xs)
+\end{code}
+It is now clear that incremental sums of the
+numbers in such a sequence
+return the original set
+in sorted form, as implemented by {\tt fun2mset}:
+\begin{code}
+fun2mset ns = tail (scanl (+) 0 ns) 
+\end{code}
+The resulting isomorphism {\tt mset} can be applied directly using its two
+components {\tt mset2fun} and {\tt fun2mset}. Equivalently, it can be
+expressed more ``generically'' by using the {\tt as} combinator, as
+follows:
+\begin{codex}
+*ISO> mset2fun [1,3,3,3,4,4]
+[1,2,0,0,1,0]
+*ISO> fun2mset [1,2,0,0,1,0]
+[1,3,3,3,4,4]
+*ISO> as fun mset [1,3,3,3,4,4]
+[1,2,0,0,1,0]
+*ISO> as mset fun [1,2,0,0,1,0]
+[1,3,3,3,4,4]
+\end{codex}
+
+\subsection{Extending the isomorphism to finite sets} \label{isosets}
+While finite sets and sequences share a common representation $[Nat]$,
+sets are subject to the implicit constraints that all their elements
+are distinct and ordering is immaterial.
+Like in the case of multisets, this suggest that a set like $\{7,1,4,3\}$ could
+be represented by first ordering it as $\{1,3,4,7\}$ and then compute the 
+differences between consecutive elements. This gives $[1,2,1,3]$, with
+the first element $1$ followed by the increments $[2,1,3]$. To turn
+it into a bijection, including $0$ as a possible member of a sequence,
+another adjustment is needed: elements in the sequence of increments should
+be replaced by their predecessors. This gives $[1,1,0,2]$ as implemented
+by {\tt set2fun}:
+\begin{code}
+set2fun xs = shift_tail pred (mset2fun xs) where
+  shift_tail _ [] = []
+  shift_tail f (x:xs) = x:(map f xs)
+\end{code}
+It can now be verified easily that predecessors of the incremental sums of the
+successors of numbers in such a sequence, return the original set
+in sorted form, as implemented by {\tt fun2set}:
+\begin{code}
+fun2set = (map pred) . fun2mset . (map succ)
+\end{code}
+The {\em Encoder} (an isomorphism with {\tt fun}) can be specified with the two
+bijections {\tt set2fun} and {\tt fun2set}.
+\begin{code}
+set :: Encoder [Nat]
+set = Iso set2fun fun2set
+\end{code}
+The Encoder ({\tt set}) is now ready to interoperate 
+with another Encoder:
+\begin{codex}
+*ISO> as fun set [0,2,3,4,9]
+[0,1,0,0,4]
+*ISO> as set fun [0,1,0,0,4]
+[0,2,3,4,9]
+*ISO> as mset set [0,2,3,4,9]
+[0,1,1,1,5]
+*ISO> as set mset [0,1,1,1,5]
+[0,2,3,4,9]
+\end{codex}
+As the example shows,the Encoder {\tt set} connects arbitrary lists of
+natural numbers representing finite functions
+to strictly increasing sequences
+of natural numbers representing sets.
+Then, through the use of the combinator {\tt as}, sets represented by {\tt set}
+are (bijectively) connected to multisets represented by {\tt mset}. This
+connection is (implicitly) routed through a connection to {\tt fun}, as if
+\begin{codex}
+*ISO> as mset fun [0,1,0,0,4]
+[0,1,1,1,5]
+\end{codex}
+were executed.
+
+\subsection{Ranking/unranking: from sets into natural numbers and back}
+\label{natset} We can {\em rank} a set represented as a list of distinct
+natural numbers by mapping it into a single natural number,
+and, reversibly, by observing that it can be seen
+as the list of exponents of {\tt 2} in the number's
+base {\tt 2} representation.
+
+\begin{code}
+nat_set = Iso nat2set set2nat 
+
+nat2set n | n>=0 = nat2exps n 0 where
+  nat2exps 0 _ = []
+  nat2exps n x = if (even n) then xs else (x:xs) where
+    xs=nat2exps (n `div` 2) (succ x)
+
+set2nat ns = sum (map (2^) ns)
+\end{code}
+
+Using the groupoid of isomorphisms given in \cite{sac09fISO} (also described in
+the Appendix), we will standardize our {\em ranking} and {\em unranking}
+operations as an {\em Encoder} for a natural number using (implicitly)
+finite sequences as a mediator:
+\begin{code}
+nat :: Encoder Nat
+nat = compose nat_set set
+\end{code}
+Given that {\tt nat} is an isomorphism with the Root object {\tt fun}, one can
+use directly its {\tt from} and {\tt to} components:
+\begin{codex}
+*ISO> from nat 2008
+[3,0,1,0,0,0,0]
+*ISO> to nat it
+2008
+\end{codex}
+Moreover, the resulting Encoder ({\tt nat}) is now ready to interoperate 
+with any Encoder, in a generic way:
+\begin{codex}
+*ISO> as set nat 2008
+[3,4,6,7,8,9,10]
+*ISO> as nat set [3,4,6,7,8,9,10]
+2008
+\end{codex}
+One can now define, for instance, a mapping from natural numbers to multi-sets
+simply as:
+\begin{code}
+nat2mset = as mset nat
+mset2nat = as nat mset 
+\end{code}
+but we will not explicitly need such definitions as the the equivalent
+function is clearly provided by the combinator {\tt as}.
+One can now borrow operations between {\tt set} and {nat} as follows:
+\begin{codex}
+*ISO> borrow_from set union nat 42 2008
+2042
+*ISO> 42 .|. 2008 :: Nat
+2042
+*ISO> borrow_from set intersect nat 42 2008
+8
+*ISO> 42 .&. 2008 :: Nat
+8
+\end{codex}
+and notice that operations like union and intersection of sets map to boolean
+operations on numbers.
+
+\section{Encoding finite multisets with primes} \label{pmset}
+
+A factorization of a natural number is uniquely
+described as multiset or primes. We will use the fact that each prime number 
+is uniquely associated to its position in the infinite stream of primes
+to obtain a bijection from multisets of natural numbers to natural numbers.
+Note that this mapping is the same as the {\em prime counting function}
+traditionally denoted $\pi(n)$, which associates to $n$ the number of primes
+smaller or equal to $n$, restricted to primes. 
+We assume defined a prime generator {\tt primes} and a factoring function
+{\tt to\_factors} (see Appendix).
+
+The function {\tt nat2pmset} maps a natural number to the multiset of prime
+positions in its factoring. Note that we treat {\tt 0} as {\tt []} and shift
+{\tt n} to {\tt n+1} to accomodate {\tt 0} and {\tt 1}, to which prime factoring
+operations do not apply.
+\begin{code}
+nat2pmset 0 = []
+nat2pmset n = map (to_pos_in (h:ts)) (to_factors (n+1) h ts) where
+  (h:ts)=genericTake (n+1) primes
+  
+to_pos_in xs x = fromIntegral i where Just i=elemIndex x xs
+\end{code}
+The function {\tt pmset2nat} maps back a multiset of positions of primes to
+the result of the product of the corresponding primes. Again, we map {\tt []} to
+{\tt 0} and shift back by {\tt 1} the result.
+\begin{code}
+pmset2nat [] = 0
+pmset2nat ns = (product ks)-1 where
+  ks=map (from_pos_in ps) ns
+  ps=primes
+  from_pos_in xs n = xs !! (fromIntegral n)
+\end{code}
+We obtain the Encoder:
+\begin{code}
+pmset :: Encoder [Nat]
+pmset = compose (Iso pmset2nat nat2pmset) nat
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as pmset nat 2008
+[3,3,12]
+*ISO> as nat pmset it
+2008
+\end{codex}
+Note that the mappings from a set or sequence to a number work in time and
+space linear in the bitsize of the number. On the other hand, as prime number
+enumeration and factoring are involved in the mapping from numbers to multisets
+this encoding is intractable for all but small values.
+
+\section{Exploring the analogy between multiset decompositions and factoring}
+\label{fact}
+As natural numbers can be uniquely represented as multisets
+of prime factors and, independently, they can also be represented as a multiset
+with the Encoder {\tt mset} described in subsection \ref{msetiso}, the following
+question arises naturally:
+
+{\em Can in any way the ``easy to reverse'' encoding {\tt mset} emulate or
+predict properties of the the difficult to reverse factoring operation?}
+
+The first step is to define an analog of the multiplication operation in terms
+of the computationally easy multiset encoding {\tt mset}. Clearly, it makes
+sense to take inspiration from the fact that factoring of an ordinary product of 
+two numbers can be computed by concatenating the multisets of 
+prime factors of its operands.
+
+\begin{code}
+mprod = borrow_from mset (++) nat
+\end{code}
+\begin{prop}
+$<N,mprod,0>$ is a commutative monoid i.e. {\tt mprod} is defined for all pairs of natural
+numbers and it is associative, commutative
+and has 0 as an identity element.
+\end{prop}
+After rewriting the definition of {\tt mprod} as the equivalent:
+\begin{code}
+mprod_alt n m = as nat mset ((as mset nat n) ++ (as mset nat m))
+\end{code}
+the proposition follows immediately from the associativity of the
+concatenation operation and the order independence of the multiset
+encoding provided by {\tt mset}.
+We can derive an exponentiation operation 
+as a repeated application of {\tt mprod}:
+\begin{code}
+mexp n 0 = 0
+mexp n k = mprod n (mexp n (k-1))
+\end{code}
+
+Here are a few examples showing that {\tt mprod} has properties similar to
+ordinary multiplication and exponentiation:
+\begin{codex}
+*ISO> mprod 41 (mprod 33 88)
+3539
+*ISO> mprod (mprod 41 33)  88
+3539
+*ISO> mprod 33 46
+605
+*ISO> mprod 46 33
+605
+*ISO> mprod 0 712
+712
+*ISO> map (\x->mexp x 2) [0..15]
+[0,3,6,15,12,27,30,63,24,51,54,111,60,123,126,255]
+*ISO> map (\x->x^2) [0..15]
+[0,1,4,9,16,25,36,49,64,81,100,121,144,169,196,225]
+\end{codex}
+Note also that any multiset encoding of natural numbers can be
+used to define a similar commutative monoid structure. In the case of {\tt
+pmset} we obtain:
+\begin{code}
+pmprod n m = as nat pmset ((as pmset nat n) ++ (as pmset nat m))
+\end{code}
+If one defines:
+\begin{code}
+pmprod' n m = (n+1)*(m+1)-1
+\end{code}
+it follows immediately from the definition of {\tt mprod} that:
+\begin{equation}
+pmprod \equiv pmprod'
+\end{equation}
+This is useful as computing {\tt pmprod'} is easy while computing {\tt mprod}
+involves factoring which is intractable for large values. This brings us back to
+observe that:
+\begin{prop}
+$<N,pmprod,0>$ is a commutative monoid i.e. {\tt pmprod} is defined for all pairs of
+natural numbers and it is associative, commutative
+and has 0 as an identity element.
+\end{prop}
+One can bring {\tt mprod} closer to ordinary multiplication by defining
+\begin{code}
+mprod' 0 _ = 0
+mprod' _ 0 = 0
+mprod' m n = (mprod (n-1) (m-1)) + 1
+
+mexp' n 0 = 1
+mexp' n k = mprod' n (mexp' n (k-1))
+\end{code}
+and by observing that they correlate as follows:
+\begin{codex}
+*ISO> map (\x->mexp' x 2) [0..16]
+[0,1,4,7,16,13,28,31,64,25,52,55,112,61,124,127,256]
+*ISO> map (\x->x^2) [0..16]
+[0,1,4,9,16,25,36,49,64,81,100,121,144,169,196,225,256]
+[0,1,8,15,64,29,120,127,512,57,232,239,960,253,1016,1023,4096]
+*ISO> map (\x->x^3) [0..16]
+[0,1,8,27,64,125,216,343,512,729,1000,1331,1728,2197,2744,3375,4096]
+\end{codex}
+Fig. \ref{isoExpMexp} shows that values for {\tt mexp'} follow from below those
+of the $x^2$ function and that equality only holds when x is a power of 2.
+\FIG{isoExpMexp}{Square vs. mexp' n 2 }{0.40}{isoExpMexp.pdf}
+
+Note that the structure induced by {\tt mprod'} is similar to ordinary
+multiplication:
+\begin{prop}
+$<N,mprod',1>$ is a commutative monoid i.e. {\tt mprod'} is defined for all pairs of
+natural numbers and it is associative, commutative
+and has {\tt 1} as an identity element.
+\end{prop}
+Interestingly, {\tt mprod'} coincides with ordinary multiplication if one of the
+operands is a power of 2. More precisely, the following holds:
+\begin{prop}
+$mprod'~x~y = x * y$ if and only if 
+$\exists n \geq 0$ such that $x=2^n$ or $y=2^n$.
+Otherwise, $mprod'~x~y <  x * y$.
+\end{prop}
+Fig. \ref{isoMdivP} shows the self-similar landscape
+generated by the $[0..1]$-valued function {\tt (mprod' x y) / (x*y)}
+for values of x,y in $[1..128]$.
+\FIG{isoMdivP}{Ratio between mprod' and product}{0.40}{isoMdivP.pdf} %n4f
+
+Besides the connection with products, natural mappings worth investigating are
+the analogies between {\em multiset intersection} and {\tt gcd} of the
+corresponding numbers or between {\em multiset
+union} and the {\tt lcm} of the corresponding numbers. Assuming the
+definitions of multiset operations provided in the Appendix, one can define:
+
+\begin{code}
+mgcd :: Nat -> Nat -> Nat
+mgcd = borrow_from mset msetInter nat
+
+mlcm :: Nat -> Nat -> Nat
+mlcm = borrow_from mset msetUnion nat
+
+mdiv :: Nat -> Nat -> Nat
+mdiv = borrow_from mset msetDif nat
+\end{code}
+and note that properties similar to usual arithmetic operations hold:
+\begin{equation}
+mprod (mgcd~x~y) (mlcm~x~y)  \equiv mprod~x~y
+\end{equation}
+\begin{equation}
+mdiv (mprod~x~y)~y \equiv x
+\end{equation}
+\begin{equation}
+mdiv (mprod~x~y)~x \equiv y
+\end{equation}
+
+We are now ready to ``emulate'' primality in our multiset monoid by defining
+{\tt is\_mprime} as a recognizer for {\em multiset primes} and {\tt mprimes} as
+a generator of their infinite stream:
+\begin{code}
+is_mprime p = []==[n|n<-[1..p-1],n `mdiv` p==0]
+
+mprimes = filter is_mprime [1..]
+\end{code}
+Trying out {\tt mprimes} gives:
+\begin{codex}
+*ISO> take 10 mprimes
+[1,2,4,8,16,32,64,128,256,512]
+\end{codex}
+suggesting the following proposition:
+\begin{prop}
+There's an infinite number of {\em multiset primes} and they are exactly the
+powers of 2.
+\end{prop}
+The proof follows immediately from observing that the first value of {\tt
+as mset nat n} that contains $k$, is $n=2^k$, and the definition of {\tt mdiv},
+as derived from the multiset difference operation {\tt msetDif}.
+
+The key difference between our ``emulated'' multiplicative arithmetics and the
+conventional one is that we do not have an obvious equivalent of addition. In
+its simplest form, this would mean defining a successor and predecessor
+function. 
+Also, given that {\tt mprod,mprod',pmprod'} and {\tt pmprod} are not
+distributive with ordinary addition, it looks like an interesting {\em open problem}
+to find for each of them compatible additive operations.
+
+\section{Related work} \label{related}
+There's a huge amount of work on prime numbers and related aspects of
+multiplicative and additive number theory. Studies of prime number distribution
+and various probabilistic and information theoretic aspects also abound.
+While we have not made used of any significantly advanced facts about prime
+numbers, the following references can be used to circumscribe the 
+main topics to which our experiments can be connected
+\cite{CP2005,Young98,Riesel85,Keller83,journals/fuin/CegielskiRV07}.
+
+{\em Ranking} functions can be traced back to G\"{o}del numberings
+\cite{Goedel:31,conf/icalp/HartmanisB74} associated to formulae. 
+Together with their inverse {\em unranking} functions they are also 
+used in combinatorial generation
+algorithms for various data types
+\cite{conf/mfcs/MartinezM03,knuth06draft,Ruskey90generatingbinary,Myrvold01rankingand}.
+
+Natural Number encodings of various set-theoretic constructs have 
+triggered the interest of researchers in fields ranging from 
+Axiomatic Set Theory and Foundations of Logic to 
+Complexity Theory and Combinatorics
+\cite{finitemath,kaye07,abian78,avigad97,DBLP:journals/mlq/Kirby07}.
+
+The closest reference on encapsulating bijections
+as a Haskell data type is \cite{bijarrows} 
+and Conal Elliott's composable
+bijections module \cite{bijeliot},
+where, in a more complex setting,
+Arrows \cite{hughes:arrows} are used 
+as the underlying abstractions.
+While our {\tt Iso} data type is similar
+to the {\em Bij} data type in \cite{bijeliot} and
+BiArrow concept of \cite{bijarrows},
+the techniques for using such isomorphisms
+as building blocks of an embedded composition
+language centered around encodings
+as natural numbers, in particular our multiset and prime number 
+encodings, are new.
+
+As the domains between which we define our groupoid of
+isomorphisms can be organized as categories,
+it is likely that some of our constructs would benefit
+from {\em natural transformation} \cite{matcat}
+formulations.
+
+Some other techniques are
+for sure part of the scientific commons. 
+In that
+case our focus was to express them as
+elegantly as possible in a uniform framework.
+In these cases as well, most of the time
+it was faster to ``just do it'', by implementing
+them from scratch in a functional programming 
+framework, rather than adapting procedural 
+algorithms found elsewhere.
+
+\section{Conclusion} \label{concl}
+We have explored some computational analogies
+between multisets, natural number encodings
+and prime numbers in a framework for experimental
+mathematics implemented as a literate Haskell
+program. We will conclude by  pointing out
+the new contributions of the paper:
+\begin{itemize}
+  \item the isomorphisms between multisets/sets/sequences/natural numbers
+  \item the encoding of multisets with primes and the $\pi$
+  prime-counting function
+  \item the commutative monoid structure on multisets emulating factoring
+\end{itemize}
+Future work will focus on finding a matching additive operation for the
+multiset induced commutative monoid and an exploration of some possible 
+practical applications to arbitrary 
+length integer operations based on multiset representations.
+
+
+\bibliographystyle{INCLUDES/splncs}
+\bibliography{INCLUDES/theory,tarau,INCLUDES/proglang,INCLUDES/biblio,INCLUDES/syn}
+
+\input iso0.tex 
+
+\subsection*{Primes}
+The following code implements factoring function {\tt to\_primes} a primality
+test ({\tt is\_prime}) and a generator for the infinite stream of prime numbers
+{\tt primes}.
+
+\begin{code}
+primes = 2 : filter is_prime [3,5..]
+
+is_prime p = [p]==to_primes p
+
+to_primes n | n>1 = to_factors n p ps where 
+  (p:ps) = primes
+
+to_factors n p ps | p*p > n = [n]
+to_factors n p ps | 0==n `mod` p = p : to_factors (n `div` p)  p ps 
+to_factors n p ps@(hd:tl) = to_factors n hd tl
+\end{code}
+
+\subsection*{Multiset Operations}
+The following functions provide multiset analogues of the usual set operations,
+under the assumption that multisets are represented as non-decreasing sequences.
+\begin{code}
+msetInter [] _ = []
+msetInter _ [] = []
+msetInter (x:xs) (y:ys) | x==y = (x:zs) where zs=msetInter xs ys
+msetInter (x:xs) (y:ys) | x<y = msetInter xs (y:ys)
+msetInter (x:xs) (y:ys) | x>y = msetInter (x:xs) ys
+
+msetDif [] _ = []
+msetDif xs [] = xs
+msetDif (x:xs) (y:ys) | x==y = zs where zs=msetDif xs ys
+msetDif (x:xs) (y:ys) | x<y = (x:zs) where zs=msetDif xs (y:ys)
+msetDif (x:xs) (y:ys) | x>y = zs where zs=msetDif (x:xs) ys
+
+msetSymDif xs ys = sort ((msetDif xs ys) ++ (msetDif ys xs))
+
+msetUnion xs ys = sort ((msetDif xs ys) ++ (msetInter xs ys) ++ (msetDif ys xs))
+\end{code}
+
+\end{document}

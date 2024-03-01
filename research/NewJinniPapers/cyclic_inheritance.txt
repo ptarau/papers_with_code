@@ -1,0 +1,274 @@
+Cyclic Multiple Depth First Inheritance and Object Oriented Logic Programming
+
+Abstract: We introduce a Cyclic Multiple Inheritance
+mechanism providing flexible and efficient (compile time) 
+code reuse for an arbitrary network of collaborative
+components. 
+
+While our method overriding algorithm allows cycles
+in a given inheritance path, its Depth First precedence
+order accommodates the existence of a prevailing 
+main inheritance tree and supports a simple and
+uniform constructor inheritance mechanism.
+
+We have implemented a complete Cyclic Multiple Depth
+First Inheritance based Class and Object system in the
+Jinni 2002 Java based Prolog compiler. In this context
+we provide a design which supports the reuse of existing Prolog
+libraries as classes and allows the safe integration of
+a network of independently developed logic programming
+components.
+
+Introduction
+
+Object Oriented Logic Programming has been around in various
+commercial and free Prolog systems either as a built-in
+facility or as a portable addition. However, existing designs
+do not provide a natural integration of existing Prolog code,
+(in particular integration of components at remote sites) 
+and follow too closely more limited inheritance mechanism
+available in procedural language based designs.
+
+Special syntax for classes: considered harmful
+
+One reason C++ and Java became so popular while Smaltalk
+has never made it into mainstream programming is syntax. As
+shallow as it looks, incremental compatibility with
+the existing corpora of artefacts (programs in a programming
+language and texts in a natural language) is a determinant
+factor of new language feature adoption. Classes are collections
+of methods and Prolog files are collections of predicates. The
+obvious mapping therefore is: any prolog file can (and should) be
+considered a class. Classical file inclusion notation can be
+adopted as a notation for inheritance. After all - inheritance
+can be seen as an extension of file inclusion - with the
+appropriate safeguards. This suggests handling inheritance
+at compile time and leads to a "one class - one file"
+design - which is a good idea anyway.
+
+From modules to classes
+
+Prolog module designs have already tried to provide
+class-like abilities. It makes sense to conceptually
+reuse their syntax and their handling of state through
+local databases for a classes. Prolog's associative search
+through dynamic clauses can easily be reused for
+supporting both class and instance level state. Still,
+Object Oriented layers built on top of procedural
+languages have traditionally used fields.
+
+Class and Instance state: fields or assertions?
+
+Prolog assert/retract and possibly support for multiple dynamic 
+databases already provides a richer set of state management
+operations that traditional destructive assignment in procedural
+language bases object oriented systems.
+
+Clearly fields can be easily approximated as dynamic unary predicates. On the
+other hand  "backward compatibility" with traditional Object Oriented
+languages suggests a special syntax for that. It also make sense to
+consider them as a backdoor through which one can introduce strong
+typing to Prolog - without touching the semantics of unification and clause
+resolution. The idea is to use (like in Java) classes as types, together
+with basic types (integers, strings, floats) - and impose dynamic type 
+checking on fields (at assignment time) and on predicate 
+arguments (at call time). The natural mapping of existing Prolog code
+into a typed universe would be that by default, in the absence of syntax, 
+arguments and fields are of the most generic type. 
+
+The Logic of Inheritance
+
+Inheritance can be seen as a special purpose inference mechanism. A two line
+transitive closure Prolog predicate does it - so why do we need it altogether
+in Logic Programming languages? At a closer look, one will notice that
+inheritence is in fact inference applied to locating methods in sets of
+methods (classes). In the presence of method overloading and subtyping,
+the search mechanism can be seen as a restricted form of unification. The
+only problem is that, oddly enough, logic programs (seen as sets of clauses) have
+not been considered first order objects in widely used logic programming
+languages (Prolog in particular). Another issue is that the dominant  object
+oriented programming style is class based. Fairly sophisticated Reflection
+packages are needed in languages like Java to manipulate classes and
+instances as first order objects - and it does not happen in a simple and uniform
+way. On the other hand - a class based design provides well known techniques
+to handle most of the inheritance related overhead at compile time and a good
+basis for a (strong) type system. In a conventional object oriented langauage,
+a class is simply a collection of methods and fields. On the other hand
+a logic program is a set of clauses - a more uniform domain. It is convenient however
+to see them as a set of predicates (sets of clauses sharing the same main head
+functor) as the semantics of Prolog ensures that 
+control mechanisms like CUT and backtracking are actually confined to clauses
+within a predicate.
+This makes a predicate the appropriate unit to implement a method - and it
+also implies an "all or nothing" clause inheritance mechanism: a predicate defined
+in a class will override all clauses for the same predicate defined elsewere.
+Anyway, as most Prolog programmers are aware, mixing clauses from different
+files will result in unexpected semantics and difficult to maintain programs.
+
+Traditional inheritance has been confined
+to trees (simple inheritance) or lattices (multiple inheritance). This contrasts
+with the dominant information sharing model - the Web - which has an arbitrary
+directed graph structure (handled quite well despite its size
+and growth). While limiting the scope of inheritance in procedural languages makes
+sense given the presence of side effects, an arbitrary directed graph model
+is worth trying out in the context of declarative languages endowed with
+a formally simpler and cleaner semantics. Procedural languages have been
+unable to reuse their class systems as a mechanism for name spaces - requiring
+for this purpose additional constructs like Java's packages. Interestingly
+enough, the package/namespace system, as well as the mapping from classes to their
+member fields and method arguments form arbitrary directed graphs. As such,
+they require additional "language ontology" (declarations,
+local names, delegation) that breaks
+the automation induced by free propagation through inheritance. In fact,
+such constructs are just reformulations of the conventional procedure
+call based code reuse.
+
+With this in mind, cyclical multiple inheritance looks like a natural
+choice for designing an object oriented structuring mechanism around a logic
+programming language. Depth first search for a matching predicate can happen
+at compile time - together with a loop checking mechanism. Classes
+parts of a cycle will see their own methods prevailing over methods (predicates)
+defined elsewere. A main, prevailing inheritence path based on what's listed
+first in a file gives (most of) the benefits of single hierarchical 
+inheritance.
+
+Instance and class level state is implemented naturally through local dynamic
+database mechanisms - with the same "one predicate at a time" assumption: an
+instance level dynamic predicate will replace all clauses of a class level
+predicate if overriding is used. 
+
+Classes, Instances and Inheritance in Jinni's Object Oriented Prolog
+
+Jinni 2002 features a simple, elegant and fast Object Oriented Prolog layer - 
+built as a natural extension to ISO Prolog. Classes are just Prolog files with 
+include declarations - almost no changes  are required to reorganize existing
+Prolog code in an Object Oriented style. As the dispatching of method calls
+is handled at compile time and instances are lightweight, both instance creation 
+and method call operations are extremely efficient. Prolog class files can 
+be located at arbitrary URLs on the Web - one can inherit and override
+from a virtually unlimited library of existing Prolog files. To match the Web's
+own structure (an arbirary directed graph rather than a tree or a lattice)
+we have decided to support "multiple cyclic inheritance". This
+provides a safe mechanism for building in a scalable way, a network
+of Web or file based interdependent Prolog classes.
+
+A class foo is associated to each Prolog file (or URL) let's say foo.pl. 
+In a way similar with compiling a Prolog file in a conventional way with
+?-compile(foo), the user can enter a default instance of the class foo with 
+
+?-enter_class(foo). 
+
+or call code in it (like in the presence of a conventional module system) from outside
+with 
+
+?-foo:<predicate>. 
+
+If foo.pl contains :-[<superclassfile>] declarations, let's say something like :-[bar], definitions
+not found in foo will be searched in bar.  As files and URLs are treated in similar ways, inheritance
+directives like:-['http://www.my_url.com'] can refer to non-local URLs as well. 
+
+ISO Prolog's :-initialization((<Goal>)) declarations are processed (in reverse order) after collecting
+them from included files - as a mechanism of class level initialization, shared among all instances.
+Code added with assert/1 in such initialization/1 calls will be visible in all instances. 
+
+Code inheritance is handled at compile time - through a special ocompile/1 command
+which reinterprets include directives like :-[<file>] as inheritance from other Prolog files/classes.
+Classes are compiled on the fly, at the first use of a class or creation of a new instance. 
+
+The multiple cyclical depth first inheritance mechanism is implemented by keeping the
+path consisting of the list of visited includes, when (at compile time) predicates
+not defined locally, are brought from files or URLs. In the presence of multiple includes, 
+a "depth-first" order for finding definitions ensures that a dominant main inheritance tree
+prevails in case of ambiguity. This concept of cyclical inheritance allows reuse of 
+Prolog code located virtually everywhere on the Web from a local perspective. 
+
+Constructors are simply predicates of various arities having the same name as the
+file (or URL). At instance creation time,  no-arg constructors of supers are automatically
+called, in reverse inheritance order. This usually ensures that fields defined locally or in the
+main inheritance chain will prevail. Programmers should  initialize most fields in
+these default constructors. Constructors (of any arity) are inherited, if not provided. 
+They can freely call constructors defined in their super classes using their predicate names. 
+
+Fields are local to each instance. A set operation <field name>  <= <value>  and a
+get operation <field name>  => <Prolog variable> are provided, like in: 
+
+    radius <= 99 
+    radius => R. 
+
+Assert/1 and other database operations are local to instances - but the results of class
+level asserts are visible in instances - until overridden by a local assert with the same
+predicate name and arity. 
+
+To keep the object model simple, we have not implemented public or private modifiers. 
+This can be provided in the future if requested by users. Other, more precise access
+and security control mechanisms will be added as orthogonal constructs, in the context of
+distributed objects and agent programming constructs. 
+
+Prolog Instances are created from Constructors (same as class names if no-arg, having
+the main functor the same as the class name if having arguments) with the new/2 command: 
+
+new(Constructor,Instance) 
+
+In the process, an internal Class handle is created and if neaded the code for the class is
+compiled on the fly and attached to it. 
+
+One can interact with Instances of Prolog Classes in two ways, as shown in the following
+examples:
+
+?-enter_instance(queue). 
+?-add(a). 
+?-add(b). 
+?-remove(X). 
+?-show. 
+?-exit. 
+?- 
+
+or one can call instance methods from outside as in: 
+
+?-new(queue,Q),Q:add(a),Q:add(b),Q:remove(X),Q:show. 
+
+The following is a simple example of 2 Prolog classes circle.pl inheriting from shape.pl. 
+
+% file shape.pl 
+
+shape:- 
+  centerX<=0, 
+  centerY<=0. 
+
+show:- 
+  centerX=>X, 
+  centerY=>Y, 
+  println('I am a shape at'(X,Y)). 
+
+move_to(X,Y):- 
+  centerX<=X, 
+  centerY<=Y. 
+
+
+% file circle.pl 
+
+:-[shape]. 
+
+circle :- radius<=1. 
+
+circle(X,Y,R):- 
+  centerX<=X, 
+  centerY<=Y, 
+  radius<=R. 
+
+show:- 
+  centerX=>X, 
+  centerY=>Y, 
+  radius=>R, 
+  println('I am a circle at'(X,Y,R)). 
+
+As in any Object Oriented languages with virtual methods, a query like: 
+
+?- new(circle(1,1,5),Circle),Circle:show,Circle:(move_to(2,2),show). 
+
+will produce: 
+
+'I am a circle at'(1,1,5) 
+'I am a circle at'(2,2,5) 
+
+by overrding show/0 and inheriting move_to/2. 

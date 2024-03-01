@@ -1,0 +1,602 @@
+\pdfoutput=1
+\documentclass[]{INCLUDES/llncs}
+\usepackage{TOOLS/dcpic,pictexwd}
+\input TOOLS/jhheader.tex
+\title{
+   Hereditarily finite representations of natural numbers
+   and self delimiting codes}
+\author{Paul Tarau}
+\institute{
+   Department of Computer Science and Engineering\\
+   University of North Texas\\
+   {\em E-mail: tarau@cs.unt.edu}
+}
+
+\begin{document}
+\maketitle
+\date{}
+
+\begin{abstract}
+Using an isomorphism between natural numbers and
+finite sequences
+we derive 
+self-delimiting codes by lifting it to
+its hereditarily finite counterpart and then  mapping it
+back to a bitstring representation in a
+balanced parenthesis language. We conclude with a brief
+study of the information theoretic efficiency of
+the encodings. % and a discussion of potential applications.
+
+The paper is organized as a self-contained
+literate Haskell program inviting the reader to
+explore its content independently.
+
+{\bf Keywords}:
+{\em
+ranking/unranking bijections,
+hereditarily finite data types,
+self-delimiting codes,
+combinatorics and computational mathematics in Haskell
+}
+\end{abstract}
+
+\begin{comment}
+\begin{code}
+module ISO where
+import Data.List
+import ISO0
+\end{code}
+\end{comment}
+
+\section{Introduction}
+Self-delimiting codes are needed each time when structured data types are sent
+over a channel or decomposed in subcomponents for processing. Asymptotically
+optimal {\em universal codes} like the Elias omega code \cite{elias75} rely on
+encoding length information recursively i.e. delimiting is achieved by first
+encoding the length, then the of the length etc. In the context of a larger
+effort to interconnect various data types through bijective mappings organized as a groupoid of data
+transformations \cite{sac09fISO,arxiv:fISO} we will introduce here a new
+self-delimiting code. Starting with an isomorphism between natural numbers and
+finite sequences we derive a self-delimiting code by lifting it to
+its hereditarily finite counterpart and then  mapping it
+back to a bitstring representation in a balanced parenthesis language.
+While typically less compact than Elias omega code, the resulting code has the
+unique ``fractal-like" property that all its subcomponents are also ``self-delimiting''. 
+To clarify some of the sparseness and density properties of the encoding, we
+compare it with Elias omega code and undelimited bitstring representations.
+
+\section{A ranking/unranking algorithm for finite sequences}
+A {\em ranking/unranking} function defined on a data type is a bijection to/from
+the set of natural numbers (denoted $Nat$ through the paper). 
+We start with an unusually simple but (at our best knowledge) novel
+ranking/unranking algorithm for finite sequences of arbitrary 
+unbounded size natural numbers denoted $[Nat]$\footnote{See Haskell types
+$Nat$ and $[Nat]$ in Appendix.}. Given the definitions
+\begin{code}
+cons :: Nat->Nat->Nat
+cons x y  = (2^x)*(2*y+1)
+
+hd :: Nat->Nat
+hd n | n>0 = if odd n then 0 else 1+hd  (n `div` 2)
+
+tl :: Nat->Nat
+tl n = n `div` 2^((hd n)+1)
+
+nat2fun :: Nat->[Nat]
+nat2fun 0 = []
+nat2fun n = hd n : nat2fun (tl n)
+ 
+fun2nat :: [Nat]->Nat  
+fun2nat [] = 0
+fun2nat (x:xs) = cons x (fun2nat xs)
+\end{code}
+the following holds
+\begin{prop}
+{\tt fun2nat} is a bijection from finite sequences of natural numbers to natural
+numbers and {\tt nat2fun} is its inverse.
+\end{prop}
+This follows from the fact that {\tt cons} and the pair {\tt (hd, tl)} define a bijection between
+$Nat-\{0\}$ and $Nat \times Nat$ and that the value of {\tt fun2nat} is uniquely
+determined by the number of applications of {\tt tl} and the sequence of values
+returned by {\tt hd}.
+\begin{codex}
+*ISO> hd 2008
+3
+*ISO> tl 2008
+125
+*ISO> cons 3 125
+2008
+\end{codex}
+
+Following \cite{sac09fISO} (summarized in the Appendix) we can define the {\tt
+Encoder}
+\begin{code}
+nat :: Encoder Nat
+nat = Iso nat2fun fun2nat
+\end{code}
+working as follows
+\begin{codex}
+*ISO> as fun nat 2008
+[3,0,1,0,0,0,0]
+*ISO> as nat fun [3,0,1,0,0,0,0]
+2008
+\end{codex}
+
+Given the definitions:
+\begin{code}
+unpair z = (hd (z+1),tl (z+1))
+pair (x,y) = (cons x y)-1
+\end{code}
+the following holds
+\begin{prop}
+$unpair:Nat \rightarrow Nat \times Nat$ 
+is a bijection and $pair=unpair^{-1}$.
+\end{prop}
+This follows from the fact that shifting by 1 turns {\tt hd} and {\tt tl} in
+total functions on $Nat$ such that $unpair~0=(0,0)$.
+
+As the cognoscenti might notice, this is in fact a classic {\em pairing
+function} that has been used, by Pepis, Kalmar and Robinson 
+in some fundamental work on recursion theory, 
+decidability and Hilbert's Tenth Problem in
+\cite{pepis,kalmar1,kalmar2,kalmar3,robinson50,robinson68a,robinsons68b} and
+that {\tt hd,tl,cons,0} define on $Nat$ an algebraic structure isomorphic to the
+one introduced by {\tt car,cdr,cons,NULL} in John McCarthy's classic LISP paper
+\cite{mccarthy60}.
+% where they are used to fully emulate the theory of recursive functions.
+
+\section{Self-delimiting codes} \label{selfdelim}
+A precise estimate of the actual size of various bitstring representations
+requires also counting the overhead for ``delimiting'' their components
+as this would model accurately the actual effort to transmit them over
+a channel or combine them in composite data structures.
+
+An asymptotically optimal mechanism for this is the use of a {\em universal
+self-delimiting code} for instance, the {\em Elias omega code} \cite{elias75}.
+To implement it, the encoder proceeds by recursively encoding the length of the
+string, the length of the length of the strings etc.
+\begin{code}
+to_elias :: Nat -> [Nat]
+to_elias n = (to_eliasx (succ n))++[0]
+
+to_eliasx 1 = []
+to_eliasx n = xs where
+  bs=to_lbits n
+  l=(genericLength bs)-1
+  xs = if l<2 then bs else (to_eliasx l)++bs
+\end{code}
+The decoder first rebuilds recursively the
+sequence of lengths and then the actual bitstring.
+It makes sense to design the decoder such that it extracts the number
+represented by the self-delimiting code from a sequence/stream 
+of bits and also returns what is left after the extraction. Note also
+that the code uses the converters {\tt from\_base} and {\tt to\_base}
+given in the Appendix.
+\begin{code}
+from_elias :: [Nat] -> (Nat, [Nat])
+from_elias bs = (pred n,cs) where (n,cs)=from_eliasx 1 bs
+
+from_eliasx n (0:bs) = (n,bs)
+from_eliasx n (1:bs) = r where 
+  hs=genericTake n bs
+  ts=genericDrop n bs
+  n'=from_lbits (1:hs)
+  r=from_eliasx n' ts 
+
+to_lbits = reverse . (to_base 2)
+
+from_lbits = (from_base 2) . reverse
+\end{code}
+We obtain the Encoder:
+\begin{code}
+elias :: Encoder [Nat]
+elias = compose (Iso (fst . from_elias) to_elias) nat
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as elias nat 2008
+[1,1,1,0,1,0,1,1,1,1,1,0,1,1,0,0,1,0]
+*ISO> as nat elias it
+2008
+\end{codex}
+Note also that self-delimiting codes are not {\em onto} the regular
+language $\{0,1\}^*$, therefore this Encoder cannot be used to map arbitrary bitstrings
+to numbers.
+
+\section{Generic Unranking and Ranking Hylomorphisms}
+\label{unrank}
+
+The {\em ranking problem} for a family of
+combinatorial objects is finding a unique 
+natural number associated to it,
+called its {\em rank}.
+The inverse {\em unranking problem} consists of generating a unique
+combinatorial object associated to each natural number. 
+
+\subsection{Hereditarily Finite Data Types}
+
+The unranking operation is seen here as an instance of a generic
+{\em anamorphism} mechanism (an {\em unfold} operation), while the ranking
+operation is seen as an instance of the corresponding catamorphism (a {\em
+fold} operation) \cite{DBLP:journals/jfp/Hutton99,DBLP:conf/fpca/MeijerH95}.
+Together they form a mixed transformation called {\em hylomorphism}. 
+We will use such hylomorphisms to lift isomorphisms between lists
+and natural numbers to isomorphisms between a derived ``self-similar'' tree
+data type and natural numbers.
+
+The data type representing hereditarily finite structures will be
+a generic multi-way tree with a single leaf denoted {\tt []}.
+
+\begin{code}
+data T = H [T] deriving (Eq,Ord,Read,Show)
+\end{code}
+The two sides of our hylomorphism 
+are parameterized by two transformations
+{\tt f} and {\tt g} forming
+an isomorphism {\tt Iso f g}:
+\begin{code}
+unrank f n = H (unranks f (f n))
+unranks f ns = map (unrank f) ns
+
+rank g (H ts) = g (ranks g ts)
+ranks g ts = map (rank g) ts
+\end{code}
+Both combinators can be seen as a form of ``structured recursion''
+that propagate a simpler operation guided by the shape of
+the data type. For instance, the size of a tree of type $T$ is
+obtained as:
+\begin{code}
+tsize = rank (\xs->1 + (sum xs))
+\end{code}
+Note also that {\tt unrank} and {\tt rank}
+work on $T$ in cooperation
+with {\tt unranks} and {\tt ranks} 
+working on $[T]$. 
+
+We can now combine an 
+anamorphism+catamorphism pair into
+an isomorphism {\tt hylo} defined
+with {\tt rank} and {\tt unrank} 
+on the corresponding
+hereditarily finite data types:
+\begin{code}
+hylo :: Iso b [b] -> Iso T b
+hylo (Iso f g) = Iso (rank g) (unrank f)
+
+hylos :: Iso b [b] -> Iso [T] [b]
+hylos (Iso f g) = Iso (ranks g) (unranks f)
+\end{code}
+The following states that isomorphisms to sequences are lifted to hereditarily
+finite tree data types.
+\begin{prop}
+If {\tt t} is an isomorphism between $Nat$ and $[Nat]$ then {\tt hylo} and
+{\tt hylos} are isomorphisms between $Nat$ and $T$ and $[Nat]$ and $[T]$,
+respectively.
+\end{prop}
+
+\subsection{Hereditarily Finite Functions}
+We will use the tree data type {\tt T} to host a hylomorphism
+derived from ranking/unranking of finite functions. We refer to
+\cite{arxiv:fISO} for similar hereditarily finite data types derived from
+ranking functions on sets, multisets and permutations.
+\begin{code}
+hff :: Encoder T
+hff = compose (hylo nat) nat
+\end{code}
+One can represent the action of a hylomorphism unfolding a natural number into
+a hereditarily finite function as a directed ordered multi-graph as shown
+in Fig. \ref{f2}. Note that as the mapping {\tt as fun nat} generates
+a sequence where the order of the edges matters, this order is
+indicated by integers starting from {\tt 0} labeling the edges.
+\FIG{f2}{2008 as a HFF}{0.60}{isof2.pdf}
+
+It is also interesting to connect sequences and HFF directly - in case one
+wants to represent giant ``sparse numbers'' that correspond to sequences
+that would overflow memory if represented as natural numbers but have a
+relatively simple structure as formulae used to compute them. We obtain the
+Encoder:
+\begin{code}
+hffs :: Encoder T
+hffs = Iso hff2fun fun2hff
+
+fun2hff ns = H (map (as hff nat) ns)
+hff2fun (H hs) = map (as nat hff) hs
+\end{code}
+which can be used to generate HFFs associated to very large numbers:
+\begin{codex}
+*ISO> as hffs fun [2^65,2^131]
+H [H [H [H [],H [H [],H [H []]]]],H [H [H [],H [],H [H [],H [H []]]]]]
+\end{codex}
+
+\section{Parenthesis Language Encodings} \label{paren}
+
+An encoder for a parenthesis language is obtained by
+combining a parser and writer. As hereditarily finite
+functions naturally map one-to-one to parenthesis expressions expressed as
+bitstrings, we will choose them as target of the transformers.
+\begin{code}
+hff_pars :: Encoder [Nat]
+hff_pars = compose (Iso pars2hff hff2pars) hff
+\end{code}
+
+The parser recurses over a bitstring and builds a {\tt HFF} as follows:
+\begin{code}
+pars2hff cs = parse_pars 0 1 cs
+
+parse_pars l r cs | newcs == [] = t where
+  (t,newcs)=pars_expr l r cs
+
+pars_expr l r (c:cs) | c==l = ((H ts),newcs) where 
+  (ts,newcs) = pars_list l r cs    
+  pars_list l r (c:cs) | c==r = ([],cs)
+  pars_list l r (c:cs) = ((t:ts),cs2) where 
+    (t,cs1)=pars_expr l r (c:cs)
+    (ts,cs2)=pars_list l r cs1
+\end{code}
+The writer recurses over a {\tt HFF} and collects
+matching ``parenthesis'' (denoted 0 and 1) pairs:
+\begin{code}
+hff2pars = collect_pars 0 1
+
+collect_pars l r (H ns) =
+  [l]++ (concatMap (collect_pars l r) ns)++[r] 
+\end{code}
+
+\section{Parenthesis encoding of hereditarily finite types as a
+self-delimiting code}
+
+Like the Elias omega code, a balanced parenthesis
+representation is obviously self-delimiting as proven by the fact that 
+the reader {\tt pars\_expr} defined in section \ref{paren} will
+extract a balanced parenthesis expression from a finite or infinite list
+while returning the part of the list left over.
+More precisely, the following holds:
+\begin{prop}
+The {\tt hff\_pars} encoding is a self-delimiting code. If $n$ is a natural
+number then {\tt hd n} equals the code of the first parenthesized subexpression
+of the code of $n$ and {\tt tl n} equals the code of the expression obtained by
+removing it from the code for $n$, both of which represent self-delimiting codes.
+\end{prop}
+
+One can compute, for comparison purposes, with the optimal undelimited
+bitstring encoding {\tt bits} (see Appendix or \cite{arxiv:fISO}):
+\begin{codex}
+*ISO2> as bits nat 2008
+[1,0,0,1,1,0,1,1,1,1]
+*ISO> as hff_pars nat 2008
+[0,0,0,1,0,1,1,0,1,0,0,1,1,0,1,0,1,0,1,0,1,1]
+\end{codex}
+As the last example shows, the information density of
+a parenthesis representation is lower than the information theoretical optimal
+representation provided by the (undelimited) {\tt bits} Encoder mapping
+natural numbers to the regular language $\{0,1\}^*$
+
+There are however cases when the parenthesis language representation is more
+compact. For instance,
+\begin{codex}
+*ISO> as nat bits (as hff_pars nat (2^2^16))
+32639
+\end{codex}
+while the conventional representation of the same number would
+have thousands of digits. This suggest defining
+\begin{code}
+nat2parnat n = as nat bits (as hff_pars nat n)
+
+parnat2nat n = as nat hff_pars (as bits nat n)
+\end{code}
+to find out that more compact representations only happen
+for a few numbers that are powers of two or ``sparse'' sums of
+powers of two:
+\begin{codex}
+*ISO> [x|x<-[0..2^16],nat2parnat x<x]
+[8192,16384,32768,32769,49152,65536]
+\end{codex}
+
+As one could guess from the previous comparison with bitstrings, let's
+note that this is especially interesting for streams of values 
+expressed as combinations of a few exponents of 2, as shown in Fig.
+\ref{f14}.
+\FIG{f14}
+{Comparison of codes: curve1=Undelimited, curve2=Elias, curve3=HFF, up to
+$2^{7}$} {0.40}{isof14.pdf}
+One can collect values that have smaller HFF codes than Elias omega codes
+with:
+\begin{code}
+sparses_to m = [n|n<-[0..m-1],
+  (genericLength (as hff_pars nat n)) 
+  <
+  (genericLength (as elias nat n))]
+\end{code}
+working as follows
+\begin{codex}
+*ISO> sparses_to (2^9)
+[15,16,17,24,32,64,65,96,128,129,192,256,257,258,259,320,384,385,448]
+\end{codex}
+
+A good way to evaluate ``information density'' for an arbitrary
+data type that is isomorphic to {\tt Nat} through one of our encoders
+is to compute the total bitsize of its actual encoding over an
+interval like $[0..2^{n-1}]$. For instance,
+\begin{code}
+hff_bitsize n= sum (map size [0..2^n-1]) where
+   size k=genericLength (as hff_pars nat k) 
+elias_bitsize n= sum (map size [0..2^n-1]) where
+   size k=genericLength (as elias nat k)    
+bitsize n= sum (map size [0..2^n-1]) where
+   size k=genericLength (as bits nat k)    
+\end{code}
+Knowing that the optimal (undelimited)) bit representation of all numbers in
+$[0..2^{n-1}]$ is given by {\tt bitsize}, we can define a measure of information
+density for a bit-encoded parenthesis language seen as a representation for {\tt HFF} as:
+\begin{code}
+info_density_hff n = (bitsize n) / (hff_bitsize n)
+\end{code}
+One can see that information density progressively increases towards the
+``perfect'' value of {\tt 1}:
+\begin{codex}
+*ISO> map info_density_hff [0..12]
+[0.0,0.16666666666666666,0.2222222222222222,0.26,0.296875,0.32802547770700635,
+0.3548387096774194,0.37732558139534883,0.39600409836065575,0.41151556776556775,
+0.4244180031039834,0.43526996413064,0.44448060400937256]
+\end{codex}
+Similarly, for Elias coding we obtain:
+\begin{code}
+info_density_elias n = (bitsize n) / (elias_bitsize n)
+\end{code}
+\begin{codex}
+*ISO> map info_density_elias [0..12]
+[0.0,0.25,0.3076923076923077,0.34210526315789475,0.3877551020408163,
+ 0.37454545454545457,0.4,0.434695244474213,0.4703376939458473,0.486863488624052,
+ 0.5099136055690223,0.5342969700480853,0.557962824266358]
+\end{codex}
+Also, a concept of ``relative information density'' for our
+self-delimiting encoding can be defined as:
+\begin{code}
+relative_density_hff n = (elias_bitsize n) / (hff_bitsize n)
+\end{code}
+giving
+\begin{codex}
+*ISO> map relative_density_hff [0..12]
+[0.5,0.6666666666666666,0.7222222222222222,0.76,0.765625,0.8757961783439491,
+ 0.8870967741935484,0.8680232558139535,0.8419569672131147,0.8452380952380952,
+ 0.8323331608898086,0.8146592410798565,0.7966132951488327]
+\end{codex}
+
+We can explore representation efficiency for ``structured data'' by comparing
+the size of a representation defined by a transformer {\tt f} with the size of
+the self-delimiting Elias omega code. This would count for the cost of
+delimiting elements of a sequence as it would be needed, for instance, if the
+sequence is transmitted over a channel.
+
+One can obtain an encoding {\tt nat2sfun} for a finite sequence by
+encoding its length and then encoding each term. This is achieved by the
+generic function {\tt nat2self} parametrized by a the transformer function
+$f:Nat \rightarrow [Nat]$:
+\begin{code}
+nat2sfun n = nat2self (as fun nat) n   
+
+nat2self f n = (to_elias l) ++ concatMap to_elias ns where
+  ns = f n
+  l=genericLength ns
+\end{code}
+This function is injective (but not onto!) and its action can be reversed
+by first decoding the length $l$ and then extracting self delimited sequences 
+$l$ times.
+\begin{code}
+self2nat g ts = (g xs,ts') where 
+  (l,ns) = from_elias ts
+  (xs,ts')=take_from_elias l ns
+
+  take_from_elias 0 ns = ([],ns) 
+  take_from_elias k ns = ((x:xs),ns'') where
+     (x,ns')=from_elias ns
+     (xs,ns'')=take_from_elias (k-1) ns'
+  
+sfun2nat ns = xs where (xs,[])=self2nat (as nat fun) ns
+\end{code}
+
+A more elaborate concept of sparseness is derived by comparing the size of a
+self-delimiting code for a number {\tt n} vs. the size of its
+self-delimiting representation as a finite sequence,
+computed as follows:
+\begin{code}
+linear_sparseness t n = 
+  (genericLength (to_elias n))/(genericLength (nat2self (as t nat) n))
+\end{code}
+
+We can also extend this comparison to hereditarily finite representations,
+which, as we have seen,  turn out to provide self-delimiting codes.
+\begin{code}
+sparseness f n = 
+  (genericLength (to_elias n)) / (genericLength (as f nat n))
+\end{code}
+Note that no extra delimiting for subcomponents or length needs to be encoded
+in this case. {\em We can conclude that while typically less compact than Elias
+omega code, a self-delimiting code, as provided by our hereditarily finite function encoding, 
+has the ``fractal property'' that all its subcomponents are also self
+delimited.}
+
+\section{Related work} \label{related}
+{\em Ranking} functions can be traced back to G\"{o}del numberings
+\cite{Goedel:31,conf/icalp/HartmanisB74} associated to formulae. 
+Together with their inverse {\em unranking} functions they are also 
+used in combinatorial generation
+algorithms
+\cite{conf/mfcs/MartinezM03,knuth06draft,Ruskey90generatingbinary,Myrvold01rankingand}.
+The generic view of such transformations as hylomorphisms obtained
+compositionally from simpler isomorphisms, as described in this paper,
+originates in \cite{sac09fISO} and \cite{arxiv:fISO}.
+
+Natural Number encodings of hereditarily finite sets (that have been the main
+inspiration for our concept of hereditarily finite functions) have triggered the
+interest of researchers in fields ranging from Axiomatic Set Theory to
+Foundations of Logic
+\cite{finitemath,kaye07,abian78,avigad97,DBLP:journals/mlq/Kirby07}.
+
+Hereditarily finite functions have been introduced in
+our paper \cite{sac09fISO} and extensively used for
+various combinatorial encodings in \cite{arxiv:fISO},
+including self-delimiting codes derived from
+hereditarily finite sets, multisets and permutations.
+
+The closest reference on encapsulating bijections
+as a Haskell data type is \cite{bijarrows} 
+and Conal Elliott's composable
+bijections module \cite{bijeliot},
+where, in a more complex setting,
+Arrows \cite{hughes:arrows} are used 
+as the underlying abstractions.
+
+Some other techniques are
+for sure part of the scientific commons. 
+In that
+case our focus was to express them as
+elegantly as possible in a uniform framework.
+
+\section{Conclusion} \label{concl}
+We have explored some basic properties of a new self-delimiting code derived
+from a parenthesis language representation of hereditarily finite functions.
+The most interesting aspect of this code is the ``fractal-like'' property that
+all its subcomponents are also self delimited. We foresee some practical
+applications to encode complex information streams with
+heterogeneous subcomponents - for instance as a mechanism for
+sending serialized objects over a wireless channel.
+
+\newpage
+\bibliographystyle{INCLUDES/splncs}
+\bibliography{INCLUDES/theory,tarau,INCLUDES/proglang,INCLUDES/biblio,INCLUDES/syn}
+
+\input iso0.tex 
+
+\subsection*{Mapping Natural Numbers to Bitstrings} \label{bits}
+This isomorphism between natural numbers and bitstrings is well known, except
+that conventional bit representations
+of integers need a twist to be mapped one-to-one to
+{\em arbitrary} sequences of {\tt 0}s and {\tt 1}s.
+As the usual binary representation always has
+{\tt 1} as its highest digit, {\tt nat2bits}
+will drop this bit, given
+that the length of the list of digits is 
+(implicitly) known. This transformation (a variant of the so called {\em
+bijective base n} representation), defines an isomorphism between $Nat$ and
+the regular language $\{0,1\}^*$.
+\begin{code}
+bits :: Encoder [Nat]
+bits = compose (Iso bits2nat nat2bits) nat
+
+nat2bits = drop_last . (to_base 2) . succ
+
+drop_last bs=genericTake ((genericLength bs)-1) bs
+    
+to_base base n = d : 
+  (if q==0 then [] else (to_base base q)) where
+     (q,d) = quotRem n base
+    
+bits2nat bs = pred (from_base 2 (bs ++ [1]))
+
+from_base base [] = 0
+from_base base (x:xs) | x>=0 && x<base = 
+   x+base*(from_base base xs)
+\end{code}
+
+\end{document}

@@ -1,0 +1,445 @@
+(* 
+A Coq implementation of the bijective base-2 notation for natural numbers: 
+     e represents 0
+     o represents x->2x+1
+     i represents x->2x+2
+
+for background info see:
+
+@inproceedings{ppdp10tarau,
+ author = {Tarau, Paul},
+ title = {Declarative modeling of finite mathematics},
+ booktitle = {PPDP '10: Proceedings of the 12th international ACM SIGPLAN 
+          symposium on Principles and practice of declarative programming},
+ year = {2010},
+ isbn = {978-1-4503-0132-9},
+ pages = {131--142},
+ location = {Hagenberg, Austria},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+
+or draft at:
+
+http://logic.cse.unt.edu/tarau/research/2010/tarau_ppdp2010_draft.pdf
+}
+
+The fun part is that all definitions use plain structural recursion
+allowing Coq to digest them as it can prove termination automatically.
+*)
+
+Inductive B : Set :=
+|  e : B
+|  o : B -> B
+|  i : B -> B.
+
+Delimit Scope b_scope with B.
+Bind Scope b_scope with B.
+Arguments Scope o [b_scope].
+Arguments Scope i [b_scope].
+
+(* successor and predecessor - s and p and their properties *)
+
+Fixpoint s (x : B) : B :=
+  match x with
+  | e => o e
+  | o a => i a
+  | i a => o (s a)
+  end.
+
+Fixpoint p (x : B) : B := 
+  match x with
+  | e => e (* this should rather be undefined or an exception *)
+  | o e => e
+  | o a => i (p a) 
+  | i a => o a
+  end.
+
+Lemma po_ip : forall n:B, n<>e -> p (o n) = i (p n).
+Proof.
+  intros n H.
+  simpl.
+  case_eq n; firstorder.
+Qed.
+
+Lemma s_discr : forall x:B, x <> s x.
+Proof.
+  destruct x; discriminate.
+Qed.
+
+Lemma pos_ips : forall x:B, p (o (s x)) = i (p (s x)).
+Proof.
+intros.
+case_eq x;firstorder.
+Qed.
+
+Lemma psi_os : forall n:B, p (s (i n)) = p (o (s n)).
+Proof.
+intro n; auto.
+Qed.
+
+Lemma ps_e: p (s e) = e.
+Proof.
+auto.
+Qed.
+
+Lemma i_so: forall n:B, i n = s (o n).
+Proof.
+  trivial.
+Qed.
+
+Lemma pi_o : forall n:B, p (i n) = o n.
+Proof.
+auto.
+Qed.
+
+Lemma si_os : forall n:B, s (i n) = o (s n).
+Proof.
+intro n.
+auto.
+Qed.
+
+Lemma ps_inv : forall n:B, p (s n) = n.
+Proof.
+induction n.
+intros;firstorder.
+trivial.
+rewrite psi_os.
+rewrite pos_ips.
+f_equal. trivial.
+Qed.
+
+Lemma eq_dec : forall x y: B, {x = y} + {x <> y}.
+Proof.
+  decide equality.
+Qed.
+
+Corollary eq_e : forall x:B, x = e \/ x <> e.
+Proof.
+  intro; edestruct eq_dec; eauto.
+Qed.
+
+Lemma on_e : forall n:B, o n <> e.
+Proof.
+discriminate.
+Qed.
+
+Lemma in_e : forall n:B, i n <> e.
+Proof.
+discriminate.
+Qed.
+
+Lemma on_im : forall n:B, forall m:B, o n <> i m.
+Proof.
+discriminate.
+Qed.
+
+Lemma sp_inv_i : forall n:B, s (p (i n)) = i n.
+Proof.
+induction n;intros;firstorder.
+Qed.
+
+Lemma sp_inv_o : forall n:B, s (p (o n)) = o n.
+Proof.
+induction n;intros;firstorder.
+rewrite po_ip.
+rewrite si_os.
+f_equal.
+apply IHn.
+discriminate.
+Qed.
+
+Lemma sp_inv : forall n:B, n<>e -> s (p n) = n.
+Proof.
+destruct n.
+tauto.
+intros.
+rewrite sp_inv_o.
+f_equal.
+intros.
+rewrite sp_inv_i.
+f_equal.
+Qed.
+
+(* boolean equality: eq *)
+
+Fixpoint eq (x y:B) : bool :=
+  match x, y with
+  | e, e => true
+  | o a, o b => eq a b
+  | i a, i b => eq a b
+  | _ , _ => false
+  end.
+
+Theorem eq_refl : forall x:B, eq x x = true.
+Proof.
+ induction x; auto.
+Qed.
+
+(* destructor r - reverses both i and o *)
+
+Definition r (x : B) : B := 
+  match x with
+  | e => e (* this should rather be undefined or exception *)
+  | o y => y
+  | i y => y
+  end.
+
+Lemma ri : forall n:B, r (i n) = n.
+Proof.
+trivial.
+Qed.
+
+Lemma ro : forall n:B, r (o n) = n.
+Proof.
+trivial.
+Qed.
+
+Lemma ri_ro : forall n:B, r (i n) = r (o n).
+Proof.
+trivial.
+Qed.
+
+(* ismorphism with Peano arithmetic *)
+
+Fixpoint b2n (x: B) : nat :=
+  match x with
+  | e => 0
+  | o y => 1+2*(b2n y)
+  | i y => 2+2*(b2n y)
+  end.
+
+Fixpoint n2b (x: nat) : B :=
+  match x with
+  | 0 => e
+  | S x => s (n2b x)
+  end.
+
+(* addition *)
+
+Fixpoint add (x:B) (y:B) := 
+  match x,y with 
+  | e,_ => y
+  | _,e => x
+  | o a, o b => i (add a b)
+  | o a, i b => o (s (add a b))
+  | i a, o b => o (s (add a b))
+  | i a, i b => i (s (add a b))
+  end.
+
+
+Fixpoint mul_hlp (x:B) (y:B) :=
+  match x with
+  | e => y
+  | o x => o (mul_hlp x y)
+  | i x => s (add y  (o (mul_hlp x y)))
+  end.
+
+(* multiplication *)
+
+Definition mul (x:B) (y:B) := 
+  match x,y with
+  | _, e => e
+  | e, _ => e
+  | _,_ => s (mul_hlp (p x) (p y))
+  end.
+
+Fixpoint power (n:B) (a:B) := 
+  match n with
+  | e => o e
+  | o b => mul a (power b (mul a a))
+  | i b => mul (mul a a) (power b (mul a a))
+  end.
+  
+Definition twice (x:B) := p (o x).
+Definition half (x:B) := r (s x).
+
+(* multiply 2^n and m - "leftshift" operation *)
+Fixpoint exp2x (n:B) (m:B) :=
+  match n with
+  | e => m
+  | o x => twice (exp2x x (exp2x x m))
+  | i x => twice (twice (exp2x x (exp2x x m)))
+  end.
+
+
+(* total order *)
+
+Inductive Ord : Set :=
+|  LT : Ord
+|  EQ : Ord
+|  GT : Ord.
+
+Definition downeq (z:Ord) :=
+match z with
+| EQ => LT
+| _  => z
+end.
+
+Definition upeq (z:Ord) :=
+match z with
+| EQ => GT
+| _  => z
+end.
+
+(* comparison *)
+
+Fixpoint cmp (n:B)  (m:B) := 
+match n,m with 
+| e,e => EQ
+| e,_ => LT
+| _,e => GT
+| o x,o y => cmp x y
+| i x,i y => cmp x y
+| o x,i y => downeq (cmp x y)
+| i x,o y => upeq (cmp x y)
+end. 
+  
+Fixpoint d (n:B) (m:B) :=
+match n,m with
+| e, e => e
+| x, e => x
+| e, x => e (* pro forma - it will never happen *)
+| i z, o x => o (d z x)      
+| o z, i x => p (p (o (d z x))) 
+| o z, o x => p (o (d z x)) 
+| i z, i x => p (o (d z x))
+end.
+
+Definition isLEQ (z:Ord) :=
+match z with
+| GT => false
+| _  => true
+end.
+
+(* absolute value of the difference *)
+
+Definition dd (n:B) (m:B) :=
+  if (isLEQ (cmp n m))
+    then d m n
+    else d n m.
+
+
+(* cons,hd,tl and pairing *)
+
+Fixpoint fst (x:B) :=
+  match x with
+  | e => e
+  | o n => s (fst n)
+  | i _ => e
+  end.
+
+Fixpoint snd (x:B) :=
+  match x with
+  | e => e
+  | o n => snd n
+  | i n => s n
+  end.
+
+Definition h (x:B) := fst (p x).
+Definition t (x:B) := snd (p x).
+Definition c (x:B) (y:B) := exp2x x (o y).
+
+Definition pair (x:B) (y:B) := p (c x y).
+Definition unpair (z:B) : B*B := (fst z,snd z).
+
+Definition bb2n (xy:B*B) :=
+  match xy with
+  | (x,y) => (b2n x,b2n y)
+  end.
+
+(* Arithmetization of lists+sets using type B as natural numbers *)
+
+Require Import List.
+
+Fixpoint toExps (n:B) (x:B) :=
+match n with
+| e => x::nil
+| o a => toExps a (s x)
+| i a => x :: toExps a (s x)
+end. 
+
+(* Ackermann's mapping from N->[N] *)
+
+Definition toSet (n:B) := 
+match n with
+| e => nil
+| _ => toExps (p n) e
+end.
+
+Fixpoint fromList (ns : list B) :=
+match ns with
+| nil => e
+| x :: xs => c x (fromList xs)
+end.
+
+Fixpoint set2listAcc (ns : list B) (acc :B) :=
+match ns with
+| nil => nil
+| x :: xs => p (d x acc) :: set2listAcc xs x
+end.
+
+Definition set2list (ns : list B) :=
+match ns with 
+| nil => nil
+| x::xs => x:: set2listAcc xs x
+end.
+
+Fixpoint list2setAcc (ns : list B) (acc :B) :=
+match ns with
+| nil => nil
+| x :: xs => s (add x acc) :: set2listAcc xs (add x acc)
+end.
+
+Definition list2set (ns : list B) :=
+match ns with 
+| nil => nil
+| x::xs => x:: list2setAcc xs x
+end.
+
+(* inverse of Ackermann's mapping from [N]->N *)
+
+Definition fromSet (ns : list B) := fromList (set2list ns).
+
+Definition toList (n : B) := set2list (toSet n).
+
+(* tests *)
+Eval compute in p (p (s (s e))).
+
+Eval compute in s (s (s e)).
+
+Eval compute in n2b (b2n (s (s (s e)))).
+
+Eval compute in b2n (n2b 6).
+
+Eval compute in b2n (p (s (n2b 66))).
+
+Eval compute in eq (n2b 6) (n2b 6).
+
+Eval compute in eq (n2b 8) (n2b 6).
+
+Eval compute in b2n (add (n2b 55) (n2b 35)).
+
+Eval compute in b2n (mul (n2b 23) (n2b 420)).
+
+Eval compute in b2n (t (n2b 120)).
+Eval compute in b2n (t (n2b 121)).
+Eval compute in b2n (t (n2b 122)).
+
+Eval compute in b2n (exp2x (n2b 3) (n2b 10)).
+
+Eval compute in b2n (pair (n2b 5) (n2b 12)).
+
+Eval compute in bb2n (unpair (n2b 999)).
+
+Eval compute in b2n (power (n2b 4) (n2b 5)).
+
+Eval compute in cmp (n2b 20) (n2b 10).
+
+Eval compute in b2n (dd (n2b 300) (n2b 1000)).
+
+Eval compute in map b2n (toSet (n2b 3456)).
+Eval compute in b2n (fromSet (toSet (n2b 2011))).
+
+Eval compute in map b2n (toList (n2b 3456)).
+Eval compute in b2n (fromList (toList (n2b 2011))).
+

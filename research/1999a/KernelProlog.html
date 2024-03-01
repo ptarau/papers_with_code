@@ -1,0 +1,1038 @@
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<META NAME="GENERATOR" CONTENT="TtHgold 2.24">
+                                                                      
+<title> 
+   Multi-Engine Horn Clause Prolog
+</title>
+ 
+<H1 align=center>
+   Multi-Engine Horn Clause Prolog
+ </H1>
+
+<p>
+
+<H3 align=center>
+ Paul Tarau </H3>
+
+<p>
+
+<H3 align=center> </H3>
+
+<p>
+
+<H2> Abstract</H2>
+We extend Horn Clause Prolog with two new primitives, 
+<tt>new_engine (+Goal, +Answer, -Engine)</tt> and <tt>new_answer(+Engine, -Answer)</tt>
+for creating and exploring answer spaces of multiple interpreters
+(engines). 
+We show that despite its ontological parsimony, the resulting
+language is comparable in practical  expressivness with conventional 
+full Prolog, by allowing compact definitions for negation, if-then-else, 
+all solution predicates, I/O and reflective meta-interpreters.
+While not really needed anymore as a workaround for the lack of 
+expressivenes of pure Prolog, a form of dynamic database operations
+can be emulated as well, using the state of multiple engines.
+With multiple engines laying the foundation for multi-threaded
+execution models of logic programming languages, the surprising
+result that a minimal extension of Horn Clauses in fact bridges
+the gap to full Prolog is significant as a basis for lightweight 
+implementations of embedabble logic programming components.
+Our constructs have been used in the design of small
+footprint mobile code interpreters for a commercial multi-threaded
+agent programming language - Jinni - available from 
+<b>LINK</b>.
+<em>An online version of the code described in the paper can be
+run over the net and is available for download from: 
+<b>LINK</b></em>
+
+<p>
+Keywords: Prolog software design,
+expressiveness of logic programing languages,
+software patterns for Prolog programming,
+lightweight Prolog systems
+<p>
+<p>
+        <H2><A NAME="tth_sEc1">
+1</A>&nbsp;&nbsp;Introduction</H2>
+
+<p>
+      <H3><A NAME="tth_sEc1.1">
+1.1</A>&nbsp;&nbsp;The problem</H3>
+Although Prolog programmers usually agree on how to express 
+various algorithms in side-effect free Prolog, a wide diversity 
+of opinions exist on how to bridge the semantic gap between
+pure Prolog and full Prolog and how software patterns for
+pure Prolog can be reused in dealing with real-life
+programming (`full Prolog'),
+while remaining
+as close as possible to the well understood
+semantic base of the language.
+
+<p>
+A quick look at how beginners evolve into Prolog
+programmers mimics quite well the dynamics of the
+issues involved. The following pattern, we have 
+witnessed a few times during the last two decades
+on comp.lang.prolog is tipical.
+ 
+<p>
+Once programming without destructive assignment
+is understood, the Prolog beginner manages to
+build <em>Horn Clause programs</em> relatively well.
+
+<p>
+Then he or she hits suddenly the next obstacle:
+the problem of <em>information exchange
+between different derivations (AND-branches)</em>.
+
+<p>
+As Prolog explores different AND-branches through
+backtracking, their state is not simultaneously
+present. The (unrecommended) approach is
+saving state through dynamic database operations.
+
+<p>
+This is plagued not only by the loss of declarative
+semantics but also with quick deterioration of
+operational semantics: non-reentrancy of code, 
+sensitivity to CUT, sensitivity to semantics of the underlying 
+dynamic database implementation.
+
+<p>
+The comp.lang.prolog insider usually preaches abstinence:
+such information exchange is better to be avoided. 
+Suggestions to handle the problem with negation, setof/bagof constructs,
+start to come out. The sudden conspiracy:-) among insiders
+is somewhat to forget mentioning that the solutions involve
+reexecution of goals, changes in complexity, 
+needlessly performing all solution computations etc.
+
+<p>
+At this point, there are clear signs that a serious expressivness limit
+of the language has been reached.
+
+<p>
+The welcome-to-the-club initiation then takes the beginner
+to the semantics of database updates and views,
+the fineprint specification of setof and bagof, with delicatessen like
+the morphing of stack variables into heap variables
+in the middle of a the sorting process.
+Of course, not being a beginner anymore,
+the newly born Prolog insider is ready for the next 
+iteration - explaining to other novices where the fun
+comes from. 
+
+<p>
+It is a fact, at this point, that all the semantic
+simplicity of Horn Clause Logic Programming is gone.
+
+<p>
+As it is the case with the expressiveness of
+Finite State Automata vs Deterministic Finite State Automata, 
+it is no secret  that non-deterministic programs give a much simpler 
+expression to common algorithms. 
+This extends naturally to Horn Clause programs. In fact, 
+as shown in [<a href="#TD95:OR" name=CITETD95:OR>TD95</a>], appropriate use of non-determinism 
+also leads to better performance models and 
+a more predictable real-time behavior by possibly eliminating
+garbage collection. 
+
+<p>
+As programming gains in genericity and component 
+reusability in the procedural,
+object oriented and functional paradigms,
+the need to combine
+answers obtained through different derivations (different AND branches)
+the very existence of which makes logic programming different,
+is, arguably, instrumental for the survival of logic 
+programming languages, as it improves their ability to 
+build generic, reusable components.
+
+<p>
+However, to be able
+to re-use such nondeterministic generators
+as components, we need
+to control the production of their 
+answers and we need 
+to be able to consider alternative
+solutions together.
+
+<p>
+      <H3><A NAME="tth_sEc1.2">
+1.2</A>&nbsp;&nbsp;The contributions</H3>
+We will describe in the paper a shortcut for the problem
+of information exchange between AND-derivations, which encourages
+using simple non-deterministic generators, encapsulated
+as separate engines (Horn Clause interpreters).
+
+<p>
+Through a set of suitable abstractions, they will be put to
+work as reusable components cooperating through independent
+resolution processes.
+
+<p>
+While the semantics of a multi-engine program
+cannot be expressed in a trivial way in terms
+of one-engine Horn Clause 
+resolution<a href="#tthFtNtAAB" name=tthFrefAAB><sup>1</sup></a>,
+their operational semantics is fairly simple.
+Moreover, the usual declarative semantics,
+covers pure components running on each engine,
+while the more powerful glue language used
+to coordinate engines can be kept as a
+separate, meta-level component.
+
+<p>
+The first contribution of this paper is a new, `axiomatic'
+redesign of a language having the expressivenes of
+full Prolog on top of Horn Clause Prolog,
+using only two predefined operations. Our
+design covers negation, limitted prunning through
+once/1 and if-then-else/3, all-solution predicates,
+I/O and goes beyond standard Prolog
+in providing forms of lazy, on-demand generation of
+sets of solutions. With these primitives available,
+there's no real need for Prolog's cut operation anymore
+and the resulting language has the benefit
+of allowing program transformations like unfolding
+to be performed safely. 
+
+<p>
+After filling the semantic
+gap between Horn Clause programs and full Prolog,
+we further extend the expresiveness of the resulting language
+by emulating some basic linear and intitionistic logic
+operators and on top of them a higher level <em>answer producer/
+answer consumer construct</em> construct.
+
+<p>
+The software engineering virtues of intuitionistic
+implications for expressing modules and local
+information have been advocated by Dale Miller
+back in the 80's, during the original design of
+Lambda-Prolog [<a href="#Miller89Lex" name=CITEMiller89Lex>Mil89</a>,<a href="#miller:lprolog" name=CITEmiller:lprolog>Mil91</a>] but, unfortunately,
+they have not been used yet
+in major commercial Prolog implementations or
+real life software projects. In this context,
+the second contribution of the paper is
+exploring the synergy of our `first-order' engines,
+with linear and intuitionistic 
+assumptions<a href="#tthFtNtAAC" name=tthFrefAAC><sup>2</sup></a>
+by designing a high level 
+<tt>Answer&lt;=Producer=&#62;Consumer</tt> primitive allowing
+alternative OR-answers
+from the Producer engine 
+to be seen as linear
+assumptions by the <tt>Consumer</tt> engine.
+The construct works as if goal <tt>Answer1 -o</tt>
+<tt>Answer2 -o</tt> ... <tt>-o Consumer</tt> were
+executed on <tt>Consumer</tt>'s engine, with <tt>-o</tt> denoting
+linear implication and Answer1,Answer2,... being the instances 
+of <tt>Answer</tt>, produced by executing <tt>Producer</tt>.  
+These operations allow for
+a (possible infinite) stream of 
+answers of an engine,
+computed through alternative derivations,
+to be used as needed 
+in one and the same derivation
+of another engine.
+
+<p>
+We have tested our design through two different 
+implementations, in the latest versions of 
+BinProlog and Jinni, available from
+<b>LINK</b>. The <em>engine
+operations</em> described in this
+paper have been used extensively in implementing
+some advanced networking constructs like
+mobile code and client/server applications in
+[<a href="#tarau:shaker" name=CITEtarau:shaker>Tar99a</a>,<a href="#tmob" name=CITEtmob>TD98</a>,<a href="#T98:jelia" name=CITET98:jelia>Tar98c</a>].
+
+<p>
+        <H2><A NAME="tth_sEc2">
+2</A>&nbsp;&nbsp;Kernel Prolog = Horn Clauses + Engines</H2>
+
+<p>
+      <H3><A NAME="tth_sEc2.1">
+2.1</A>&nbsp;&nbsp;Primitive Engine Operations</H3>
+At an abstract level only two new primitive operations
+are needed to extend Horn Clause programs with <em>engines</em>.
+Each engine works as a separate Horn Clause interpereter.
+<em>Engine constructors initialize engines with
+a goal and an answer pattern.</em>
+
+<p>
+<font size="-1">
+<pre>
+new_engine(Goal,AnswerPattern,Handle)
+</pre></font>
+
+<p>
+  creates a new Horn Clause solver, uniquely identified
+by Handle, which shares code
+with the currently running program and is initialized
+with resolvent Goal. AnswerPattern is a term, usually
+a list of variables occuring in Goal.
+<em>Answer constructors build 
+successive answers generated by an engine, on demand.</em>
+
+<p>
+<font size="-1">
+<pre>
+new_answer(Handle,AnswerInstance)
+</pre></font>
+
+<p>
+  harvests the result of a new AND-branch of the search tree
+generated by Goal, as a instance of AnswerPattern. If AnswerPattern is
+<b>no</b> that the engine is stopped, otherwise it
+returns a new answer, of the form <b>the(AnswerInstance)</b>
+or <b>no</b> if no more answers are available. Note that once <b>no</b> has been
+returned, all subsequent uses of this primitive will return <b>no</b>.
+Note also that no bindings are propagated to the original Goal
+or AnswerPattern when <b>new_answer</b> retrieves an answer,
+i.e. AnswerInstance is obtained by first standardazing apart
+(renaming) the variables in Goal and AnswerPattern, and then
+backtracking over its alternative answers in a separate Prolog
+interpreter.
+
+<p>
+Let us call Kernel Prolog the language obtained
+by adding to Horn Clauses (pure Prolog) the two previously
+introduced built-in operations <b>new_engine/3</b> and <b>new_answer/2</b>
+and an infinite supply of new constant symbols
+denoting engines<a href="#tthFtNtAAD" name=tthFrefAAD><sup>3</sup></a>.
+
+<p>
+      <H3><A NAME="tth_sEc2.2">
+2.2</A>&nbsp;&nbsp;Source level extensions through new definitions</H3>
+
+<p>
+We will know introduce through definitions
+in Kernel Prolog, a number of
+predicates known as `impossible to emulate' in
+Horn Clause Prolog (except by significantly
+lowering the level of abstraction and implementing
+something close to a Turing machine).
+We have added a <b>K</b> to the usual names of
+the primitives, to make the code presented in the paper
+runnable directly in BinProlog [<a href="#bp7advanced" name=CITEbp7advanced>Tar98a</a>], 
+without name conflicts.
+
+<p>
+       <H4><A NAME="tth_sEc2.2.1">
+2.2.1</A>&nbsp;&nbsp;Negation and <tt>once/1</tt></H4>
+
+<p>
+These constructs are implmented simply by discarding all but
+the first solution produced by an engine.
+
+<p>
+<font size="-1">
+<pre>
+% returns the(X) or no as first solution of G
+first_solutionK(X,G,Answer):-
+  new_engineK(G,X,E),
+  new_answerK(E,R),
+  Answer=R.
+
+% succeeds by binding G to its first solution or fails
+onceK(G):-first_solutionK(G,G,the(G)).
+
+% succeds withount binding G, if G fails
+notK(G):-first_solutionK(_,G,no).
+</pre></font>
+
+<p>
+       <H4><A NAME="tth_sEc2.2.2">
+2.2.2</A>&nbsp;&nbsp;Metacalls</H4>
+
+<p>
+Metacalls can be seen as instances of engine operations. We
+add explicit backtracking to explore
+the answers one by one.
+
+<p>
+<font size="-1">
+<pre>
+callK(Goal):-
+  new_engineK(Goal,Goal,E),
+  collect_callK(E,Goal).
+
+% backtracks over the answer sequence
+collect_callK(E,Goal):-
+  new_answerK(E,the(Answer)),
+  collect_moreK(E,Answer,Goal).
+
+collect_moreK(_,Answer,Answer).
+collect_moreK(E,_,Answer):-collect_callK(E,Answer).
+</pre></font>
+
+<p>
+       <H4><A NAME="tth_sEc2.2.3">
+2.2.3</A>&nbsp;&nbsp;If-then-else</H4>
+
+<p>
+Once we have first solution and metacall, emulating
+if-then-else is easy (probably Prolog folklore).
+
+<p>
+<font size="-1">
+<pre>
+% executes Then if Cond succeeds otherwise executes Else
+ifK(Cond,Then,Else):-
+  first_solutionK(successful(Cond,Then),Cond,R),
+  select_then_elseK(R,Cond,Then,Else).
+
+% selects and calls the Then or Else part of a conditional
+select_then_elseK(the(successful(Cond,Then)),Cond,Then,_):-callK(Then).
+select_then_elseK(no,_,_,Else):-callK(Else).
+</pre></font>
+
+<p>
+       <H4><A NAME="tth_sEc2.2.4">
+2.2.4</A>&nbsp;&nbsp;All-solution predicates</H4>
+
+<p>
+We only describe findall here, as other all solution predicates
+can be built on top of it.
+
+<p>
+<font size="-1">
+<pre>
+% if G has a finite number of solutions 
+% returns a list Xs of copies of X each
+% instantiated correspondingly
+findallK(X,G,Xs):-
+   new_engineK(G,X,E),
+   new_answerK(E,Answer),
+   collect_all_answersK(Answer,E,Xs).
+
+% collects all answers of an Engine
+collect_all_answersK(no,_,[]).
+collect_all_answersK(the(X),E,[X|Xs]):-
+  new_answerK(E,Answer),
+  collect_all_answersK(Answer,E,Xs).
+</pre></font>
+
+<p>
+       <H4><A NAME="tth_sEc2.2.5">
+2.2.5</A>&nbsp;&nbsp;Term copying and instantiation state detection</H4>
+As standardazing variables apart upon return of answers is
+part of the semantics of <tt>new_answerK/2</tt>, term copying
+is just computing a first solution to <tt>true/0</tt>.
+Implementing <tt>varK/1</tt> is then simply possibility of
+having copies unifiable with two distinct constants.
+ 
+<p>
+<font size="-1">
+<pre>
+% creates a copy of G with variables uniformly
+% substituted with new variables not occuring
+% in the current resolvent)
+copy_termK(X,CX):-first_solutionK(X,true,the(CX)).
+
+% true if X is currently a free varaible
+varK(X):-copy_termK(X,a),copy_termK(X,b).
+</pre></font>
+
+<p>
+       <H4><A NAME="tth_sEc2.2.6">
+2.2.6</A>&nbsp;&nbsp;How tor run all this?</H4>
+
+<p>
+To make the code actually runnable 
+as is<a href="#tthFtNtAAE" name=tthFrefAAE><sup>4</sup></a>, 
+the following BinProlog implementation of the two
+primitives is provided:
+
+<p>
+<font size="-1">
+<pre>
+new_engineK(Goal,AnswerPattern,Handle):-
+  open_engine(Goal,AnswerPattern,Handle).
+
+new_answerK(Engine,Answer):-
+  ask_engine(Engine,X)-&#62;Answer=the(X)
+; Answer=no.
+</pre></font>
+
+<p>
+  The previous definitions have shown that the resulting
+language subsumes (through user provided definitions)
+constructs like negation as failure, if-then-else,
+once, <b>copy_term</b> - this justifies the name Kernel
+Prolog for the resulting language. As Kernel Prolog
+contains negation as failure, following [<a href="#ISOProlog" name=CITEISOProlog>DEDC96</a>]
+we can, in principle use it for an executable
+specification of full Prolog.
+
+<p>
+      <H3><A NAME="tth_sEc2.3">
+2.3</A>&nbsp;&nbsp;A reflective meta-interpreter</H3>
+
+<p>
+Finally, let us show that Kernel Prolog
+has a simple reflective interpreter
+(actually much simpler than full Prolog - which
+has to deal with CUT).
+
+<p>
+<font size="-1">
+<pre>
+% basic reflective meta-interpreter
+
+solveK(G):-
+  onceK(reduceK(G,NewG)),
+  callK(NewG).
+
+% reflective reducer
+% the simplest such beast is: reduceK(X,X).
+
+reduceK(G,G):-is_builtin(G).
+reduceK(','(A,B),','(solveK(A),solveK(B))).
+reduceK(G,','(clause(G,Gs),solveK(Gs))).
+</pre></font>
+
+<p>
+  The presence of such a simple reflective meta-interpreter makes
+Kernel Prolog a very interesting target for program transformations
+like unfolding, and in particular, for partial deduction based 
+source-level optimizations.
+
+<p>
+      <H3><A NAME="tth_sEc2.4">
+2.4</A>&nbsp;&nbsp;Emulating dynamic database state with engines</H3>
+While not really needed at this point as a workaround 
+for the lack of expressivenes of pure Prolog:-), 
+let us show how a form of dynamic database operations
+can be emulated using the state of multiple engines.
+
+<p>
+Apparently, this looks a difficult problem
+because <tt>new_engine</tt> and <tt>new_answer</tt> operations provide a fixed
+communication flow between the answer producer and the answer
+consumer engine. Note however, that we can use the new engine
+creation operation to emulate both linear (usable once) and conventional
+assert-style operations, by keeping the set of engines representing
+references to 'dynamic clauses' on a list, as in:
+
+<p>
+<font size="-1">
+<pre>
+assertK(Clause,Engines,[E|Engines]):-
+  new_engineK(repeat,Clause,E).
+
+linear_assertK(Clause,Engines,[E|Engines]):-
+  new_engineK(true,Clause,E).
+
+clauseK(Engines,Head,Body):-
+  member(E,Engines),
+  new_answerK(E,the((Head:-Body))).
+</pre></font>
+
+<p>
+  The trick in the case of conventional <tt>assertK</tt> is to force
+indefinite backtracking inside the producer engine, with
+<tt>repeat/0</tt>, a pure predicate defined as <tt>repeat. repeat:-repeat.</tt>
+
+<p>
+On the other hand, the usable once, <tt>linear_assertK</tt> operation only executes
+the goal <tt>true/0</tt> - and therefore it will only succeed once,
+before returning the answer <tt>no</tt>.
+
+<p>
+We have not shown how a <tt>retract</tt>-like operation is implemented - but
+this can easily achieved by removing the engine reference
+from the list of engines, so that <tt>clauseK/3</tt> cannot see it
+anymore.
+ 
+<p>
+Note that these dynamic database operations are in fact
+backtrackable, as they depend on the list of engines
+maintained by the consumer program. As such, they
+are closer to BinProlog's linear and intuitionistic
+assumptions [<a href="#TDF:asian96" name=CITETDF:asian96>TDF96</a>]. Scoped implications (as in Lambda Prolog,
+Lygon [<a href="#whilps95" name=CITEwhilps95>WH95</a>], Lolli [<a href="#hodmil:ic94" name=CITEhodmil:ic94>HM94</a>,<a href="#hodas:thesis" name=CITEhodas:thesis>Hod94</a>]) can be implemented using logical varables
+to close the scope of an implication<a href="#tthFtNtAAF" name=tthFrefAAF><sup>5</sup></a>.
+
+<p>
+However, assuming that engine numbers are allocated in
+increasing order or that the list of engines is available
+as a global state variable, failure persistent
+dynamic database operations can be emulated as well.
+
+<p>
+Note that our reflective meta-interpreter can be easily
+extended to deal with dynamic clauses, as follows.
+
+<p>
+<font size="-1">
+<pre>
+% extended meta-circular interpreter with
+% emulated dynamic clauses
+
+% given a set of engines Es representing
+% dynamic clauses, solve the goal G
+% based on reflection and use of the 
+% new clauses encapsulated in the engines
+
+solveK(Es,G):-
+  onceK(reduceK(Es,G,NewG)),
+  callK(Es,NewG).
+
+reduceK(_,G,G):-is_builtin(G).
+reduceK(Es,','(A,B),','(solveK(Es,A),solveK(Es,B))).
+reduceK(Es,G,','(clauseK(Es,G,Gs),solveK(Es,Gs))).
+
+callK(_,G):-callK(G).
+callK(Es,G):-clauseK(Es,G,B),callK(Es,B).
+</pre></font>
+
+<p>
+      <H3><A NAME="tth_sEc2.5">
+2.5</A>&nbsp;&nbsp;Basic file and socket I/O in Kernel Prolog</H3>
+
+<p>
+Let us now incorporate basic I/O in our design.
+Let us supose that 2 reserved engines (<b>stdin, stdout</b>)
+are built-in in the interpreter.
+
+<p>
+Then basic I/O would look as follows:
+
+<p>
+<font size="-1">
+<pre>
+get_code(X):-new_answer(stdin,Answer),convert_code(Answer,X).
+
+convert_code(the(X),X).
+convert_code(no,-1).
+  
+put_code(X):-new_answer(stdout,X).
+</pre></font>
+
+<p>
+  Streams used for file and socket I/O can be seen as
+special purpose engines with operations like:
+
+<p>
+<font size="-1">
+<pre>
+open_stream(File,Stream):-
+  new_engine(file(File),_,Stream).
+
+get_code(Stream,Code):-
+  new_answer(Stream,Answer),
+  convert_code(Answer,Code).
+</pre></font>
+
+<p>
+  Note that one can assume that arithmetics is part of 
+Kernel Prolog through the usual extension of
+Horn Clauses with successor arithmetics.
+
+<p>
+With these additions, it turns out that
+Kernel Prolog is a fairly expressive languge. 
+Unlike pure
+Horn Clause Prolog and unlike weaker lanaguges
+based on Prolog + negation, which  have been
+extensively studied in the past, Kernel Prolog
+has enough power to be used as a basis
+for building compact Prolog
+implementations as well as for 
+modular library components.
+
+<p>
+      <H3><A NAME="tth_sEc2.6">
+2.6</A>&nbsp;&nbsp;Semantic Issues in Kernel Prolog</H3>
+
+<p>
+While providing a formal semantics of Kernel
+Prolog needs more research and it might need
+methods beyond the techniques used for
+less expressive logic languages, 
+let us give a sketch of the issues involved.
+
+<p>
+Note that kernel Prolog is a superset of Horn Clauses with
+a form of metacall facility. Related semantic issues have
+been studied [<a href="#Warren82" name=CITEWarren82>War81</a>,<a href="#hill:analysis:meta:89" name=CITEhill:analysis:meta:89>HL89</a>] 
+and are now fairly well understood.
+
+<p>
+Like in the case of <tt>findall</tt>, solutions returned 
+from an engine contain new variables. As such,
+their formal description cannot be covered through
+a straightforward adaptation of work like [<a href="#LL87" name=CITELL87>Llo87</a>,<a href="#Apt90" name=CITEApt90>Apt90</a>].
+The issues are in fact similar with those involved
+in describing formally AND-parallel execution of
+Prolog programs  [<a href="#ShenHSLP91" name=CITEShenHSLP91>SH91</a>,<a href="#pontelli97" name=CITEpontelli97>Pon97</a>],
+with resolution theory needing to be adapted
+to deal with separate computations of answers
+within the same AND-branch.
+
+<p>
+Clearly, the two new builtins added to
+Horn Clause Prolog lack an obvious declarative
+semantics.
+ On the other hand, the <em>dialog</em> between 
+a <em>master</em> Horn Clause engine
+creating a new engine for execution of one of
+its subgoals and the <em>slave</em> engine which
+returns new answers on demand is well known to
+any Prolog user as it is essentially the same as querying
+a Prolog interpreter through a toplevel command
+interpreter<a href="#tthFtNtAAG" name=tthFrefAAG><sup>6</sup></a>.
+
+<p>
+However, in a more declarative framework, 
+it can be the case that a suitable semantics for
+our engine operations can be given in terms
+similar to that of streams in functional 
+languages.
+
+<p>
+       <H4><A NAME="tth_sEc2.6.1">
+2.6.1</A>&nbsp;&nbsp;Multi-threaded execution of Kernel Prolog</H4>
+
+<p>
+Although engines were running on separate threads in our
+first Jinni implementation of Kernel Prolog, we have
+decided later to keep engine operations separate
+from the underlaying multi-threading model,
+as they are basically orthogonal concepts.
+
+<p>
+Still, flexible combination of engines and multi-threading
+is possible, with minimal new ontology. 
+Let us suppose that two multi-threading control operations
+are available:
+<font size="-1">
+<pre>
+% Launches Goal on separate (background) Thread
+bg(+Goal,-ThreadHandle)
+
+% waits for Thread to terminate and propagates bindings for JoinPattern
+join(+Thread,JoinPattern)
+</pre></font>
+
+<p>
+Then, something like
+<font size="-1">
+<pre>
+?-new_engine(Goal,Answer,Engine),
+  bg(new_answer(Engine),Thread), 
+  ...work on something else...,
+  join(Thread,Answer),
+  ...use Answer...
+</pre></font>
+
+<p>
+  would allow speculative computation of answers
+as well as synchronization and data exchange on completed tasks.
+A more flexible communication pattern (which includes coordination
+through <em>blackboard constraints</em> [<a href="#tarau:paam99" name=CITEtarau:paam99>Tar99b</a>])
+has been implemented in both Jinni and BinProlog.
+Expressing such functionality in terms of 'pure' Kernel Prolog 
+is subject of ongoing work.
+
+<p>
+        <H2><A NAME="tth_sEc3">
+3</A>&nbsp;&nbsp;Memory managment and performance issues for multiple engine systems</H2>
+
+<p>
+As this paper focuses on a logical reconstruction of Prolog on top of
+its logical Horn Clause kernel, and not on implementation of engines as such,
+we will only overview here a more detailed design
+(actually implemented in BinProlog [<a href="#bp7advanced" name=CITEbp7advanced>Tar98a</a>])
+which allows precise control on allocation and 
+deallocation of memory resources.
+
+<p>
+To create a new engine having its own stack group (heap, local stack
+and trail) we use:
+
+<p>
+<font size="-1">
+<pre>
+  create_engine(HeapSize,StackSize,TrailSize,Handle)
+</pre></font>
+
+<p>
+  The Handle is a unique integer denoting the engine for further
+processing. To `fuel' the engine with a goal and an expected answer variable
+we use:
+
+<p>
+<font size="-1">
+<pre>
+  load_engine(Handle,Goal,AnswerVariable)
+</pre></font>
+
+<p>
+  No processing, except the initialization of the
+engine, takes place and no answer
+is returned as result of this operation. 
+
+<p>
+To get an answer from the engine we use:
+<font size="-1">
+<pre>
+  ask_engine(Handle,Answer)
+</pre></font>
+
+<p>
+  When the stream of answers reaches its end, <tt>ask_engine/2</tt>
+will simply fail.
+
+<p>
+To destroy an engine an free its memory areas we use:
+
+<p>
+<font size="-1">
+<pre>
+  destroy_engine(Handle)
+</pre></font>
+
+<p>
+  If we want to submit another query before using the
+complet stream of answers, it is more efficient to reuse an
+existing engine with <tt>load_engine/3</tt>, instead of
+destroying it and creating a new one.
+It is safe to discard an engine on failure, before retuning the answer
+<b>no</b>. It is also safe to discard an engine on  backtracking
+over <b>new_egine/3</b>. 
+
+<p>
+As engines are assigned to real processors in
+multi-threaded in implementations like
+BinProlog's new native win32 threads package [<a href="#bp7user" name=CITEbp7user>Tar98b</a>],
+this reusability of a
+given engine for execution of multiple goals allows
+tighter programmer control over the resurces of a system.
+
+<p>
+Automatic garbage collection of engines
+can be achieved with a simple reference counting 
+mechanism or by extending the reachabilty logic of Prolog's 
+garbage collector to engine handles.
+
+<p>
+In BinProlog, engine creation/destruction
+is a constant time operation. In our newer
+Jinni implementation [<a href="#tarau:paam99" name=CITEtarau:paam99>Tar99b</a>],
+engine memory is also allocated on demand,
+through the underlying Java system,
+with engine creation requiring small
+constant initial space and engines 
+being garbage collected automatically.
+
+<p>
+Note that it is always possible to move to the underlying 
+implementation language frequently used engine operations if 
+the (constant) overhead of having them defined at source level
+is judged too high.
+
+<p>
+        <H2><A NAME="tth_sEc4">
+4</A>&nbsp;&nbsp;Linear Assumptions and Orthogonal Engines</H2>
+
+<p>
+      <H3><A NAME="tth_sEc4.1">
+4.1</A>&nbsp;&nbsp;A high-level Producer/Consumer interaction pattern</H3>
+
+<p>
+We have sketched how linear and intuitionistic implications
+can be expressed in Kernel Prolog. To make the code in
+the paper fully executable we will use here their 
+equivalent BinProlog implementation. 
+
+<p>
+We will now show, how, with engines and assumptions,
+we can provide a high level, encapsulated Consumer/Producer interaction
+pattern.
+
+<p>
+Let's start by describing the new construct, through the following example:
+<font size="-1">
+<pre>
+?- answer(X)&lt;=member(X,[1,2,3])=&#62;consumer(Xs),write(Xs),nl.
+</pre></font>
+
+<p>
+  where <tt>consumer/1</tt> is defined as:
+
+<p>
+<font size="-1">
+<pre>
+consumer([X|Xs]):-answer(X),consumer(Xs).
+consumer([]).
+</pre></font>
+
+<p>
+  will execute exactly as the goal
+
+<p>
+<font size="-1">
+<pre>
+?- answer(1) -o answer(2) -o answer(3) -o consumer(Xs),write(Xs),nl.
+</pre></font>
+
+<p>
+  in a logic language providing linear implication.
+
+<p>
+      <H3><A NAME="tth_sEc4.2">
+4.2</A>&nbsp;&nbsp;Communication through Linear Assumptions</H3>
+
+<p>
+This construct, implemented as
+a unique primitive, is based on the synergy between multiple engines
+and intuitionistic and linear implications (as well as their continuation
+passing couterparts).
+
+<p>
+The concrete syntaxe is 
+Answer <font face=symbol>Ü</font
+> Producer <font face=symbol>Þ</font
+> Consumer or
+Answer <font face=symbol>Ü</font
+> Producer when the Consumer is the (implicit) current
+AND-continuation.
+
+<p>
+Producer is started on a separate engine. It generates
+linear facts of nased on the pattern <tt>Answer</tt>, from computed answers
+of Goal, originating from <em>distinct OR-branches</em>.
+They are usable by <tt>Consumer</tt> as if they were assumed
+through use of linear implication, i.e. they are
+consumed one-by-one. This hides the intricacies
+of starting a new `orthogonal' logic engine into
+a simple, easy to use abstraction.
+
+<p>
+
+<p><A NAME="tth_fIg1">
+</A> 
+<center><a href="ortho.eps">Figure</a></center> <center>      Figure 1: Orthogonal engines <A NAME="ortho">
+</A></center>
+<p>
+<p>
+The actual implementation is given in the Appendix (see also
+file <tt>library/engines.pl</tt>, available 
+from the <b>LINK</b> BinProlog
+download page).
+
+<p>
+The following example shows how an OR-stream of answers,
+seen as linear assumptions from an `orthogonal'
+engine, can be used in an different AND-branch:
+
+<p>
+<font size="-1">
+<pre>
+?- a(X)&lt;=member(X,[1,2,3])=&#62;(a(A),a(B),a(C),write([A,B,C]),nl).
+
+[1,2,3]
+</pre></font>
+
+<p>
+        <H2><A NAME="tth_sEc5">
+5</A>&nbsp;&nbsp;Related work</H2>
+Engine-like constructs [<a href="#OzEngines:97" name=CITEOzEngines:97>Sch97</a>] have been part of systems like Oz [<a href="#distoz97" name=CITEdistoz97>HVRS97</a>,<a href="#DOZmobs" name=CITEDOZmobs>VRHB<sup>+</sup>97</a>]
+and have been used in the past for encapsulated search - arguably more
+flexible than Prolog's fixed search mechanism. 
+The main differences with our engines come from their different intended use:
+
+<UL>
+<p>
+
+<li> Oz engines are not separated from the underlaying multi-threading model
+
+<li> Oz engines are not simple Horn Clause processors, they are part of Oz's more complex, multi-paradigm execution model
+
+<li> Oz engines are used for a different purpose, i.e. to program alternative search algorithms or visual debuggers, while
+our objective in this paper is a reconstruction of Prolog based on a Horn Clause kernel
+</UL>
+<p>
+  New languages based on relatively pure subsets of Prolog like 
+Mercury [<a href="#mercury" name=CITEmercury>SHC98</a>]
+have been designed as targets of more efficient implementation 
+technologies and for their reliability in building large software systems.
+Flexible execution order is being used in systems like SICStus, GNU-Prolog and B-Prolog
+to support constraint solving and in systems like XSB for synchronizing answer production
+and answer consumption in tabling.
+While Horn Clauses with negation have been extensively studied and
+some of the techniques described in this paper might be well known to experienced Prolog
+programmers, the very idea of systematically exploring the gains in expressive prower
+as a result of having multiple pure Prolog interpreters as
+first order objects, has not been explored yet, to our best knowledge.
+While our techniques have been described in a BinProlog context,
+they can be ported to any Prolog or Prolog-like language
+implementation which is <em>reentrant</em> - i.e. able to run more than one instance
+of the interpreter or runtime system at the same time - a requierment also
+for supporting native multi-threading.
+
+<p>
+        <H2><A NAME="tth_sEc6">
+6</A>&nbsp;&nbsp;Future work</H2>
+
+<p>
+The advent of component based software development and intelligent appliances
+requiring small, special purpose, self contained, still powerful processing elements,
+makes Kernel Prolog an appealing implementation technique for building logic prgramming
+components. In particular, in the case of small, wireless interconnected devices,
+subject to severe memory and bandwidth limitations, compact and orthogonally designed
+small language processors are instrumental. Our ongoing commercial Palm Prolog
+implementation will use a fast Horn Clause only reentrant emulator, to be extended
+towards full Prolog based on the Kernel Prolog design described in this paper.
+
+<p>
+Here are a few open issues and some ongoing or projected related developments:
+
+<p>
+
+<UL>
+<li> a study of Kernel Prolog's invariance under program transformations (unfolding)
+
+<li> expressivenes of multi-engine Datalog (conjectured as being Turing-equivalent)
+
+<li> type checking / type inference mechanisms for Kernel Prolog
+
+<li> lightweight engine creation and engine reuse techniques for Kernel Prolog
+
+<li> adapting Kernel Prolog for spoken I/O, using a new
+     prototype based Natural Language style predicate syntax
+
+<li> Kernel Prolog as a basis of embedded Prolog component technology 
+     and Prolog based Palm computing
+
+<li> implementation techniques for lighweight Web based Kernel Prolog interpreters
+
+<li> executable specification of ISO Prolog in terms of Kernel Prolog
+</UL>
+<p>
+        <H2><A NAME="tth_sEc7">
+7</A>&nbsp;&nbsp;Conclusion</H2>
+First order logic engines are introduced to overcome two major
+expressiveness problems of pure logic programming languages: 
+the inability to abstractly specify communication between distinct
+OR-branches and the ability to
+describe at source level various non-sequential execution models.
+We have shown also that meta-programming and dynamic database
+operations are easily emulated in Kernel Prolog.
+By collapsing the semantic gap between Horn Clause logic
+and (most of) the full Prolog language into two surprisingly
+simple, yet very powerful operations, we hope to open the
+doors not only for an implementation technology for a new
+generation of lightweight Prolog processors but also
+towards a better understanding of the intrinsic elegance hiding
+behind the core concepts of the logic programming paradigm.
+
+<p>
+<H2>References</H2>
+<DL compact>97

@@ -1,0 +1,43 @@
+Agents = Objects + Logic (provided that You Bring Your Own 
+Remote Control - and a Few Free Hands)
+
+We argue that agent oriented programming patterns are better
+expressed in terms of an object oriented layer extended with
+a generalized inheritance mechanism and independent logic programming
+based inference engines than in terms of the more
+anthropomorphic metaphors used in the literature.
+
+The suggested complete equation:
+
+Agents = Objects + Logic + Engines + Coordination + Remote Action
+
+provides orthogonal agent composition mechanisms which are
+expressive and highly reusable - together with an "Occam's razor"
+that confines the ontology to a few easy to learn independent
+programming language constructs.
+
+The Ontology
+
+Objects: provide proven program composition and code reuse mechanisms
+and allow extension of already aquired programming skills.
+
+Logic: Logic programming provides well understood, resolution based inference mechanisms.
+Beyond clause selection in the resolution process and generalized
+parameter passing, unification provides flexible search in
+message queues and databases. 
+
+Engines: execution of multiple independent goals are needed for implementing
+complex reactive patterns in agent programs. Engines are lightweight and highly
+autonomous instances of language interpreters - running through various
+scheduling models - in particular through blackboard coordinated
+multi-threading.
+
+Coordination: agent coordination can (and should) be separated from the details
+of agent communication and the agent's computational mechanisms (engines).
+We suggest coordination through blackboards - databases with intelligent, 
+constraint based search - instead of conventional message passing.
+
+Remote Action: a simple client-server style remote call mechanism is suggested,
+as a building bloc for various forms of remote action - in particular for
+supporting remote event propagation.
+

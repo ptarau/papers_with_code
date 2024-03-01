@@ -1,0 +1,1018 @@
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<META NAME="GENERATOR" CONTENT="TtHgold 2.24">
+                                                                      
+<title> Knowledge Based Conversational Agents and Virtual Storytelling</title>
+ 
+<H1 align=center>Knowledge Based Conversational Agents and Virtual Storytelling </H1>
+
+<p>
+
+<H3 align=center>
+ Paul Tarau, Elizabeth Figa </H3>
+
+<p>
+
+<H3 align=center> </H3>
+
+
+<p>
+
+<H2> Abstract</H2>
+We describe an architecture for building speech-enabled
+conversational agents, deployed as self-contained Web services,
+with ability to provide inference processing
+on very large knowledge bases and its
+application to voice enabled chatbots in a virtual storytelling
+environment. The architecture integrates Prolog based
+natural language pattern matching components
+and story specific information extraction from 
+RDF/XML files. Our Web interface is dynamically generated
+by server side agents supporting
+multi-modal interface components (speech and animation). 
+Prolog refactorings of the WordNet lexical knowledge base, FrameNet and the 
+Open Mind common sense knowledge repository are combined with 
+internet meta-search to provide high-quality knowledge sources 
+to our conversational agents.
+An example of conversational agent with speech capabilities is deployed on 
+the Web at .
+
+<p>
+<b>Keywords</b>: <em>conversational agents, virtual storytelling, logic programming,
+natural language and speech processing, WordNet, FrameNet and Open Mind 
+based knowledge processing</em>
+<p>
+<p>
+        <H2><A NAME="tth_sEc1">
+1</A>&nbsp;&nbsp;Introduction</H2>
+
+<p>
+Our interest in chat agents has emerged from the development 
+of interactive Web based storytelling programs. Given the nature of storytelling
+performances is ephemeral and not replicable, important artifacts of world culture are
+being lost. In other types of work settings, corporate memory and organizational 
+knowledge is being similarly lost or not exploited for its optimal use. 
+Using conversational agents for storytelling has been shown to ``bring to life"
+the collaborative computer-centered work environments necessary to sustain and
+make thrive the work of distributed teams and
+groups or academic classes working in virtual environments.
+Developers approach this in a number of ways through new technologies [<a href="#BaletKanfo" name=CITEBaletKanfo>1</a>],
+applications [<a href="#Rousseau" name=CITERousseau>2</a>], authoring tools [<a href="#Zancanaro" name=CITEZancanaro>3</a>],
+virtual characters [<a href="#Cavassa" name=CITECavassa>4</a>], and models for narrative construction [<a href="#Fencott" name=CITEFencott>5</a>]. 
+
+<p>
+        <H2><A NAME="tth_sEc2">
+2</A>&nbsp;&nbsp;Storytelling Agents</H2>
+
+<p>
+We have coded our story-telling agents as a combination of story specific 
+Semantic Web metadata (encoded as XML/RDF [<a href="#RDF" name=CITERDF>6</a>,<a href="#karvounarakis-rql" name=CITEkarvounarakis-rql>7</a>] files)
+and Prolog Web services integrating the 
+WordNet [<a href="#miller90:techreport" name=CITEmiller90:techreport>8</a>,<a href="#felbaum98" name=CITEfelbaum98>9</a>,<a href="#mihalcea01extended" name=CITEmihalcea01extended>10</a>] and 
+FrameNet [<a href="#baker98berkeley" name=CITEbaker98berkeley>11</a>,<a href="#gildea02automatic" name=CITEgildea02automatic>12</a>,<a href="#frameinf" name=CITEframeinf>13</a>] lexical knowledge bases
+and  a subset of the Open Mind [<a href="#om" name=CITEom>14</a>,<a href="#omkurz" name=CITEomkurz>15</a>,<a href="#omaaai" name=CITEomaaai>16</a>] collection of common sense ontologies.
+For some stories, online chat transcript are used for establishing the Prolog query/answer patterns through an example driven learner implemented in Prolog, which uses WordNet based
+generalizations (hypernyms) to extend its coverage. 
+The query/answer correlations extract ontology specific knowledge 
+from the story's RDF metadata, text and related
+chat recordings. The agent's conversational capabilities are enhanced by
+matching content from WordNet, FrameNet and Open Mind.
+A first level in our rule hierarchy provides an essentially stateless, reactive dialog layer. Given that the reactive rules are specialized with respect to the content of a given story, this captures the most likely questions and provides them with largely predefined answers (up to a fairly flexible WordNet based semantic equivalence relation). However to provide access to the state of the interaction as well as to the content of the XML based story database, we extend the shallow pattern processing with a logic-based inference engine.  The engine consists of a natural language parser, a common sense database, a lexical disambiguation module, as well as a set of transformation rules mapping surface structures to semantic skeletons in a way similar to the natural language processor described in [<a href="#lm" name=CITElm>17</a>]. The inference engine uses a dynamic knowledge base, which accumulates facts related to the context of the interaction. Such facts can be used for future inferences. This dynamic knowledge base works as a short-term memory similar to the one implicit in human dialogue and also provides means to disambiguate anaphoric references. On the other hand, a permanent static database obtained by scanning XML-based metadata for each story, built by a human indexer, provides more specific information,
+when the semantic structure of the query can be translated into predicates matching metadata tags. A fragment of such encoding follows:
+
+<p>
+<font size="-1">
+<pre>
+&lt;?xml version="1.0"?&#62;
+&lt;?xml-stylesheet type="text/xsl" href="../specificstory.xsl"?&#62;
+
+&lt;story&#62;
+     &lt;dc:title&#62;The Ant and His Treasure&lt;/dc:title&#62;
+     ....
+     &lt;sc:genre&#62;folktale, animal tale, inspiration story, 
+         success story, trickster story 
+      &lt;/sc:genre&#62;                              
+     &lt;sc:theme&#62;self-reliance, determination, &lt;/sc:theme&#62;
+     &lt;sc:tale-type&#62;fable&lt;/sc:tale-type&#62;
+     &lt;sc:motif&#62;breadcrumb, weak characters&lt;/sc:motif&#62;
+     &lt;sc:setting&#62;anthill, nature&lt;/sc:setting&#62;
+     &lt;sc:characters&#62;ant, bee, cockroach, spider&lt;/sc:characters&#62;
+     &lt;sc:archetypes&#62;trickster animals, weak-will&lt;/sc:archetypes&#62;
+     &lt;sc:coda&#62;Stop crying and keep trying.&lt;/sc:coda&#62;
+    ....
+ &lt;/story&#62;   
+</pre></font>
+
+<p>
+The XML/RDF metadata allows users to search the story database by title, abstract,
+taletype, performer name, etc., for a digital video/audio storytelling performance, select the one they want to play, view the performance via a streaming media player, focus on relevant parts of the narrative transcript of the storytelling performance, and/or interact with the agents in a dialogue about the narrative. We have integrated access to information sources related to a given story into a natural metaphor - a virtual storytelling agent which is modeled after what people ask and answer about the story - while being aware of the ontology and the context of the story, modeled as hierarchy of classes. 
+
+<p>
+The knowledge base creates an agent instance based on the class to which the story is known to belong and provides inferences about related stories and default assumptions, which are used for queries not covered by the pattern extracted from the online chat sessions. The Jinni 2003 [<a href="#j2k_ug" name=CITEj2k_ug>18</a>] Prolog compiler's support for multiple cyclic inheritance  allows stories to be organized based on multiple classification criteria, very much as if they were related Web pages linked to each other. Jinni's classes are simply Prolog files with <em>include</em> declarations. They can be located at arbitrary URLs on the Web and can inherit predicate definitions  from each other. When story instances are created, the object constructor receives the URLs to the locations of the multimedia (digital video/audio) recording of the storytelling event, the story transcript, and the log of the story-related query/answering chat session.
+
+<p>
+        <H2><A NAME="tth_sEc3">
+3</A>&nbsp;&nbsp;An Architecture for Knowledge Intensive Conversational Agents</H2>
+
+<p>
+During the iterative design and development process of our storytelling agents we
+have noticed that the focus can be easily lifted towards a framework supporting
+conversational agents where domain specific information, lexical and semantic knowledge and common sense rules
+interoperate and enhance each others expressiveness. The resulting generic agent architecture is described in <b>Fig 1</b>.
+
+<p>
+
+<p><A NAME="tth_fIg1">
+</A> <center><a href="fnsys">Figure</a> <center>      Figure 1: A Knowledge Intensive Conversational Agent Architecture</center>
+</center><p>
+<p>
+We will overview the various components of the architecture and their
+interactions in  the following sections.
+
+<p>
+        <H2><A NAME="tth_sEc4">
+4</A>&nbsp;&nbsp;Server Side Prolog Agents</H2>
+The agent architecture is centered around Jinni 2003 [<a href="#j2k_ug" name=CITEj2k_ug>18</a>,<a href="#tarau:cl2000" name=CITEtarau:cl2000>19</a>,<a href="#tarau:shaker" name=CITEtarau:shaker>20</a>] or BinProlog based [<a href="#td:tlp" name=CITEtd:tlp>21</a>,<a href="#TD99:infra" name=CITETD99:infra>22</a>] <b>Prolog Server Agents</b> able to run as extensions of a Prolog based Web server. Server agents can run on separate threads and accomplish various functions ranging from Web based information extraction to dynamic generation of Web pages. At the cost of a few hundred lines of Prolog code (mostly DCG grammar based) we also provide basic HTTP services. As a result we can deploy Jinni applets or BinProlog based Web services without having to interface to an external Web server.
+
+<p>
+        <H2><A NAME="tth_sEc5">
+5</A>&nbsp;&nbsp;Conversational Agents as Voice Enabled Web Services</H2>
+
+<p>
+Our Agents are deployed using Prolog Web servers and server side Prolog script processing capabilities. This provides seamless integration between the knowledge base, the shallow script processor and the XML metadata reflected as a Prolog set of story specific facts and rules. The Web components are also developed using exclusively XML/XSL/XHTML pages to ensure a natural binding of Web content to database fields and easy parsing by script processors.
+
+<p>
+We have used Microsoft Agent [<a href="#msagent" name=CITEmsagent>23</a>] components embedded in a
+dynamically generated Java Script Web page to
+provides easy integration of client-side
+voice and animation services. Under Internet Explorer, the dynamically
+generated Web pages trigger automatic download of the Microsoft Agent 
+controls from the Microsoft server on first use. 
+Client-side voice interaction is provided through
+the SAPI voice API's text-to-speech component. 
+Specific text and animation commands are
+generated by our Prolog Server Agent processor which edits annotations
+made in a page template like the following:
+
+<p>
+<font size="-1">
+<pre>
+&lt;html&#62;
+  &lt;head&#62;
+    &lt;title&#62;Prolog Server Agent Output&lt;/title&#62;
+  &lt;/head&#62;
+  &lt;body language="Javascript" onLoad="OnLoad()"&#62;
+    &lt;OBJECT id= 
+      /* reference to Microsoft Agent downloads ... */
+    &lt;/OBJECT&#62;
+    &lt;SCRIPT language="Javascript"&#62;
+
+var aAgent;var qAgent;var res;
+
+function initAgent(name,url) {
+  AgentControl.Characters.Load(name,url);
+	name = AgentControl.Characters.Character(name);
+	return name;
+}
+function initQ() {
+  qAgent=initAgent("qAgent",
+   "http://agent.microsoft.com//agent2//chars//peedy//peedy.acf");
+}
+function initA() {
+  aAgent=initAgent("aAgent",
+   "http://agent.microsoft.com//agent2//chars//merlin//merlin.acf");
+}
+function agentSpeak(agent,message) {
+  agent.Get("state", "Showing, Speaking");
+	agent.Get("animation", "Greet, GreetReturn");
+	agent.Show();agent.Get("state", "Hiding");
+	agent.Play("Greet");
+	res=agent.Speak(message);
+	agent.Hide();
+}
+function OnLoad() {
+  initQ();initA();
+  	
+	agentSpeak(qAgent,"{{?spoken_query}}");	
+	aAgent.Wait(res);
+ 	agentSpeak(aAgent,"{{?spoken_answer}}"); 	
+	}
+    &lt;/SCRIPT&#62;
+    &lt;p&#62;
+      &lt;font color="#000099"&#62;&lt;b&#62;{{?login}}:&lt;/b&#62;{{?query}}&lt;/font&#62;
+      &lt;br&#62;&lt;b&#62;agent:&lt;/b&#62;&amp;nbsp;{{?answer}}
+    &lt;/p&#62;
+    &lt;hr&#62;&lt;b&#62;History Window&lt;/b&#62;
+    &lt;pre&#62;
+{{?history}}
+&lt;/pre&#62;
+  &lt;/body&#62;
+&lt;/html&#62;
+</pre></font>
+
+<p>
+ Note the presence of the <tt>{{?..}</tt> patterns which will be expanded
+by our Prolog Server Agent processor into the actual text to be spoken by
+the client-side text-to-speech processor. The Pattern Processor described
+in the next function (also providing shallow natural language processing for
+queries) is used to locate the patterns and replace them on the fly with
+content from the Prolog database or an associative list.
+
+<p>
+
+<p><A NAME="tth_fIg2">
+</A> <center><a href="vista">Figure</a> <center>      Figure 2: Conversational Agents as Voice Enabled Web Services</center>
+</center><p>
+<p>
+        <H2><A NAME="tth_sEc6">
+6</A>&nbsp;&nbsp;A Definite Clause Grammar-based Pattern Processor</H2>
+
+<p>
+We have designed a generic Definite Clause Grammar based Pattern processor which
+works on arbitrary data (character codes, tokens, sentences) to
+detect and aggregate patterns at a given syntactic level.
+
+<p>
+The predicate <tt>mach_pattern(Pattern,InputList)</tt> matches <tt>Pattern</tt> against <tt>InputList</tt>. 
+<tt>Pattern</tt> can contain any combination of constants, constrained variables of the form <tt>X:P</tt> 
+where <tt>P</tt> is a predicate about <tt>X</tt>, as well as <em>Gap variables</em> which match arbitrary sequences located
+between constants and constrained variables. Note that constants and constrained variables match single items and function as <em>known</em> index elements in the InputList, while Gap variables collect the text to be retrieved. If
+patterns contain other patterns (embedded as Lists) the mechanism allows
+recursive application - but most of the uses of the pattern matching
+mechanism in our applications have involved ``shallow use'' i.e. recursive
+embedded patterns have been seldom used. 
+The code actually handles more powerful annotations
+(i.e. regular expressions and disjunctive patterns) which have
+been proven very useful in applications like text mining and Internet
+content processing.
+
+<p>
+Here is an example of a rule working on a list of natural language tokens:
+
+<p>
+<font size="-1">
+<pre>
+try_match(Login,Password,Ys,Os):-
+  ensure_last(Ys,'?',Is),
+  % What do you &lt;know&#62; about &lt;life&#62;?
+  match_pattern([V:wh_word(V),do,you,
+                 Verb:is_verb_phrase([Verb|_]),Obs,'?'],Is),
+  !,rotate_answer(Login,Password,what_do_you(Verb,Obs,Ds),Ds),
+  ensure_last(Ds,'.',Os).
+</pre></font>
+
+<p>
+As the answer handler <tt>what_do_you</tt> generates multiple answers, we are applying
+to it a higher order transformer <tt>rotate_answer</tt> which first accumulates the
+answers in the dynamic Prolog database (short-term-memory) and, when no more answers
+can be produced, rotates the answers - this is quite important to avoid 
+boring the users with repeated answers. The parameters <tt>Login</tt> and <tt>Password</tt>
+uniquely identify the user allowing allocation of user-specific server side context which
+provides a conversational short term memory function.
+
+<p>
+        <H2><A NAME="tth_sEc7">
+7</A>&nbsp;&nbsp;WordNet as a Lexical Knowledge Processor</H2>
+The first step in building this functionality is quick access
+to the semantic and lexical knowledge provided by the
+WordNet database [<a href="#miller90:techreport" name=CITEmiller90:techreport>8</a>]. This database is also
+available in Prolog form (see
+ ) and is therefore  
+ready to be used as part of a rule-based
+inference system.
+A lexicon consists of a set of word meanings and their semantic relationships.  A
+systematic representation of the English lexicon based in psycholinguistic
+considerations has been put together in the database WordNet [<a href="#felbaum98" name=CITEfelbaum98>9</a>].
+
+<p>
+WordNet maps word forms and word meanings as a
+many-to-many relation. An important characteristic of
+WordNet is that semantic relations
+(hypernymy, hyponymy, synonymy, meronimy etc.)
+are defined in WordNet between <em>meanings</em>
+instead of being defined between <em>words or word phrases</em>.
+
+<p>
+Meanings are represented by <em>integers</em> (called
+<em>synsets</em>) associated to sets of words and 
+word phrases collectively defining a sense element
+(concept, predicate or property and also usable for indexing.
+
+<p>
+So, for example, the meaning identifier (synset)
+<tt>Id=100011413</tt> maps to the following list of words and word
+phrases: <tt>[[animal], [animate,being], [beast], [brute], 
+[creature], [fauna]]</tt>, which collectively define a common
+<em>meaning</em>.
+
+<p>
+      <H3><A NAME="tth_sEc7.1">
+7.1</A>&nbsp;&nbsp;An Efficient Bidirectional Word Phrase to Meaning Mapping</H3>
+
+<p>
+We have refactored the set of predicates provided by WordNet 
+closely following the WordNet relation set
+(see )
+to support
+bidirectional constant time access to the set of <em>meanings</em> 
+associated to a given word phrase (indexed by a unique head word) and for the 
+set of word phrases and relations associated to a given (unique) meaning.
+
+<p>
+The refactored WordNet Prolog database contains the following
+basic binary relations.
+
+<p>
+
+<UL>
+<li> <tt>w/2</tt>: head word to meanings
+
+<li> <tt>i/2</tt>: meaning to words
+
+<li> <tt>l/2</tt>: meaning to meaning links (relations from the meaning to another meaning)
+
+<p>
+
+<li> <tt>g/2</tt>: meanings to definitions and examples
+
+<li> <tt>r/2</tt>: reversed meaning to meaning links
+
+<li> <tt>t/2</tt>: toplevel meanings with their syntactic roles (nouns or verbs)
+
+<p>
+
+<li> <tt>e/2</tt>: exception variant words to meanings
+
+<li> <tt>k/2</tt>: known words in definitions and examples with occurrence counts
+
+<li> <tt>n/2</tt>: new words in definitions and examples with occurrence counts
+</UL>
+<p>
+For a given word (as <em>humble</em> in the following example) the relation <tt>w/2</tt>
+returns a list of meanings:
+
+<p>
+<font size="-1">
+<pre>
+?- w(humble,Meanings).
+Meanings=[
+  302269648,201415418,301839431,
+  201414096,302162242,301551117,109699111
+).
+</pre></font>
+
+<p>
+For a meaning, we have a number of alternative words or word phrases,
+with attributes. Among them, the last argument provides frequency of
+occurrence in a corpus of texts and will be used for disambiguation:
+
+<p>
+<font size="-1">
+<pre>
+?-i(302269648,WordInfo).
+
+WordInfo=[
+  f(1,[humble],s,1,3),
+  f(2,[low],s,7,0),
+  f(3,[lowly],s,1,1),
+  f(4,[modes],s,5,0),
+  f(5,[small],s,3,155)]).
+</pre></font>
+
+<p>
+Links (like the sim/1 synonymy link) are collected on a list:
+
+<p>
+<font size="-1">
+<pre>
+?-l(302269648,Links).
+  Links=[sim(302269385)]).
+</pre></font>
+
+<p>
+Definitions and examples originally present in WordNet are preparsed
+so that they can be processed efficiently, if needed, at runtime. We
+also collect frequency information and word forms not present in
+the form of WorldNet entries.
+
+<p>
+<font size="-1">
+<pre>
+?-g(302269648,DefinitionAndExamples).
+
+DefinitionAndExamples=[
+  def([low,or,inferior,in,station,or,quality]),
+  ex([a,humble,cottage],
+  ex([a,lowly,parish,priest]),
+  ex([a,modest,man,of,the,people]),
+  ex([small,beginnigs])]).
+</pre></font>
+
+<p>
+Note that multiple syntactic categories can be present for words like
+``humble'' (v=verb, and a=adverb).
+
+<p>
+<font size="-1">
+<pre>
+i(201415418,[f(1,[humble],v,1,1)])
+...
+i(301839431,[f(1,[humble],a,2,1)])
+...
+
+i(201414096,[
+  f(1,[humiliate],v,1,2),
+  f(2,[mortify],v,3,0),
+  f(3,[chagrin],v,1,0),
+  f(4,[humble],v,2,1),
+  f(5,[abase],v,1,0)]).  
+</pre></font>
+
+<p>
+Note also the presence of reversed 
+relations like hyponyms (reverse hypernyms) 
+and reverse meronyms. These are
+are precomputed to support high performance graph
+walk operations using BinProlog and 
+Jinni's fast database
+indexing mechanisms (blackboard operations), 
+to provide constant time access to edges
+related to a given node for a given relation. 
+
+<p>
+We have also precomputed mappings from word variants to related meanings,
+based on the dictionary entry they belong.
+
+<p>
+Finally, we have precomputed ``toplevel'' nouns and verbs,
+(meaning which do not have further hypernym links).
+
+<p>
+This refactoring provides sets of facts with the following properties:
+
+<UL>
+<p>
+ 
+<li> given a head word (or a word phrase), we can extract in constant
+  time all related information about their meanings (used in efficient parsing 
+  of textual data to lists of synsets)
+ 
+<li> given a meaning, we can extract in constant time all relations and related meanings
+  or words provided by the WordNet database
+</UL>
+<p>
+Overall, our refactoring simplifies WordNet while providing an efficient inference
+engine through Prolog rules that can digest the information contained in
+these basic relations.
+
+<p>
+      <H3><A NAME="tth_sEc7.2">
+7.2</A>&nbsp;&nbsp;Using Prolog Graph Algorithms</H3>
+
+<p>
+In the directed graph G of meaning nodes N<sub>G</sub>
+we can see various WordNet relations as defining elements
+of a set of edges E<sub>G</sub>.
+
+<p>
+       <H4><A NAME="tth_sEc7.2.1">
+7.2.1</A>&nbsp;&nbsp;Graph Walks</H4>
+
+<p>
+ We implement
+our abstraction operators as depth-K walks
+in such graphs. Besides the primitive WordNet
+relations, we use <em>closures</em><a href="#tthFtNtAAB" name=tthFrefAAB><sup>1</sup></a> as edge generators.
+
+<p>
+       <H4><A NAME="tth_sEc7.2.2">
+7.2.2</A>&nbsp;&nbsp;Making Semantic Connections through Least Common Ancestors</H4>
+
+<p>
+To explore various semantic relations provided by or inferred from WordNet,
+we have implemented a generic graph walking algorithm which
+uses arbitrary relations to dynamically define <em>edges</em>
+and applies arbitrary conditions to the <em>nodes</em>.
+
+<p>
+Among the interesting applications to chat agents - a fast <em>least common ancestor</em> computation provides answers like in:
+
+<p>
+<font size="-1">
+<pre>
+guest: Relate woman and love!
+agent: After scratching my head 1 times, relating woman to 
+       love makes me think about girlfriend.
+</pre></font>
+
+<p>
+ As WordNet seems to know about logic programming (the technology used in this project), the following comes out quite easily:
+
+<p>
+<font size="-1">
+<pre>
+guest: Relate logic and programming.
+agent: After scratching my head 1 times, relating logic to programming makes me
+       think about logic programming.
+</pre></font>
+
+<p>
+ Unfortunately, with depth limited to 3, our agent will try to save face,
+after not finding a connection<a href="#tthFtNtAAC" name=tthFrefAAC><sup>2</sup></a>:
+
+<p>
+<font size="-1">
+<pre>
+guest: Relate logic and love!
+agent: About love. Love is a kind of emotion, are you
+thinking about any strong feeling?
+</pre></font>
+
+<p>
+        <H2><A NAME="tth_sEc8">
+8</A>&nbsp;&nbsp;Story Abstractions</H2>
+The view of stories as <em>programs</em> usable to recall and understand
+chains of external events suggests a technique similar
+to <em>abstract interpretation</em>
+[<a href="#cousot:abstract:popl:77" name=CITEcousot:abstract:popl:77>24</a>] which has been
+used to elegantly infer program properties in
+the field of Programming Languages. The technique consists of lifting
+properties from a <em>concrete domain</em> - in this case the lexical material
+of a story, seen as a sequence of word phrases - to an <em>abstract domain</em>
+obtained by following an abstraction operator and then propagating
+back the results of the (easier)
+analysis from the (smaller) abstract
+domain to the more complex concrete domain.
+The idea extends to various text documents and Web
+documents that can be converted to or summarized
+as text documents.
+
+<p>
+      <H3><A NAME="tth_sEc8.1">
+8.1</A>&nbsp;&nbsp;Abstraction through the WordNet Hypernym Hierarchy</H3>
+
+<p>
+This is a simple but useful abstraction mechanism - with
+obvious applications to indexing. It consists of <em>lifting</em>
+words and word phrases extracted from the story transcripts
+to more general equivalents obtained by following upward
+links in the WordNet hypernym hierarchy - as in the following example:
+
+<p>
+<font size="-1">
+<pre>
+?- lift_word(spy,1,S).
+S=[[[secret,agent],
+   [intelligence,officer],
+   [intelligence,agent],
+   [operative],...]];
+
+no
+?- lift_word(spy,2,S).
+S=[[[perceiver],[observer],[beholder],[agent],...]]
+];
+
+no
+?- lift_word(spy,3,S).
+S=[[[person],[individual],[someone],[somebody],[mortal],[human],...]];
+</pre></font>
+
+<p>
+      <H3><A NAME="tth_sEc8.2">
+8.2</A>&nbsp;&nbsp;K-level Noun Abstractions</H3>
+
+<p>
+Hypernym relations are more meaningful for nouns than
+for other syntactic categories. Noun-related synsets form
+relatively deep (up to 10-12) hierarchies coming from
+fairly reliable common sense and natural sciences
+classifications. By restricting a story trace to
+nouns, one can get an approximation of what the story
+is about - at different levels of abstractions.
+
+<p>
+      <H3><A NAME="tth_sEc8.3">
+8.3</A>&nbsp;&nbsp;Verb Abstractions</H3>
+
+<p>
+Pure verb traces (obtained by selecting only verb sequences)
+provide an abstract view of a story's dynamics. 
+Like Web links, WordNet graphs exhibit
+<em>small-world</em> structure (strong clustering and small diameter).
+At a deep enough level (5-10), all stories will map to sequences
+like <tt>[act] [transfer] [change] [rest]</tt> and similar verbs,
+organized as collections of story-independent patterns.
+Such patterns indicate dramatic intensity and can be used
+to spot out climactic points in a story.
+
+<p>
+       <H4><A NAME="tth_sEc8.3.1">
+8.3.1</A>&nbsp;&nbsp;Causality/Entailment Verb Abstractions</H4>
+
+<p>
+WordNet provides a <tt>cs(Cause, Effect)</tt> and an
+<tt>ent(Action,Consequence)</tt> relation
+applying only to verbs. By using them in the context of a story,
+one can derive hints about what might happen next or explain why
+something has happened.
+
+<p>
+       <H4><A NAME="tth_sEc8.3.2">
+8.3.2</A>&nbsp;&nbsp;Answering <em>Why</em> Questions through Causality Abstractions</H4>
+
+<p>
+Causal relations provide possible explanations, and
+as such, answers to <em>why</em> questions about a story or generate
+explanatory sentences usable in abstracts.
+
+<p>
+      <H3><A NAME="tth_sEc8.4">
+8.4</A>&nbsp;&nbsp;Using FrameNet Semantic Roles to Understand Conversational Context</H3>
+
+<p>
+The FrameNet corpus provides ontology data at a higher level than WordNet and allows
+detection of most of the semantic roles [<a href="#gildea02automatic" name=CITEgildea02automatic>12</a>] relevant to the
+understanding of XML/RDF story-specific data as well as in detecting key elements of the
+conversational context. The ``granularity'' of FrameNet data which is described
+in terms of predicates (corresponding to <em>verbs</em>) and their arguments matches
+well our internal Prolog representations, also consisting of predicate definitions.
+We use a SAX based event driven parser (part of Jinni 2003)
+to extract only relevant data from FrameNet (a collection of a few thousand 
+XML files of around 1000 Mb total size).
+
+<p>
+      <H3><A NAME="tth_sEc8.5">
+8.5</A>&nbsp;&nbsp;Extracting Query Answer patterns from Open Mind and chat transcripts</H3>
+
+<p>
+After simple syntactic transformations we have mapped various Open Mind and human chat transcripts
+to a Prolog database of ``canned'' question/answer facts. Through the use of noun abstractions
+and verb abstractions as well as synonymy relations we have significantly extended the coverage
+of this database.
+
+<p>
+        <H2><A NAME="tth_sEc9">
+9</A>&nbsp;&nbsp;Related Work</H2>
+
+<p>
+Conversational agents [<a href="#andre00automated" name=CITEandre00automated>25</a>,<a href="#mulken98persona" name=CITEmulken98persona>26</a>,<a href="#core97coding" name=CITEcore97coding>27</a>,<a href="#Cavassa" name=CITECavassa>4</a>,<a href="#aiml" name=CITEaiml>28</a>] 
+have been identified as an effective multi-modal interface element with applications
+ranging from user support automation to video games 
+and interactive fiction [<a href="#Zancanaro" name=CITEZancanaro>3</a>,<a href="#Fencott" name=CITEFencott>5</a>,<a href="#tidse:vista" name=CITEtidse:vista>29</a>]. 
+Interestingly enough, conversational agents are reopening some 50 year old
+methodological dilemmas and challenges of artificial intelligence.
+We will overview them informally here, based on our own journey
+through various architecture and implementation decisions in building
+a fairly large Prolog based conversational agent in a virtual
+storytelling application which integrates more than a GigaByte of
+knowledge base data from WordNet, FrameNet and Open Mind. The distinctions
+stem from aspects related to <em>conversational intelligence</em> (reasoning) as
+well as (factual) <em>conversational knowledge</em>.
+
+<p>
+
+<b>Symbolic vs. statistical inference processing&nbsp;&nbsp;</b>
+This is an instance of the old AI dilemma 
+between using logic/predicate calculus or semantic nets/conceptual graphs as a symbolic reasoning mechanism versus statistical mechanisms like
+Bayesian networks, genetic algorithms or artificial neural networks.
+
+<p>
+
+<b>Programming vs. machine learning&nbsp;&nbsp;</b> Should conversational agents be
+coded in (possibly customized) high level languages or we should use various
+machine learning/data mining algorithms to extract conversational intelligence
+from various online and offline information sources?
+
+<p>
+
+<b>Hand-coded vs. automatically acquired knowledge&nbsp;&nbsp;</b>
+In a way similar to the choice between hand coded and machine learned
+conversational intelligence, hand built conversational knowledge competes
+against knowledge acquired automatically by transformation/adaptation
+of existing knowledge repositories.
+
+<p>
+
+<b>Shallow vs. deep Natural Language understanding&nbsp;&nbsp;</b> Somewhat related
+to effectiveness in the ``Turing test'' (the ability to fool humans about an agent
+being or not being human) in half-serious contests like the Loebner prize.
+Also, it terms of conversational realism, in the context of video gaming or interactive fiction, 
+shallow natural language processing,
+using a large set of patterns, often collected as an open-source, user contributed
+process (see [<a href="#aiml" name=CITEaiml>28</a>]),
+has been proven a valid de facto alternative to sophisticated
+morphological, syntactic or semantic ``deep'' natural language 
+understanding techniques, using translation of natural language
+to various formal representations and query processing languages.
+
+<p>
+
+<b>Mimetic vs. real conversational intelligence&nbsp;&nbsp;</b>
+Realistic human-like synthetic actors are now routinely used in movies and video games.
+The need for domain-independent conversational intelligence is particularly important
+in applications from interactive fiction to user support. The subconscious or explicit
+user expectation in all these areas is that <em>if an agent looks like a human and speaks
+like a human, then it has all the other human attributes</em>. This has lead chatbot implementors
+to a focus on ``deception'' techniques ranging from Eliza-style rephrasings
+and oracular/ambiguous/unspecific answer generation,
+ to shifting the focus of the user (offering them a drink or talking to
+another agent - as seen often in video games or interactive fiction) - sometimes
+quite successfully in terms of psychological realism, as it is the case
+in Fa&#231;ade [<a href="#tidse:facade" name=CITEtidse:facade>30</a>].
+
+<p>
+
+<b>Knowledge intensive vs. Inference intensive AI&nbsp;&nbsp;</b> 
+With the advent of large,
+freely available lexical and common sense knowledge repositories like 
+WordNet [<a href="#miller90:techreport" name=CITEmiller90:techreport>8</a>,<a href="#felbaum98" name=CITEfelbaum98>9</a>] and Open Mind [<a href="#omaaai" name=CITEomaaai>16</a>,<a href="#om" name=CITEom>14</a>] it is
+becoming increasingly possible to cover a large spectrum of natural
+language questions by finding satisfactory answers
+through relatively shallow (but computationally efficient) pattern
+matching. Interestingly, issues like ``story consistency'', coherent handling
+of the context of the conversation and its implicit assumptions
+require refocusing our inferential techniques towards textual rather
+than sentential aspects of conversational intelligence, while balancing
+mimetic realism and usefulness of our agents as information sources.
+
+<p>
+        <H2><A NAME="tth_sEc10">
+10</A>&nbsp;&nbsp;Future Work</H2>
+
+<p>
+The agent technology involved in the automation of the interactive chat query/answer patterns needs both a natural language analysis and a natural language generation component. The analysis capabilities are needed to understand the question and the generation capabilities are needed to construct the answer. 
+
+<p>
+Answering <em>what-is-this-about</em> questions is relatively easy - by extraction of dominant nouns and noun phrases from each story. However, creating a dialogue to get at the deeper hermeneutics of the story or the impact of a storytelling performance narrative upon an individual is harder. Different people will select a different trace in a story to chat about. A story trace is a sequence of meanings extracted from the lexical material of a story to which one or more meaning transformations are applied. The semantic ambiguity coming from the polysemy of the lexical material is intensified by the pragmatic ambiguity of the listener's personal experience, the parameters of the storytelling performance, and the nature of the multimedia experience (seeing video, hearing audio tracks, reading a transcript, listening to a musical story, etc.) 
+
+<p>
+Through the use of WorldNet, abstractions can be traced to help determine what a given story and its parts are about. WorldNet contains semantic links to allow the users to navigate on a network of meaning-to-meaning relationships. Meaning elements obtained by navigating WorldNet concept hierarchies naturally generalize the meaning of individual sentences. By starting from a story's lexical material and working upward in word meaning hierarchies to understand higher level indexing terms, story similarities and differences can be compared and query/answer patterns can be automatically extracted.  
+
+<p>
+In the context of our general architecture, we have identified the following issues for the future developments of our conversational agent technology:
+
+<p>
+
+<UL>
+<li> Improving the methods by which agent scripts and story specific metadata are extracted from interactive query/answering transcripts.
+
+<p>
+
+<li> Further work with the story traces as a method to analyze natural language document content and ontology-driven story projections to match question patterns to relevant content parts in collections of natural language documents.
+
+<p>
+
+<li> How goal driven question generation and abductive explanations can be used in the context of mixed initiative dialogs.
+
+<p>
+
+<li> Find creative uses for the new Google meta-search API recently implemented as a Jinni 2003 extension module for XML/RDF/DAML knowledge extraction from Web sources and their
+use for answer generation.
+
+<p>
+
+<li> Extract more complex <em>conversational intelligence</em> from various 
+FrameNet and Open Mind data files and take advantage of their parsed 
+forms (to be converted from Lisp and XML to Prolog) as a
+mechanism for deep natural language query pattern matching.
+</UL>
+<p>
+        <H2><A NAME="tth_sEc11">
+11</A>&nbsp;&nbsp;Conclusion</H2>
+This paper has described a logic programming based agent architecture for knowledge-intensive conversational agents deployed as self-contained Web services. The architecture uses an XML-based Web Interface, RDF based Semantic Web data, object-oriented content hierarchies and a Prolog based natural language and a knowledge processor. The architecture merges these technologies to build voice-enabled, easy to use end user applications with significant knowledge processing capabilities. The technology has applications for online teaching, user support, information retrieval, interactive fiction and video game authoring.
+
+<p>
+<H2>References</H2>
+<DL compact>
+
+<p>
+<dt>[<a href="#CITEBaletKanfo" name=BaletKanfo>1</a>]</dt><dd>
+O.&nbsp;Balet, P.&nbsp;Kafno, F.&nbsp;Jordan, and T.&nbsp;Polichroniadis.
+ The VISIONS Project.
+ In <em>Proceedings of the International Conference on Virtual
+  Storytelling</em>, Avignon, France, September 2001.
+
+<p>
+<dt>[<a href="#CITERousseau" name=Rousseau>2</a>]</dt><dd>
+M.&nbsp;Rousseau.
+ The Interplay between Form, Story and History.
+ In <em>Proceedings of the International Conference on Virtual
+  Storytelling</em>, Avignon, France, September 2001.
+
+<p>
+<dt>[<a href="#CITEZancanaro" name=Zancanaro>3</a>]</dt><dd>
+M.&nbsp;Zancanaro, A.&nbsp;Cappelletti, and C.&nbsp;Signorino.
+ Interactive Storytelling: People, Stories, and Games.
+ In <em>Proceedings of the International Conference on Virtual
+  Storytelling</em>, Avignon, France, September 2001.
+
+<p>
+<dt>[<a href="#CITECavassa" name=Cavassa>4</a>]</dt><dd>
+M.&nbsp;Cavassa, F.&nbsp;Charles, and S.&nbsp;Mead.
+ Characters in Search of an Author: A.I. Based Virtual Storytelling.
+ In <em>Proceedings of the International Conference on Virtual
+  Storytelling</em>, Avignon, France, September 2001.
+
+<p>
+<dt>[<a href="#CITEFencott" name=Fencott>5</a>]</dt><dd>
+C.&nbsp;Fencott.
+ Virtual Storytelling as Narrative Potential: Towards an Ecology of
+  Narrative.
+ In <em>Proceedings of the International Conference on Virtual
+  Storytelling</em>, Avignon, France, September 2001.
+
+<p>
+<dt>[<a href="#CITERDF" name=RDF>6</a>]</dt><dd>
+Dan&nbsp;Brickley Eric&nbsp;Miller, Ralph&nbsp;Swick.
+ Resource Description Framework (RDF).
+ Technical report, www.w3.org, 2003.
+ Available at http://www.w3.org/RDF/.
+
+<p>
+<dt>[<a href="#CITEkarvounarakis-rql" name=karvounarakis-rql>7</a>]</dt><dd>
+G.&nbsp;Karvounarakis, S.&nbsp;Alexaki, V.&nbsp;Christophides, D.&nbsp;Plexousakis, and M.&nbsp;Scholl.
+ RQL: A Declarative Query Language for RDF.
+
+<p>
+<dt>[<a href="#CITEmiller90:techreport" name=miller90:techreport>8</a>]</dt><dd>
+George Miller, Richard Beckwith, Christiane Fellbaum, Derek Gross, and
+  Katherine Miller.
+ Five papers on WordNet.
+ CSL Report&nbsp;43, Cognitive Science Laboratory, Princeton University,
+  July 1990.
+
+<p>
+<dt>[<a href="#CITEfelbaum98" name=felbaum98>9</a>]</dt><dd>
+C.&nbsp;Felbaum.
+ <em>Wordnet, an Electronic Lexical Database for English</em>.
+ Cambridge: MIT Press, 1998.
+
+<p>
+<dt>[<a href="#CITEmihalcea01extended" name=mihalcea01extended>10</a>]</dt><dd>
+R.&nbsp;Mihalcea and D.&nbsp;Moldovan.
+ eXtended Wordnet: progress report, 2001.
+
+<p>
+<dt>[<a href="#CITEbaker98berkeley" name=baker98berkeley>11</a>]</dt><dd>
+Collin&nbsp;F. Baker, Charles&nbsp;J. Fillmore, and John&nbsp;B. Lowe.
+ The Berkeley FrameNet project.
+ In Christian Boitet and Pete Whitelock, editors, <em>Proceedings of
+  the Thirty-Sixth Annual Meeting of the Association for Computational
+  Linguistics and Seventeenth International Conference on Computational
+  Linguistics</em>, pages 86-90, San Francisco, California, 1998. Morgan Kaufmann
+  Publishers.
+
+<p>
+<dt>[<a href="#CITEgildea02automatic" name=gildea02automatic>12</a>]</dt><dd>
+D.&nbsp;Gildea and D.&nbsp;Jurafsky.
+ Automatic labeling of semantic roles, 2002.
+
+<p>
+<dt>[<a href="#CITEframeinf" name=frameinf>13</a>]</dt><dd>
+Nancy Chang, Srini Narayanan, and Miriam R.&nbsp;L. Petruck.
+ From Frames to Inference, 2002.
+
+<p>
+<dt>[<a href="#CITEom" name=om>14</a>]</dt><dd>
+Push Singh.
+ The Open Mind Common Sense.
+ Technical report, M.I.T Media Lab, 2003.
+ http://commonsense.media.mit.edu.
+
+<p>
+<dt>[<a href="#CITEomkurz" name=omkurz>15</a>]</dt><dd>
+Push Singh.
+ The Open Mind Common Sense project.
+ Technical report, KurzweilAI.net, 2002.
+
+  http://www.kurzweilai.net/meme/frame.html?main=/articles/art0371.html.
+
+<p>
+<dt>[<a href="#CITEomaaai" name=omaaai>16</a>]</dt><dd>
+Push Singh.
+ The public acquisition of commonsense knowledge.
+ In <em>Proceedings of AAAI Spring Symposium on Acquiring (and Using)
+  Linguistic (and World) Knowledge for Information Access</em>, Palo Alto,
+  California, 2002. AAAI.
+
+<p>
+<dt>[<a href="#CITElm" name=lm>17</a>]</dt><dd>
+Paul Tarau, Koen De&nbsp;Boschere, Veronica Dahl, and Stephen Rochefort.
+ LogiMOO: an Extensible Multi-User Virtual World with Natural
+  Language Control.
+ <em>Journal of Logic Programming</em>, 38(3):331-353, March 1999.
+
+<p>
+<dt>[<a href="#CITEj2k_ug" name=j2k_ug>18</a>]</dt><dd>
+BinNet Corporation.
+ The Jinni 2003 Prolog Compiler: a High Performance Java and .NET
+  based Prolog for Object and Agent Oriented Internet Programming.
+ Technical report, BinNet Corp., 2003.
+ Available at
+  http://www.binnetcorp.com/download/jinnidemo/JinniUserGuide.html.
+
+<p>
+<dt>[<a href="#CITEtarau:cl2000" name=tarau:cl2000>19</a>]</dt><dd>
+Paul Tarau.
+ Fluents: A Refactoring of Prolog for Uniform Reflection and
+  Interoperation with External Objects.
+ In John Lloyd, editor, <em>Proceedings of CL'2000</em>, London, July
+  2000.
+ LNCS, Springer-Verlag.
+
+<p>
+<dt>[<a href="#CITEtarau:shaker" name=tarau:shaker>20</a>]</dt><dd>
+Paul Tarau.
+ Inference and Computation Mobility with Jinni.
+ In K.R. Apt, V.W. Marek, and M.&nbsp;Truszczynski, editors, <em>The
+  Logic Programming Paradigm: a 25 Year Perspective</em>, pages 33-48. Springer,
+  1999.
+ ISBN 3-540-65463-1.
+
+<p>
+<dt>[<a href="#CITEtd:tlp" name=td:tlp>21</a>]</dt><dd>
+Paul Tarau and Veronica Dahl.
+ High-Level Networking with Mobile Code and First Order
+  AND-Continuations.
+ <em>Theory and Practice of Logic Programming</em>, 1(1), March 2001.
+ Cambridge University Press.
+
+<p>
+<dt>[<a href="#CITETD99:infra" name=TD99:infra>22</a>]</dt><dd>
+Paul Tarau and Veronica Dahl.
+ A Logic Programming Infrastructure for Internet Programming.
+ In M.&nbsp;J. Wooldridge and M.&nbsp;Veloso, editors, <em>Artificial
+  Intelligence Today - Recent Trends and Developments</em>, pages 431-456.
+  Springer, LNAI 1600, 1999.
+ ISBN 3-540-66428-9.
+
+<p>
+<dt>[<a href="#CITEmsagent" name=msagent>23</a>]</dt><dd>
+Microsoft.
+ The Microsoft Agent Home Page.
+ http://www.microsoft.com/msagent.
+
+<p>
+<dt>[<a href="#CITEcousot:abstract:popl:77" name=cousot:abstract:popl:77>24</a>]</dt><dd>
+P.&nbsp;Cousot and R.&nbsp;Cousot.
+ Abstract interpretation: A unified lattice model for static analysis
+  of programs by construction or approximation of fixpoints.
+ In <em>4th ACM Symp. Principles of Programming Languages</em>, pages
+  238-278, 1977.
+
+<p>
+<dt>[<a href="#CITEandre00automated" name=andre00automated>25</a>]</dt><dd>
+E.&nbsp;Andr'e, T.&nbsp;Rist, S.&nbsp;van Mulken, M.&nbsp;Klesen, and S.&nbsp;Baldes.
+ The automated design of believable dialogue for animated presentation
+  teams, 2000.
+
+<p>
+<dt>[<a href="#CITEmulken98persona" name=mulken98persona>26</a>]</dt><dd>
+S.&nbsp;van Mulken, E.&nbsp;Andr, and J.&nbsp;Muller.
+ The persona effect: How substantial is it, 1998.
+
+<p>
+<dt>[<a href="#CITEcore97coding" name=core97coding>27</a>]</dt><dd>
+Mark&nbsp;G. Core and James&nbsp;F. Allen.
+ Coding dialogues with the DAMSL annotation scheme.
+ In David Traum, editor, <em>Working Notes: AAAI Fall Symposium on
+  Communicative Action in Humans and Machines</em>, pages 28-35, Menlo Park,
+  California, 1997. American Association for Artificial Intelligence.
+
+<p>
+<dt>[<a href="#CITEaiml" name=aiml>28</a>]</dt><dd>
+A.L.I.C.E.&nbsp;AI foundation.
+  Artificial Intelligence Markup Language (AIML).
+ Technical report, A.L.I.C.E. AI foundation, 2001.
+ Available at http://alice.sunlitsurf.com/TR/2001/WD-aiml/.
+
+<p>
+<dt>[<a href="#CITEtidse:vista" name=tidse:vista>29</a>]</dt><dd>
+Elizabeth Figa and Paul Tarau.
+ The VISTA Project: An Agent Architecture for Virtual Interactive
+  Storytelling.
+ In N.&nbsp;Braun and U.&nbsp;Spierling, editors, <em>TIDSE'2003</em>, Darmstadt,
+  Germany, March 2003.
+
+<p>
+<dt>[<a href="#CITEtidse:facade" name=tidse:facade>30</a>]</dt><dd>
+Michal Mateas and Andrew Stern.
+ Integrating Plot, Character and Natural Language Processing in the
+  Interactive Drama Facade.
+ In N.&nbsp;Braun and U.&nbsp;Spierling, editors, <em>Proceedings of the
+  Technologies for Interactive Digital Storytelling and Entertainment
+  Conference</em>, Darmstadt, Germany, March 2003.
+
+<p>
+</DL><hr><H3>Footnotes:</H3>
+
+<p><a name=tthFtNtAAB></a><a href="#tthFrefAAB"><sup>1</sup></a> Our
+closures are
+predicate name+argument combinations, which receive two
+graph nodes as extra arguments to make-up a
+callable predicates.
+<p><a name=tthFtNtAAC></a><a href="#tthFrefAAC"><sup>2</sup></a> Well, the same happens at level 12 - and
+that's because in WorldNet’s view, there is no connection!
+<p><hr><small>File translated from T<sub><font size="-1">E</font></sub>X by <a href="http://hutchinson.belmont.ma.us/tth/">T<sub><font size="-1">T</font></sub>Hgold</a>, version 2.24.<br>On 14 Jun 2003, 17:32.</small>
+</HTML>

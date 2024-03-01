@@ -1,0 +1,1217 @@
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<META NAME="GENERATOR" CONTENT="TtHgold 2.24">
+                                                                        
+<title> 
+        A Logic Programming Based Software Architecture for Reactive Intelligent Mobile Agents
+</title>
+ 
+<H1 align=center>
+        A Logic Programming Based Software Architecture for Reactive Intelligent Mobile Agents
+ </H1>
+
+<p>
+
+<H3 align=center>
+ Paul Tarau </H3>
+
+<p>
+
+<H3 align=center> </H3>
+
+<p>
+
+<H3 align=center> </H3>
+
+
+<p>
+
+<H2> Abstract</H2>
+We overview some design and implementation issues for
+      a new Java-based multi-threaded agent programming software infrastructure 
+      providing strong inferential and knowledge processing abilities 
+      while supporting mobile computations
+      and multi-agent coordination through <em>blackboard constraints</em>.
+      The central component of the proposed software is a set of
+      distributed processes centered around active, 
+      constraint processing enabled blackboards, providing
+      coordination and high-level knowledge exchange protocols to a set of mobile agents. 
+<p>
+<p>
+ <b>Keywords:</b> <em>Mobile Computations, Intelligent Mobile Agents, 
+Logic Programming, Blackboard based Coordination, Networking Software Infrastructure,
+Distributed AI, Internet Programming</em>
+
+<p>
+        <H2><A NAME="tth_sEc1">
+1</A>&nbsp;&nbsp;Introduction</H2>
+
+<p>
+The advent of networked, mobile, ubiquitous computing
+has brought a number of challenges which require new ways to deal
+with increasingly complex patterns of interaction: autonomous, reactive 
+and mobile computational entities are needed to take care of unforeseen
+problems, to optimize the flow of communication, to offer a simplified,
+and personalized view to end users. These requirements naturally lead
+towards the need for <em>agent programs</em> with increasingly
+sophisticated inference capabilities, as well as autonomy and self-reliance.
+To host them with minimal interference to their main mission, we need
+a software infrastructure providing a minimal basic ontology - 
+ideally as simple and selfcontained as 
+the IP packet univers on top of which the Internet is built.  
+
+<p>
+It is useful to distinguish in a networked software environment
+between <em>data mobility</em> (as in conventional client/server programming)
+<em>code mobility</em> (as the automatic HTTP loading of Java classes by applets) and
+finally <em>computation or thread mobility</em>, the ability of a given
+computation to move transparently from a process to another (running on the
+same or on a possibly remote host).
+
+<p>
+While data mobility and code mobility are now standard features of
+languages like Java, <em>mobile computations</em> 
+have started to receive growing attention as a solution for
+further automation of software processes,
+resulting in recent work on their theoretical foundations, implementation technologies,
+as well as on their software engineering aspects like new
+design patterns and new language constructs.
+
+<p>
+Conveniently encapsulated as <em>agents</em>, software artifacts enabled
+with autonomy, dynamic knowledge exchange and network transparent 
+mobility as key features have emerged.
+
+<p>
+Partly inspired by advances in networking, knowledge-enabled 
+mobile agents as a programming paradigm have been pioneered by 
+visionary work like Kahn and Cerf's Knowbots [<a href="#knowbots" name=CITEknowbots>22</a>].
+
+<p>
+An important number of early software agent applications are described in [<a href="#bradshaw96:software" name=CITEbradshaw96:software>3</a>]
+and, in the context of new generation networking software, in
+[<a href="#tennenhouse96:towards" name=CITEtennenhouse96:towards>42</a>,<a href="#cugola96:characterization" name=CITEcugola96:characterization>14</a>]. 
+
+<p>
+Mobile code/mobile computation technologies are pioneered by General Magic's
+Telescript (see [<a href="#odissey" name=CITEodissey>16</a>] for their Java based 
+<em>mobile agent</em> product) and IBM's Java based Aglets [<a href="#aglets" name=CITEaglets>21</a>].
+Other mobile agent and mobile object related work illustrate the rapid
+growth of the field:
+[<a href="#steensbaard95:object" name=CITEsteensbaard95:object>28</a>,<a href="#agentTCL" name=CITEagentTCL>17</a>,<a href="#gray98:tcl" name=CITEgray98:tcl>18</a>,<a href="#kotz97:agent" name=CITEkotz97:agent>23</a>,<a href="#white98:thesis" name=CITEwhite98:thesis>45</a>,<a href="#white96:telescript" name=CITEwhite96:telescript>46</a>,<a href="#strasser96:mole" name=CITEstrasser96:mole>29</a>]
+
+<p>
+Luca Cardelli's Oblique project at Digital has helped with understanding
+the computational models behind mobile agent applications [<a href="#migratory" name=CITEmigratory>2</a>].
+A calculus of <em>mobility</em> dealing with containers,
+called <em>ambients</em>, is described in [<a href="#cardelli97:ambients" name=CITEcardelli97:ambients>6</a>].
+The calculus [<a href="#cardelli97:mobile" name=CITEcardelli97:mobile>5</a>] covers at very high level of generality movement
+and permissions to move from one ambient to another.
+De Nicola's LLinda is a variant of Linda which supports 
+a programming paradigm where agents can migrate from one computing environment to another,
+where types are used to describe process intentions relatively to the different
+<em>localities</em> they are willing to interact with or they want to migrate to. 
+
+<p>
+Implementation technologies for mobile code are studied in 
+[<a href="#adl-tabatabai96:efficient" name=CITEadl-tabatabai96:efficient>1</a>].
+Early work on the Linda coordination framework [<a href="#linda89" name=CITElinda89>7</a>,<a href="#CasCia96" name=CITECasCia96>8</a>,<a href="#sharedpro91" name=CITEsharedpro91>4</a>] has
+shown its potential for coordination of multi-agent systems.
+The logical modeling and planning aspects of computational Multi-Agent systems have been pioneered
+by [<a href="#cohen:79a" name=CITEcohen:79a>13</a>,<a href="#cohen:89a" name=CITEcohen:89a>11</a>,<a href="#kowalski:91a" name=CITEkowalski:91a>24</a>,<a href="#wooldridge:92a" name=CITEwooldridge:92a>47</a>,<a href="#cohen:94a" name=CITEcohen:94a>10</a>,<a href="#cohen:95a" name=CITEcohen:95a>12</a>,<a href="#lesperance:95a" name=CITElesperance:95a>25</a>,<a href="#chaibdraa:94a" name=CITEchaibdraa:94a>9</a>].
+A survey of Logic Programming approaches to Web applications in terms of a
+classification into client-based systems, 
+server-side systems, and peer-to-peer systems is provided in [<a href="#loke98" name=CITEloke98>26</a>]. 
+Close to Logic Programming, a transparent high level
+distributed programming layer is built on top of
+Oz/Mozart [<a href="#OzToplas:99" name=CITEOzToplas:99>19</a>,<a href="#DOZmobs" name=CITEDOZmobs>43</a>,<a href="#distoz97" name=CITEdistoz97>20</a>], a multi-paradigm language,
+also including a Logic Programming component.
+
+<p>
+        <H2><A NAME="tth_sEc2">
+2</A>&nbsp;&nbsp;The Software Architecture</H2>
+
+<p>
+While <em>data</em> and <em>code</em> mobility present no challenge in a Java
+environment, migrating the state of the computation from one machine or 
+process to another still requires a separate set of tools. 
+Java's remote method invocations (RMI) add transparent control mobility
+and a (partially) automated form of <em>object mobility</em>
+i.e. integrated code (class) and data (state) mobility.
+
+<p>
+Mobility of live code is called <em>computation mobility</em> [<a href="#cardelli97:mobile" name=CITEcardelli97:mobile>5</a>].
+It requires interrupting execution, moving the state of a runtime system
+(stacks, for instance) from one site to another and then resuming
+execution. Clearly, for some languages, this can be hard or completely
+impossible to achieve (C/C++) while in other languages like Java
+it still requires class specific serialization methods (providing writing and reading
+of objects to/from byte streams).
+
+<p>
+Conventional mobile code systems like IBM's Aglets [<a href="#aglets" name=CITEaglets>21</a>] require 
+serialization hints from the programmer and do not implement a fully generic
+reflective computation mobility infrastructure. Aglets do not provide code
+mobility as they assume that code is already available at the destination site.
+In practice this means that the mobile code/mobile computation layer is
+not really transparent to the programmer. 
+
+<p>
+In contrast, our architecture is based on building an autonomous layer consisting of
+a reflective interpreter which provides the equivalent of implicit serialization 
+and supports orthogonal transport mechanisms for
+data, code and computation state. 
+The key idea is simply that by 
+introducing interpreters spawned as threads by a server at each networked site, 
+<em>computation mobility</em> 
+at object-level is mapped to <em>data mobility</em> at meta-level
+in a very straightforward way. A nice consequence is transport independence
+coming from the unifrom representation of data, code and computation state
+(in practice this means that Corba, RMI, HLA or plain or multicast sockets
+can be used interchangeably as a transport mechanism).
+
+<p>
+As our initial experiments [<a href="#TD99:infra" name=CITETD99:infra>36</a>],
+and the experience with
+BinProlog [<a href="#tdb95rev" name=CITEtdb95rev>40</a>,<a href="#TN94:PLILP" name=CITETN94:PLILP>41</a>,<a href="#bp7user" name=CITEbp7user>31</a>,<a href="#dbt95a" name=CITEdbt95a>15</a>] 
+and Jinni [<a href="#tarau:paam99" name=CITEtarau:paam99>33</a>,<a href="#tarau:shaker" name=CITEtarau:shaker>32</a>] show,
+<em>computation mobility</em> can be implemented elegantly 
+in the presence of <em>first order</em>
+continuations, i.e. continuations
+accessible as an ordinary data structure.
+We expect that implementation efficiency can be significantly increased by
+carefully designed incremental compilation techniques and
+by providing a fast C-based virtual machine
+through JNI (Java Native Interface).
+
+<p>
+The infrastructure (to be built as a middleware layer)
+is intended to elegantly deal with the
+complexities of network and agent programming, 
+at a very high level. 
+<em>Mobile threads</em> will be implemented by capturing
+first order continuations
+in a compact data structure sent over the network.
+Code will be fetched lazily from its original base working as a server
+as the continuation resumes execution at the remote site.
+
+<p>
+A controlled natural language based voice input/output 
+interface will allow quick learning and effective real-time operation of
+mobile agent applications. The central component of the architecture 
+is a set of distributed processes centered around active, constraint processing 
+enabled blackboards, through which, planning, sensor and decision triggering agents
+ will interoperate. The underlying planning and knowledge processing mechanism will 
+use a set of multi-threaded, lightweight
+Prolog interpreters accelerated with adaptive incremental compilers. 
+This has the advantage of being a formally well understood mechanism, 
+with a simple declarative semantics, and 
+has well known mappings to natural language style query languages (similar to, but much more 
+flexible, more general and more expressive than SQL-style database languages). 
+A modular, 
+component-wise design will support extensibility through "plug-in" special purpose algorithms 
+and constraint solving mechanisms. A high-performance, cryptographically secured networking 
+infrastructure will ensure transport of mobile agents. Support for a high-level 
+coordination mechanism, through blackboard constraints will allow specifying 
+complex causal relationships. Object oriented structuring of Agent Library 
+Components will allow reuse of ontologies and agent behaviors. Built on top of a 
+lightweight multi-threaded Java based scripting language, the proposed 
+mobile agent applications will be extensible and inherently fault 
+tolerant. Sensing of external events will trigger inferential threads
+on specific knowledge bases and execution of constraint based planning engines.
+
+<p>
+        <H2><A NAME="tth_sEc3">
+3</A>&nbsp;&nbsp;The Case for Computation Mobility</H2>
+
+<p>
+Current agent programming infrastructures use message passing as the key
+communication mechanism. Existing Concurrent Constraint Logic Programming
+languages (and multi-paradigm languages like Distributed Oz) 
+support distributed programming and coordination through monotonic 
+stores and shared logical variables. 
+
+<p>
+By contrast, we want to explore the impact of mobile live 
+computations, lightweight multi-engine/multi-threaded script
+interpreters and blackboard constraints based coordination 
+on building mobile multi-agent systems. Our distributed 
+Linda blackboards generalize concurrent constraint programming stores by allowing
+non-monotonic updates of assertional constraints [<a href="#tarau:paam99" name=CITEtarau:paam99>33</a>].
+
+<p>
+The resulting agent programming language will be
+used as a flexible scripting tool for gluing together Prolog
+components and Java objects. The new generation of intelligent mobile 
+agents we intend to build on top of our infrastructure
+will combine knowledge processing and
+planning abilities coming from Logic Programming, with advanced
+visualization and networking components written in Java and with
+animated multi-user virtual worlds built with Java3D and VRML
+following our `proof of concept' LogiMOO virtual world [<a href="#lm" name=CITElm>38</a>].
+
+<p>
+The objectives and outcomes described so far assume that mobile computations
+are <em>a good thing</em>. For the already convinced reader,
+the infrastructure we have outlined reinforces this idea.
+Let us now deal with some questions which come to the mind 
+to a possibly skeptical reader.
+
+<p>
+
+<b>Is mobile computation really needed for building a mobile agent infrastructure?&nbsp;&nbsp;</b>
+First, let's note that <em>emulated agent mobility</em> 
+can be implemented easily as
+sets of synchronized remote predicate calls
+originating from a unique site.
+We can even support a set of <em>Agents</em> roaming over a set of
+sites by getting the list of sites (from a master server
+where agents have registered)  and then iterating through remote-calls
+for each operation, over each site.
+
+<p>
+<em>The main drawback of this approach is that it requires a network transaction for each 
+single step of execution. This boils down to implementing a very slow, 
+naively interpretative networked  metacomputing device.</em>
+
+<p>
+Network traffic is drastically reduced with <em>actual mobile code</em>. 
+The basic idea behind it is: move code <em>once</em>, execute as <em>many times</em> as needed.
+ 
+<p>
+On the other hand, advanced <em>mobile object</em> and <em>mobile agents</em> agent systems
+have started to be built on top of Java's dynamic class loading and
+its new reflection and remote method invocation classes.
+So why do we need the apparently more powerful
+concept of mobile computation i.e. mobile execution state? Isn't data
+and code mobility, as implemented with <em>mobile object</em> schemes good enough?
+
+<p>
+Our best answer to this question so far,
+is that live mobile code is needed because
+it is still <em>semantically simpler</em> than 
+mobile object schemes, while offering higher automation
+opportunities. Basically, all that a programmer
+needs to know is that his or her program has moved to
+a new site and it is executing there. 
+Assuming the default target is set with a host/port local
+to each thread, a unique pair (in our case
+<tt>move_thread, return_thread</tt>) primitive, with an
+intuitive semantics,  needs to be learned.
+
+<p>
+Improved performance due to smaller data transfers
+can also motivate the use of
+mobile computations, as in the case of a large database
+visited by a small mobile agent and only returning with
+a compact summary resulting from queries.
+Moreover, considerable speed-up is obtainable by
+moving an agent to a much faster processor and back (like from a wireless
+palmtop to a supercomputer sharing the same software
+infrastructure). This scenario is particularly appealing
+for agents running on upcoming intelligent appliances.
+
+<p>
+Finally, a more moderate answer, hopefully to the satisfaction of both the supportive and
+skeptical reader would be that in fact, the really important thing to
+have is <em>the ability to move computations</em> as such. 
+Adaptive optimization techniques and run-time statistics 
+can then help to decide if and when this
+feature is to be used in a given context.
+
+<p>
+        <H2><A NAME="tth_sEc4">
+4</A>&nbsp;&nbsp;Implementing Mobile Computations and Blackboard Constraints</H2>
+
+<p>
+We will overview some of the Logic Programming techniques which can be
+used for implementing the proposed software infrastructure.
+
+<p>
+We will first describe in detail the technique to
+support handling of first-order Prolog AND-continuations with minimal overhead,
+in an approach allowing efficient compilation techniques [<a href="#TN94:PLILP" name=CITETN94:PLILP>41</a>,<a href="#tdb95rev" name=CITEtdb95rev>40</a>].
+
+<p>
+      <H3><A NAME="tth_sEc4.1">
+4.1</A>&nbsp;&nbsp;First order Continuations through Binarization</H3> <A NAME="bin">
+</A>
+
+<p>
+We will shortly explain here BinProlog's continuation passing
+preprocessing technique, which results in availability of
+continuations as data structures accessible to the programmer.
+We plan to adapt this as the key compilation mechanism for
+our proposed high-performance Java based mobile agent scheme.
+
+<p>
+
+<b>The binarization transformation&nbsp;&nbsp;</b>
+Binary clauses have only one atom in the body
+(except for some in-line `builtin' operations like arithmetics),
+and therefore they need no `return' after a call.
+A transformation introduced in [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>34</a>] allows to
+faithfully represent logic programs with operationally equivalent
+binary programs.
+
+<p>
+To keep things simple, we will describe our transformations in the case
+of definite programs.
+We will follow here the notations of [<a href="#pt93b" name=CITEpt93b>39</a>].
+
+<p>
+Let us define the <em>composition</em> operator <font face=symbol>≈</font
+> 
+that combines clauses by unfolding the leftmost body-goal
+of the first argument.
+
+<p>
+Let <tt>A<sub>0</sub>:-A<sub>1</sub>,A<sub>2</sub>,...,A<sub>n</sub></tt> and 
+<tt>B<sub>0</sub>:-B<sub>1</sub>,...,B<sub>m</sub></tt> be two clauses (suppose n &gt; 0, m <font face=symbol>≥</font
+> 0). We define 
+ <tt>(A<sub>0</sub>:-A<sub>1</sub>,A<sub>2</sub>,...,A<sub>n</sub>)</tt> <font face=symbol>≈</font
+> 
+<tt>(B<sub>0</sub>:-B<sub>1</sub>,...,B<sub>m</sub>) = (A<sub>0</sub>:-B<sub>1</sub>,...,B<sub>m</sub>,A<sub>2</sub>,...,A<sub>n</sub>)</tt><font face=symbol>q</font
+>
+
+<p>
+with <font face=symbol>q</font
+> = mgu(<tt>A<sub>1</sub></tt>,<tt>B<sub>0</sub></tt>). If the atoms <tt>A<sub>1</sub></tt> and
+<tt>B<sub>0</sub></tt> do not unify, the result of the composition is denoted as <font face=symbol>^</font
+>.
+Furthermore, as usual, we consider <tt>A<sub>0</sub>:-true,A<sub>2</sub>,...,A<sub>n</sub></tt> 
+to be equivalent to <tt>A<sub>0</sub>:-A<sub>2</sub>,...,A<sub>n</sub></tt>, and for any clause <tt>C</tt>, <tt><font face=symbol>^</font
+> <font face=symbol>≈</font
+> C = C <font face=symbol>≈</font
+> <font face=symbol>^</font
+> = <font face=symbol>^</font
+></tt>.
+We assume that at least one operand has been renamed to a variant with
+ variables standardized apart. 
+
+<p>
+This inference rule (implementing Prolog's search rule) is called LD-resolution and it can
+be seen as an instance of SLD-resolution with a specific search and goal selection rule.
+Before introducing the binarization transformation, we describe two
+auxiliary transformations.
+
+<p>
+The first transformation converts facts into rules by  giving
+them the atom <tt>true</tt> as body. E.g., the fact <tt>p</tt> is
+transformed into the rule <tt>p :- true</tt>.
+
+<p>
+The second transformation, originating from [<a href="#Warren82" name=CITEWarren82>44</a>],
+eliminates the metavariables by wrapping them in a <tt>call/1</tt> goal.
+E.g., the rule <tt>and(X,Y):-X, Y</tt> is transformed into <tt>
+and(X,Y) :- call(X), call(Y).</tt>
+
+<p>
+The transformation of [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>34</a>]
+(<em>binarization</em>) adds continuations
+as  extra   arguments  of   atoms  in a way that  preserves
+also first argument indexing.
+
+<p>
+Let   P be  a definite  program  and Cont  a  new
+variable. Let  T and E = p(T<sub>1</sub>,...,T<sub>n</sub>) be  two 
+expressions.<a href="#tthFtNtAAB" name=tthFrefAAB><sup>1</sup></a> We  denote by
+<font face=symbol>y</font
+>(E,T) the expression p(T<sub>1</sub>,...,T<sub>n</sub>,T). 
+Starting with the clause
+
+<p>
+<tt>(C)</tt>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A :- B<sub>1</sub>,B<sub>2</sub>,...,B<sub>n</sub>.
+
+<p>
+ we construct the clause
+
+<p>
+<tt>(C')</tt>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font face=symbol>y</font
+>(A,Cont) :- <font face=symbol>y</font
+>(B<sub>1</sub>,<font face=symbol>y</font
+>(B<sub>2</sub>,...,<font face=symbol>y</font
+>(B<sub>n</sub>,Cont))).
+                         
+<p>
+The set P<font face=symbol>¢</font
+> of all clauses <tt>C'</tt> obtained from the clauses of P is called
+the binarization of P. 
+
+<p>
+The following example shows the result of this
+transformation on the well-known `naive reverse' program:
+
+<p>
+<font size="-1">
+<pre>
+   app([],Ys,Ys,Cont):-true(Cont).
+   app([A|Xs],Ys,[A|Zs],Cont):-
+     app(Xs,Ys,Zs,Cont).
+
+   nrev([],[],Cont):-true(Cont).
+   nrev([X|Xs],Zs,Cont):-
+     nrev(Xs,Ys,app(Ys,[X],Zs,Cont)).
+</pre></font>
+
+<p>
+ The transformation preserves a
+strong operational equivalence with the
+original program with respect to the LD resolution rule, which
+is <em>reified</em> in the syntactical structure of the
+resulting program, i.e. each resolution step
+of an LD derivation on a definite program P
+can be mapped to an SLD-resolution step of the binarized program P<font face=symbol>¢</font
+>.
+
+<p>
+Clearly, continuations become explicit in the binary version of the program.
+We have devised a technique to access and manipulate them in an intuitive
+way, by modifying the binarization preprocessor [<a href="#bp7advanced" name=CITEbp7advanced>30</a>].
+Basically, the clauses constructed with <tt>::-</tt> instead of <tt>:-</tt>
+are considered as being already in binary form, and not subject
+therefore to further binarization. By explicitly accessing
+their arguments, a programmer is able to access and modify the
+current continuation as a `first order object'.
+Note however that code <em>referring</em> to the continuation
+is also <em>part</em> of it, so that some care should be taken in
+manipulating the circular term representing the continuation
+from `inside'.
+
+<p>
+      <H3><A NAME="tth_sEc4.2">
+4.2</A>&nbsp;&nbsp;Mobile Threads</H3>
+As continuations (describing <em>future</em> computations
+to be performed at a given point) 
+are first order objects it is easy to extract from them a conjunction of goals
+representing 
+<em>future</em> computations intended to be performed at
+another site,
+send it over the network and resume working on it
+at that site.
+The natural unit of mobility is a <em>thread</em>
+moving to a server spawning multiple 
+local and remotely originated threads.
+Note that we only support moving AND-continuation, i.e. backtracking
+over network movements is deliberately avoided.
+
+<p>
+
+<b>The Continuation Moving Protocol&nbsp;&nbsp;</b>
+The proposed continuation moving protocol can be described easily in terms
+of synchronized <em>source side</em> (or <em>base</em>) of the mobile thread, 
+and <em>target side</em> operations [<a href="#TD98:mobile" name=CITETD98:mobile>35</a>].
+
+<p>
+Initially the target side waits in server mode. Once the continuation
+is received on the target side, the source side switches in server mode
+ready to execute code fetching and persistent database
+update requests from its mobile counterpart on the target side.
+
+<p>
+ As the proposed networking infrastructure, our <em>mobile threads</em> will be 
+platform independent. For instance, a thread can start on a Unix machine and
+move transparently to a Windows NT system and back as they share
+the underlying abstract machine (interpreter or compiler+emulator).
+
+<p>
+Note that as the base turns into a server, it offers its
+<em>own code</em> for remote use by the moved thread - a kind of
+virtual process cloning operation, one step
+at a time. Predicates can be cached as dynamic code
+on the server, to efficiently serve multiple clients.
+
+<p>
+Note also that only predicates needed for the migratory
+segment of the continuation are fetched. This ensures
+that migratory code is kept lightweight for most mobile
+applications.
+
+<p>
+Moreover, we plan to implement a new, adaptive compilation strategy,
+which will optimize on the fly heavily used predicates, based
+on run-time statistics.
+
+<p>
+The proposed incremental compiler will be carefully fine-tuned to
+take full advantage of the
+<em>just in time</em> native code compilation mechanism (JIT)
+of the underlying Java Abstract Machine.
+
+<p>
+      <H3><A NAME="tth_sEc4.3">
+4.3</A>&nbsp;&nbsp;Mobile Agents</H3>
+
+<p>
+
+<b>Mobile Agents&nbsp;&nbsp;</b>
+can be seen as a collection
+of synchronized <em>mobile threads</em> sharing common 
+state [<a href="#TDD98:coord" name=CITETDD98:coord>37</a>].
+
+<p>
+Inter-agent communication can be achieved either by rendez-vous
+of two mobile threads at a given site, by communicating through
+a local blackboard, or through the base server known to
+all the deployed agents.
+
+<p>
+Among the applications of mobile agents
+easy to express in our framework:
+
+<UL>
+<p>
+
+<li> enhancing the Web with virtual places remembering the state
+      of the interaction with each user
+
+<li> avatar scripting in Virtual Worlds and agent scripting
+for electronic markets
+
+<li> collecting data from very large knowledge distributed
+over the network through local interrogation
+
+<li> network monitoring, remote on-site assistance, remote user support, tele-teaching
+</UL>
+<p>
+      <H3><A NAME="tth_sEc4.4">
+4.4</A>&nbsp;&nbsp;Linda Based Agent Coordination</H3>
+Our agent coordination mechanism will be built on top of the popular
+Linda [<a href="#linda89" name=CITElinda89>7</a>] coordination framework,
+enhanced with unification based pattern
+matching, remote execution and a set of simple
+client-server components
+merged together into a scalable peer-to-peer
+layer, forming a network of interconnected virtual places.
+The key Linda operations are the following:
+
+<p>
+<font size="-1">
+<pre>
+out(X): puts X on the server
+in(X):  waits until it can take an object 
+        matching X from the server
+all(X,Xs): reads the list Xs matching X 
+        currently on the server
+</pre></font>
+
+<p>
+ The presence of the <tt>all/2</tt> collector
+avoids the need for backtracking over multiple
+remote answers.
+Note that the only blocking operation is <tt>in/1</tt>.
+Typically, distributed programming with Linda coordination
+follows consumer-producer patterns 
+with added flexibility over message-passing communication
+through associative search.
+
+<p>
+      <H3><A NAME="tth_sEc4.5">
+4.5</A>&nbsp;&nbsp;Agent Coordination with Blackboard Constraints</H3>
+
+<p>
+A natural extension to Linda is to enable agent threads with
+<em>constraint solving</em> for the 
+selection of matching terms on the <em>blackboard</em>, instead of
+plain unification. This is implemented in Jinni through the use of 2 builtins:
+
+<p>
+Wait_for(Term,Constraint): waits for a Term on the blackboard, such that Constraint 
+is true, and when this happens, it 
+     removes the result of the match from the blackboard with an in/1 operation. 
+Constraint is either a single goal or a list of goals 
+     [G1,G2,..,Gn] to be executed on the server.
+     
+<p>
+Notify_about(Term): notifies about this term one of the blocked 
+client which waits for it with a matching  constraint i.e. 
+<font size="-1">
+<pre> 
+     notify_about(stock_offer(aol,89)) 
+</pre></font>
+ would trigger execution of a client having issued 
+<font size="-1">
+<pre>
+     wait_for(stock_offer(aol,Price),less(Price,90)).
+</pre></font>
+
+<p>
+In a client/server Linda interaction, 
+triggering an atomic transaction when data
+verifying a simple arithmetic inequality becomes available, would
+be expensive. It would
+require repeatedly taking terms out of the blackboard, through expensive
+network transfers, and put them back unless the client can verify that a constraint
+holds. Our server side implementation checks a blackboard constraint only after a match
+occurs between new incoming data and the head of a suspended thread's constraint
+checking clause, i.e. a basic indexing mechanism is used to avoid useless
+computations. On the other hand, a mobile client thread can perform
+all the operations atomically on the server side, using local operations on the server,
+and come back with the results. Symbolic constraint propagation techniques
+(for instance Finite Domain Solvers) can be implemented as a separate layer.
+Alternatively, we also plan to explore the use of a Bayesian Network inference engine
+(Microsoft's MSBN [<a href="#msbn" name=CITEmsbn>27</a>], or an implementation of our own) as a 
+blackboard constraint propagator.
+
+<p>
+        <H2><A NAME="tth_sEc5">
+5</A>&nbsp;&nbsp;The Software Process</H2>
+
+<p>
+We shortly describe now a possible iterative software process leading 
+to an advanced implementation of the proposed architecture, based
+on our <em>prototyping</em> experience with the Jinni Java based mobile
+code interpreter [<a href="#tarau:paam99" name=CITEtarau:paam99>33</a>] and with BinProlog's mobile
+code networking layer [<a href="#bp7advanced" name=CITEbp7advanced>30</a>]. 
+
+<p>
+      <H3><A NAME="tth_sEc5.1">
+5.1</A>&nbsp;&nbsp;The Agents/Places/Things Ontology</H3>
+
+<p>
+The proposed infrastructure is based on a simple <b>Things, Places, Agents</b> ontology, 
+borrowed from MUDs and 
+MOOs, virtual communities of interacting human and software agents. <b>Things</b>
+are represented as Prolog terms and 
+unification is used for associative retrieval of data. <b>Places</b> are processes 
+distributed on a computers over the 
+Internet, with a server component listening on a port and a blackboard component 
+allowing synchronized multi-user 
+Linda and remote predicate call transactions. <b>Places</b> are also the sources 
+of dynamic changes abstracted away  
+from underlying external event systems as blackboard records to be pulled out 
+through associative search by the 
+<b>Agents</b>. 
+
+<p>
+<b>Agents</b>
+are collections of threads executing a set of goals, possibly spread over a set 
+of different Places and usually 
+executing remote and local transactions in coordination with other <b>Agents</b>
+and  as  reactions to event driven changes occurring in <b>Places</b>. 
+
+<p>
+Initially a set of simple reusable <b>Agent</b> and <b>Place</b>
+components will be implemented. As crisp abstractions will emerge 
+through development of libraries and applications, a hierarchy of <b>Places</b> and <b>Agents</b>
+will be built. <b>Place</b> and <b>Agent</b> prototypes 
+will be clonable, support inheritance/sharing of Things and will be easily 
+editable/configurable using 
+visual tools. Lightweight mobile  threads will be used to implement agent mobility. 
+<b>Places</b> will abstract away language  differences between processors and support 
+a uniform view of heterogeneous processing elements and data formats. 
+
+<p>
+The first iteration of our working prototype will extend Jinni [<a href="#tarau:paam99" name=CITEtarau:paam99>33</a>], a Java based 
+lightweight multi-threaded inference engine, which interoperates with our previously 
+developed BinProlog compiler - 
+an Internet aware, high performance Prolog system with ability of generating C code [<a href="#bp7advanced" name=CITEbp7advanced>30</a>].
+
+<p>
+However, as Jinni is a relatively slow, Java based interpreter, more work is needed
+on building a byte-code emulator and a fast incremental compiler for it.
+A secure transport layer is needed for e-commerce and military applications. 
+Code compression techniques and code caching are needed to reduce network
+bandwidth and latency, and to make effective use of Java's new multicast sockets.
+
+<p>
+At the user end, the resulting infrastructure is intended to support 
+embedding of knowledge processing components 
+and agent scripts in servers and browsers like 
+Netscape Communicator and Internet Explorer. A bridge with 
+conventional WWW protocols (HTTP) will be provided, allowing 
+the use of our Agents as active client and server side 
+components. In terms of novel implementation technologies,
+we will experiment with mechanisms for lazy fetching of 
+remote code, code caching and  dynamic recompilation,
+to achieve ubiquitous remote execution  and agent mobility 
+over the net, with minimal performance loss. 
+Mobile code will also work as an inference accelerator for Java based  
+agents by delegating heavy inference processing to BinProlog components. 
+ 
+<p>
+We plan to test the effectiveness of the infrastructure on developing 
+active components for Web based CS courses, to 
+support group work, intelligent evaluation and progress measurement as 
+well as effective student/instructor interaction. 
+VRML 2.0 and Java3D based student initiated virtual communities will be used to 
+design and test our interface components. 
+
+<p>
+Jinni's client and server scripting abilities already support platform
+independent Prolog-to-Java and  Prolog-to-Prolog bidirectional connection over the net.
+The next iteration is likely to bring a simple, plain English scripting language
+to be compiled to Jinni, along the lines of 
+the LogiMOO prototype, with speech recognizer/syntethizer based I/O 
+Among the potential targets for Jinni based 
+products: lightweight rule based programs assisting customers of
+Java enables appliances, from Web based TVs to 
+mobile cell phones and car computers, 
+all requiring knowledge components to adjust to increasingly sophisticated user 
+expectations. 
+
+<p>
+The project will also allow advancement in the design and implementation 
+of  multi-threading and distributed constructs 
+for building Logic Programming based knowledge processing components 
+in networked applications, through the 
+development of an infrastructure of live mobile computational agents
+with inference and reactive abilities and 
+implementation technologies for mobile threads through first
+order continuations and their synergy with a blackboard 
+based coordination model. 
+
+<p>
+We believe that despite its expressive power, our mobile code based API 
+will provide a dramatic simplification of 
+user-level operations and we will help advance our work on extending 
+Jinni with speech I/O, and our work on the 
+design of a spoken NL based agent programming  language, based on
+our previously developed LogiMOO user-extensible Web portal [<a href="#lm" name=CITElm>38</a>].
+
+<p>
+      <H3><A NAME="tth_sEc5.2">
+5.2</A>&nbsp;&nbsp;Potential Outcomes</H3>
+
+<p>
+We strongly believe that Logic Programming can and needs to be
+tested in competing with mainstream networking, agent and Internet technologies, 
+as we are moving towards the <em>restructuring 
+of traditional research domains</em> by commonality of <em>goals</em> 
+rather than sharing of <em>tools</em>. 
+The project will try to prove, in this context, that:
+
+<p>
+
+<UL>
+<li>the proposed new coordination mechanisms (blackboard constraints) provide 
+   powerful design patterns for agent applications
+
+<li>the proposed new adaptive compilation technologies provide high performance 
+   mobile code implementations
+
+<li>in combination with OO components, LP is well suited as 
+   the glue language for a mobile agent infrastructure
+
+<li>in combination with OO components LP can provide
+   new network programming abstractions
+   usable in mainstream software projects
+
+<li>interoperability and elegant component integration with other
+   tools can be achieved smoothly
+</UL>
+
+<p>
+The main milestones of our upcoming implementation are likely to be the following:
+
+<p>
+
+<UL>
+<li>A High Performance Java based Mobile Agent Programming Interpreter and Incremental Compiler
+built as an extension of the Jinni interpreter
+
+<p>
+
+<li>Comprehensive Agent Programming Library, containing implementations of key Mobile Agent 
+based Design Patterns
+
+<p>
+
+<li>Secure network layer, code compression, advanced adaptive compiler with mobile code specific
+optimizations and multiple transport layers for multicast sockets, RMI, Corba and HLA.
+
+<p>
+
+<li>Controlled Natural Language Processor and Speech I/O module
+
+<p>
+
+<li>Multi-User Shared Virtual World Agent Application for real life testing and
+evaluation of our tools
+
+<p>
+
+<li>Extensive automated test suite and documentation
+</UL>
+
+<p>
+        <H2><A NAME="tth_sEc6">
+6</A>&nbsp;&nbsp;Conclusion</H2>
+
+<p>
+We have outlined a software architecture and an implementation process
+for Logic Programming based reactive
+mobile agents applications. We expect that the synergy between Prolog-style
+inference and Java-based code structuring and interoperation with software
+components and devices will open a new possibilities for
+interesting theoretical insights and promising paractical outcomes. 
+
+<p>
+The techniques described in this paper are not limited to Prolog or
+other Logic Programming languages. The most obvious porting target of 
+our design is to functional languages like Scheme featuring first 
+order continuations and threads. Another porting target is Java and 
+similar object-oriented languages having threads, reflection classes 
+and remote method invocation. As Java's reflection abilities evolve
+towards full meta-programming, a reimplementation of our architecture
+as a mobile computation scheme for Java itself, can be of considerable 
+practical interest.
+
+<p>
+<font size="-1"><H2>References</H2>
+<DL compact>
+
+<p>
+<dt>[<a href="#CITEadl-tabatabai96:efficient" name=adl-tabatabai96:efficient>1</a>]</dt><dd>
+A.-R. Adl-Tabatabai, G.&nbsp;Langdale, S.&nbsp;Lucco, and R.&nbsp;Wahbe.
+ Efficient and language-independent mobile programs.
+ In <em>Proceedings of the ACM SIGPLAN '96 Conference on Programming
+  Language Design and Implementation (PLDI)</em>, pages 127-136, Philadelphia,
+  Pa., May 1996.
+
+<p>
+<dt>[<a href="#CITEmigratory" name=migratory>2</a>]</dt><dd>
+K.&nbsp;A. Bharat and L.&nbsp;Cardelli.
+ Migratory applications.
+ In <em>Proceedings of the 8th Annual ACM Symposium on User
+  Interface Software and Technology</em>, Nov. 1995.
+ http://gatekeeper.dec.com/ pub/DEC/SRC/research-reports/
+  abstracts/src-rr-138.html.
+
+<p>
+<dt>[<a href="#CITEbradshaw96:software" name=bradshaw96:software>3</a>]</dt><dd>
+J.&nbsp;Bradshaw, editor.
+ <em>Software Agents</em>.
+ AAAI Press/MIT Press, Menlo Park, Cal., 1996.
+
+<p>
+<dt>[<a href="#CITEsharedpro91" name=sharedpro91>4</a>]</dt><dd>
+A.&nbsp;Brogi and P.&nbsp;Ciancarini.
+ The Concurrent Language, Shared Prolog.
+ <em>TOPLAS</em>, 13(1):99-123, 1991.
+
+<p>
+<dt>[<a href="#CITEcardelli97:mobile" name=cardelli97:mobile>5</a>]</dt><dd>
+L.&nbsp;Cardelli.
+ Mobile Computation.
+ In J.&nbsp;Vitek and C.&nbsp;Tschudin, editors, <em>Mobile Object Systems
+  - Towards the Programmable Internet</em>, pages 3-6. Springer-Verlag,
+  LNCS&nbsp;1228, 1997.
+
+<p>
+<dt>[<a href="#CITEcardelli97:ambients" name=cardelli97:ambients>6</a>]</dt><dd>
+L.&nbsp;Cardelli.
+ Mobile ambients.
+ Technical report, Microsoft, 1998.
+
+  http://www.research.microsoft.com/users/adg/Research/Ambit/default.html.
+
+<p>
+<dt>[<a href="#CITElinda89" name=linda89>7</a>]</dt><dd>
+N.&nbsp;Carriero and D.&nbsp;Gelernter.
+ Linda in context.
+ <em>CACM</em>, 32(4):444-458, 1989.
+
+<p>
+<dt>[<a href="#CITECasCia96" name=CasCia96>8</a>]</dt><dd>
+S.&nbsp;Castellani and P.&nbsp;Ciancarini.
+ Enhancing Coordination and Modularity Mechanisms for a Languag e
+  with Objects-as-Multisets.
+ In P.&nbsp;Ciancarini and C.&nbsp;Hankin, editors, <em>Proc. 1st Int. Conf. on
+  Coordination Models and Languages</em>, volume 1061 of <em>LNCS</em>, pages 89-106,
+  Cesena, Italy, April 1996. Springer.
+
+<p>
+<dt>[<a href="#CITEchaibdraa:94a" name=chaibdraa:94a>9</a>]</dt><dd>
+B.&nbsp;Chaib-draa and P.&nbsp;Levesque.
+ Hierarchical models and communication in multi-agent environments.
+ In <em>Proceedings of the Sixth European Workshop on Modelling
+  Autonomous Agents and Multi-Agent Worlds (MAAMAW-94)</em>, pages 119-134,
+  Odense, Denmark, Aug. 1994.
+
+<p>
+<dt>[<a href="#CITEcohen:94a" name=cohen:94a>10</a>]</dt><dd>
+P.&nbsp;R. Cohen and A.&nbsp;Cheyer.
+ An open agent architecture.
+ In O.&nbsp;Etzioni, editor, <em>Software Agents - Papers from the 1994
+  Spring Symposium (Technical Report SS-94-03)</em>, pages 1-8. AAAI Press, Mar.
+  1994.
+
+<p>
+<dt>[<a href="#CITEcohen:89a" name=cohen:89a>11</a>]</dt><dd>
+P.&nbsp;R. Cohen, M.&nbsp;L. Greenberg, D.&nbsp;M. Hart, and A.&nbsp;E. Howe.
+ Trial by fire: Understanding the design requirements for agents in
+  complex environments.
+ <em>AI Magazine</em>, 10(3):32-48, 1989.
+
+<p>
+<dt>[<a href="#CITEcohen:95a" name=cohen:95a>12</a>]</dt><dd>
+P.&nbsp;R. Cohen and H.&nbsp;J. Levesque.
+ Communicative actions for artificial agents.
+ In <em>Proceedings of the First International Conference on
+  Multi-Agent Systems (ICMAS-95)</em>, pages 65-72, San Francisco, CA, June 1995.
+
+<p>
+<dt>[<a href="#CITEcohen:79a" name=cohen:79a>13</a>]</dt><dd>
+P.&nbsp;R. Cohen and C.&nbsp;R. Perrault.
+ Elements of a plan based theory of speech acts.
+ <em>Cognitive Science</em>, 3:177-212, 1979.
+
+<p>
+<dt>[<a href="#CITEcugola96:characterization" name=cugola96:characterization>14</a>]</dt><dd>
+G.&nbsp;Cugola, C.&nbsp;Ghezzi, G.&nbsp;P. Picco, and G.&nbsp;Vigna.
+ A characterization of mobility and state distribution in mobile code
+  languages.
+ In <em>2nd ECOOP Workshop on Mobile Object Systems</em>, pages 10-19,
+  Linz, Austria, July 1996.
+
+<p>
+<dt>[<a href="#CITEdbt95a" name=dbt95a>15</a>]</dt><dd>
+K.&nbsp;De&nbsp;Bosschere and P.&nbsp;Tarau.
+ Blackboard-based Extensions in Prolog.
+ <em>Software - Practice and Experience</em>, 26(1):49-69, Jan. 1996.
+
+<p>
+<dt>[<a href="#CITEodissey" name=odissey>16</a>]</dt><dd>
+GeneralMagicInc.
+ Odissey.
+ 1997.
+ available at http://www.genmagic.com/agents.
+
+<p>
+<dt>[<a href="#CITEagentTCL" name=agentTCL>17</a>]</dt><dd>
+R.&nbsp;S. Gray.
+ Agent tcl: A flexible and secure mobile agent system.
+ In <em>Proceedings of the Fourth Annual Tcl/Tk Workshop</em>, pages
+  9-23, July 1996.
+ http://www.cs.dartmouth.edu/&nbsp;agent/papers/tcl96.ps.Z.
+
+<p>
+<dt>[<a href="#CITEgray98:tcl" name=gray98:tcl>18</a>]</dt><dd>
+R.&nbsp;S. Gray.
+ Agent tcl: A flexible and secure mobile-agent system.
+ Technical Report PCS-TR98-327, Dartmouth College, Computer Science,
+  Hanover, NH, Jan. 1998.
+ Ph.D. Thesis, June 1997.
+
+<p>
+<dt>[<a href="#CITEOzToplas:99" name=OzToplas:99>19</a>]</dt><dd>
+S.&nbsp;Haridi, P.&nbsp;Van Roy, P.&nbsp;Brand, M.&nbsp;Mehl, R.&nbsp;Scheidhauer, and G.&nbsp;Smolka.
+ Efficient logic variables for distributed computing.
+ <em>ACM Transactions on Programming Languages and Systems</em>, 1999.
+
+<p>
+<dt>[<a href="#CITEdistoz97" name=distoz97>20</a>]</dt><dd>
+S.&nbsp;Haridi, P.&nbsp;Van&nbsp;Roy, and G.&nbsp;Smolka.
+ An Overview of the Design of Distributed Oz.
+ In <em>Proceedings of the Second International Symposium on Parallel
+  Symbolic Computation (PASCO '97)</em>, pages 176-187, Maui, Hawaii, 1997. ACM
+  Press.
+
+<p>
+<dt>[<a href="#CITEaglets" name=aglets>21</a>]</dt><dd>
+IBM.
+ Aglets.
+ http://www.trl.ibm.co.jp/aglets.
+
+<p>
+<dt>[<a href="#CITEknowbots" name=knowbots>22</a>]</dt><dd>
+R.&nbsp;E. Kahn and V.&nbsp;G. Cerf.
+ The digital library project, volume i: The world of knowbots.
+ 1988.
+ Unpublished manuscript, Corporation for National Research
+  Initiatives, Reston, Va., Mar.
+
+<p>
+<dt>[<a href="#CITEkotz97:agent" name=kotz97:agent>23</a>]</dt><dd>
+D.&nbsp;Kotz, R.&nbsp;Gray, S.&nbsp;Nog, D.&nbsp;Rus, S.&nbsp;Chawla, and G.&nbsp;Cybenko.
+ Agent TCL: Targeting the needs of mobile computers.
+ <em>IEEE Internet Computing</em>, 1(4):58-67, July/August 1997.
+
+<p>
+<dt>[<a href="#CITEkowalski:91a" name=kowalski:91a>24</a>]</dt><dd>
+R.&nbsp;Kowalski and J.-S. Kim.
+ A metalogic programming approach to multi-agent knowledge and belief.
+ In V.&nbsp;Lifschitz, editor, <em>AI and Mathematical Theory of
+  Computation: Papers in Honour of John McCarthy</em>. Academic Press, 1991.
+
+<p>
+<dt>[<a href="#CITElesperance:95a" name=lesperance:95a>25</a>]</dt><dd>
+Y.&nbsp;L&#233;sperance, H.&nbsp;J. Levesque, F.&nbsp;Lin, D.&nbsp;Marcu, R.&nbsp;Reiter, and R.&nbsp;B.
+  Scherl.
+ Foundations of a logical approach to agent programming.
+ In M.&nbsp;Wooldridge, J.&nbsp;P. M&#252;ller, and M.&nbsp;Tambe, editors, <em>
+  Intelligent Agents II (LNAI 1037)</em>, pages 331-346. Springer-Verlag:
+  Heidelberg, Germany, 1996.
+
+<p>
+<dt>[<a href="#CITEloke98" name=loke98>26</a>]</dt><dd>
+S.&nbsp;W. Loke.
+ <em>Adding Logic Programming Behaviour to the World Wide Web</em>.
+ Phd thesis, University of Melbourne, Australia, 1998.
+
+<p>
+<dt>[<a href="#CITEmsbn" name=msbn>27</a>]</dt><dd>
+MicrosoftCorporation.
+ Microsoft Bayesian Network.
+ 1999.
+ ftp://ftp.research.microsoft.com/Probability/MSBN.zip.
+
+<p>
+<dt>[<a href="#CITEsteensbaard95:object" name=steensbaard95:object>28</a>]</dt><dd>
+B.&nbsp;Steensbaard and E.&nbsp;Jul.
+ Object and native code thread mobility among heterogeneous computers.
+ In <em>Proceedings of the 15th ACM Symposium on Operating Systems
+  Principles</em>, pages 68-78, Copper Moutain, Co., Dec. 1995.
+
+<p>
+<dt>[<a href="#CITEstrasser96:mole" name=strasser96:mole>29</a>]</dt><dd>
+M.&nbsp;Straﬂer, J.&nbsp;Baumann, and F.&nbsp;Hohl.
+ Mole - a Java based mobile agent system.
+ In <em>2nd ECOOP Workshop on Mobile Object Systems</em>, pages 28-35,
+  Linz, Austria, July 1996.
+
+<p>
+<dt>[<a href="#CITEbp7advanced" name=bp7advanced>30</a>]</dt><dd>
+P.&nbsp;Tarau.
+ BinProlog 7.0 Professional Edition: Advanced BinProlog Programming
+  and Extensions Guide.
+ Technical report, BinNet Corp., 1998.
+ Available from http://www.binnetcorp.com/BinProlog.
+
+<p>
+<dt>[<a href="#CITEbp7user" name=bp7user>31</a>]</dt><dd>
+P.&nbsp;Tarau.
+ BinProlog 7.0 Professional Edition: User Guide.
+ Technical report, BinNet Corp., 1998.
+ Available from http://www.binnetcorp.com/BinProlog.
+
+<p>
+<dt>[<a href="#CITEtarau:shaker" name=tarau:shaker>32</a>]</dt><dd>
+P.&nbsp;Tarau.
+ Inference and Computation Mobility with Jinni.
+ In K.&nbsp;Apt, V.&nbsp;Marek, and M.&nbsp;Truszczynski, editors, <em>The Logic
+  Programming Paradigm: a 25 Year Perspective</em>, pages 33-48. Springer, 1999.
+ ISBN 3-540-65463-1.
+
+<p>
+<dt>[<a href="#CITEtarau:paam99" name=tarau:paam99>33</a>]</dt><dd>
+P.&nbsp;Tarau.
+ Intelligent Mobile Agent Programming at the Intersection of Java and
+  Prolog.
+ In <em>Proceedings of The Fourth International Conference on The
+  Practical Application of Intelligent Agents and Multi-Agents</em>, pages
+  109-123, London, U.K., 1999.
+
+<p>
+<dt>[<a href="#CITETarau90:PLILP" name=Tarau90:PLILP>34</a>]</dt><dd>
+P.&nbsp;Tarau and M.&nbsp;Boyer.
+ Elementary Logic Programs.
+ In P.&nbsp;Deransart and J.&nbsp;Maluszy\'nski, editors, <em>Proceedings of
+  Programming Language Implementation and Logic Programming</em>, number 456 in
+  Lecture Notes in Computer Science, pages 159-173. Springer, Aug. 1990.
+
+<p>
+<dt>[<a href="#CITETD98:mobile" name=TD98:mobile>35</a>]</dt><dd>
+P.&nbsp;Tarau and V.&nbsp;Dahl.
+ Mobile Threads through First Order Continuations.
+ In <em>Proceedings of APPAI-GULP-PRODE'98</em>, Coruna, Spain, July
+  1998.
+
+<p>
+<dt>[<a href="#CITETD99:infra" name=TD99:infra>36</a>]</dt><dd>
+P.&nbsp;Tarau and V.&nbsp;Dahl.
+ A Logic Programming Infrastructure for Internet Programming.
+ In M.&nbsp;J. Wooldridge and M.&nbsp;Veloso, editors, <em>Artificial
+  Intelligence Today - Recent Trends and Developments</em>, pages 431-456.
+  Springer, LNAI 1600, 1999.
+ ISBN 3-540-66428-9.
+
+<p>
+<dt>[<a href="#CITETDD98:coord" name=TDD98:coord>37</a>]</dt><dd>
+P.&nbsp;Tarau, V.&nbsp;Dahl, and K.&nbsp;D. Bosschere.
+ Logic Programming Based Coordination in Virtual Worlds.
+ In W.&nbsp;Conen and G.&nbsp;Neumann, editors, <em>Coordination Technology
+  for Collaborative Applications - Organizations, Processes, and Agents</em>.
+  Springer, LNCS 1364, Mar. 1998.
+ ISBN 3-540-64170-X.
+
+<p>
+<dt>[<a href="#CITElm" name=lm>38</a>]</dt><dd>
+P.&nbsp;Tarau, K.&nbsp;De&nbsp;Boschere, V.&nbsp;Dahl, and S.&nbsp;Rochefort.
+ LogiMOO: an Extensible Multi-User Virtual World with Natural
+  Language Control.
+ <em>Journal of Logic Programming</em>, 38(3):331-353, Mar. 1999.
+
+<p>
+<dt>[<a href="#CITEpt93b" name=pt93b>39</a>]</dt><dd>
+P.&nbsp;Tarau and K.&nbsp;De&nbsp;Bosschere.
+ Memoing with Abstract Answers and Delphi Lemmas.
+ In Y.&nbsp;Deville, editor, <em>Logic Program Synthesis and
+  Transformation</em>, Springer-Verlag, pages 196-209, Louvain-la-Neuve, July
+  1993.
+
+<p>
+<dt>[<a href="#CITEtdb95rev" name=tdb95rev>40</a>]</dt><dd>
+P.&nbsp;Tarau, K.&nbsp;De&nbsp;Bosschere, and B.&nbsp;Demoen.
+ Partial Translation: Towards a Portable and Efficient Prolog
+  Implementation Technology.
+ <em>Journal of Logic Programming</em>, 29(1-3):65-83, Nov. 1996.
+
+<p>
+<dt>[<a href="#CITETN94:PLILP" name=TN94:PLILP>41</a>]</dt><dd>
+P.&nbsp;Tarau and U.&nbsp;Neumerkel.
+ A Novel Term Compression Scheme and Data Representation
+  in the BinWAM.
+ In M.&nbsp;Hermenegildo and J.&nbsp;Penjam, editors, <em>Proceedings of
+  Programming Language Implementation and Logic Programming</em>, Lecture Notes in
+  Computer Science 844, pages 73-87. "Springer", Sept. 1994.
+
+<p>
+<dt>[<a href="#CITEtennenhouse96:towards" name=tennenhouse96:towards>42</a>]</dt><dd>
+D.&nbsp;L. Tennenhouse and D.&nbsp;J. Wetherall.
+ Towards an active network architecture.
+ <em>Computer Communication Review</em>, 26(2), Apr. 1996.
+
+<p>
+<dt>[<a href="#CITEDOZmobs" name=DOZmobs>43</a>]</dt><dd>
+P.&nbsp;Van&nbsp;Roy, S.&nbsp;Haridi, P.&nbsp;Brand, G.&nbsp;Smolka, M.&nbsp;Mehl, and R.&nbsp;Scheidhouer.
+ Mobile Objects in Distributed Oz.
+ <em>ACM TOPLAS</em>, 1997.
+
+<p>
+<dt>[<a href="#CITEWarren82" name=Warren82>44</a>]</dt><dd>
+D.&nbsp;H.&nbsp;D. Warren.
+ Higher-order extensions to Prolog - are they needed?
+ In D.&nbsp;Michie, J.&nbsp;Hayes, and Y.&nbsp;H. Pao, editors, <em>Machine
+  Intelligence 10</em>. Ellis Horwood, 1981.
+
+<p>
+<dt>[<a href="#CITEwhite98:thesis" name=white98:thesis>45</a>]</dt><dd>
+D.&nbsp;E. White.
+ A comparison of mobile agent migration mechanisms.
+ Senior Honors Thesis, Dartmouth College, June 1998.
+
+<p>
+<dt>[<a href="#CITEwhite96:telescript" name=white96:telescript>46</a>]</dt><dd>
+J.&nbsp;E. White.
+ Telescript technology: Mobile agents.
+ In Bradshaw [<a href="#bradshaw96:software" name=CITEbradshaw96:software>3</a>].
+ Also available as General Magic White Paper.
+
+<p>
+<dt>[<a href="#CITEwooldridge:92a" name=wooldridge:92a>47</a>]</dt><dd>
+M.&nbsp;Wooldridge.
+ <em>The Logical Modelling of Computational Multi-Agent Systems</em>.
+ PhD thesis, Department of Computation, UMIST, Manchester, UK, Oct.
+  1992.
+ (Also available as Technical Report MMU-DOC-94-01, Department of
+  Computing, Manchester Metropolitan University, Chester St., Manchester, UK).
+
+<p>
+</DL></font><hr><H3>Footnotes:</H3>
+
+<p><a name=tthFtNtAAB></a><a href="#tthFrefAAB"><sup>1</sup></a> Atom or term.
+<p><hr><small>File translated from T<sub><font size="-1">E</font></sub>X by <a href="http://hutchinson.belmont.ma.us/tth/">T<sub><font size="-1">T</font></sub>Hgold</a>, version 2.24.<br>On 17 Dec 1999, 16:09.</small>
+</HTML>

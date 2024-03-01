@@ -1,0 +1,1071 @@
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd"><HTML>
+<META NAME="GENERATOR" CONTENT="TtH 2.00">
+                                                                  
+<title> Jinni: Intelligent Mobile Agent Programming at the Intersection of Java and Prolog</title>
+ 
+<H1 align=center>Jinni: Intelligent Mobile Agent Programming at the Intersection of Java and Prolog </H1>
+
+<p>
+
+<H3 align=center>
+ Paul Tarau </H3>
+
+<p>
+
+<H3 align=center> </H3>
+
+<p>
+
+<H2> Abstract</H2>
+Jinni
+(<b>J</b>ava <b>IN</b>ference engine and <b>N</b>etworked <b>I</b>nteractor), 
+is a lightweight, multi-threaded,  logic programming language, 
+intended to be used as a flexible scripting tool for gluing together 
+knowledge processing components 
+and Java objects in distributed applications.
+
+<p>
+Jinni threads are coordinated through blackboards, local to each process.
+Associative search based on term unification (a variant of Linda)
+is used as the basic synchronization mechanism. Threads are controlled
+with tiny interpreters following a scripting language based on a subset of
+Prolog.
+
+<p>
+Mobile threads, implemented by capturing first order continuations 
+in a compact data structure sent over the network,
+allow Jinni to interoperate with remote high performance
+BinProlog servers for CPU-intensive knowledge processing
+and with other Jinni components over the Internet.
+
+<p>
+The synergy of these features makes Jinni a convenient 
+development platform for distributed AI, and in particular,
+for building intelligent autonomous agent applications.
+The latest version of Jinni is available from
+.
+
+<p>
+<em>Keywords:
+  intelligent mobile agents, distributed AI,
+  Java based Logic Programming languages,
+  Linda coordination, blackboards,
+  remote execution, mobile code
+</em>
+<p>
+<p>        <H2><A NAME="tth_sEc1">
+1</A>&nbsp;&nbsp;Introduction</H2>
+
+<p>
+The paradigm shift towards networked, mobile, ubiquitous computing
+has brought a number of challenges which require new ways to deal
+with increasingly complex patterns of interaction: autonomous, reactive 
+and mobile computational entities are needed to take care of unforeseen
+problems, to optimize the flow of communication, to offer a simplified,
+and personalized view to end users. These requirements naturally lead
+towards the emergence of <em>agent programs</em> with increasingly
+sophisticated inference capabilities, as well as autonomy and self-reliance.
+
+<p>
+Jinni is a new, lightweight, logic programming language, intended to be 
+used as a flexible scripting tool for gluing together knowledge processing
+components and Java objects in networked client/server applications and
+thin client environments. 
+
+<p>
+By supporting multiple threads, control mobility and inference processing, 
+Jinni is well suited for the development of intelligent mobile agent programs.
+
+<p>
+Jinni supports multi-user synchronized transactions and interoperates with the 
+latest version of BinProlog [<a href="#bp7advanced" name=CITEbp7advanced>16</a>] , a high performance, 
+robust, multi-threaded Prolog system with ability to generate C/C++ code
+and standalone executables. 
+
+<p>
+For acronym lovers JINNI can be read as: 
+<b>J</b>ava <b>IN</b>ference engine and <b>N</b>etworked <b>I</b>nteractor,
+although its wishmaker status (high level, dense, network ubiquitous,
+mobile, etc. agent programming language) is an equally good reason for its name. 
+
+<p>
+        <H2><A NAME="tth_sEc2">
+2</A>&nbsp;&nbsp;Basic Ontology: The Users' View</H2>
+
+<p>
+Jinni is based on a simple <b>Things</b>, <b>Places</b>, <b>Agents</b> ontology, 
+borrowed from MUDs and MOOs [<a href="#MBH95" name=CITEMBH95>14</a>,<a href="#avalon" name=CITEavalon>1</a>,<a href="#cybergate" name=CITEcybergate>3</a>,<a href="#DPT96:PAP" name=CITEDPT96:PAP>9</a>,<a href="#lpnet96:virtual" name=CITElpnet96:virtual>18</a>,<a href="#inap96" name=CITEinap96>15</a>]. 
+
+<p>
+
+<OL type="1">
+<li> <b>Things</b> are represented as Prolog terms, basically trees of embedded 
+records containing constants and variables to be further instantiated
+to other trees. 
+
+<li> <b>Places</b> are processes running on various computers with at 
+least one <em>server component</em> listening on a port and a <em>blackboard
+component</em> allowing synchronized multi-user Linda [<a href="#linda89" name=CITElinda89>6</a>,<a href="#dbt95a" name=CITEdbt95a>10</a>] 
+transactions, remote predicate calls and mobile code operations. 
+
+<li> <b>Agents</b> are collections of threads executing a set 
+of goals, possibly spread over a set of different <b>Places</b> and usually executing 
+remote and local transactions in coordination with other <b>Agents</b>.
+Each thread is mobile and able to visit multiple Places and bring back results
+as variable bindings or through Linda operations.
+</OL>
+<p>
+The state and behavior of Agents is distributed over the network of <b>Places</b> in 
+the form of  dynamic Prolog clauses and
+Linda facts<a href="#tthFtNtAAB" name=tthFrefAAB><sup>1</sup></a>.
+
+<p>
+In a typical Jinni application, a hierarchy of Places and Agents is built. 
+Threads moving between places are used to express complex Agent behavior
+in a modular way: while a number of mobile threads wait for data satisfying
+constraints (to be eventually produced on remote blackboards by another agent),
+local threads can serve to sense changes of state at the current Place and
+provide patterns to other agents waiting for them on the local blackboard.
+
+<p>
+Places are also used to abstract away language, content or protocol differences 
+between processors. They can contain the same or different code bases (contexts), depending
+on the applications requirements. 
+
+<p>
+        <H2><A NAME="tth_sEc3">
+3</A>&nbsp;&nbsp;Key Software Components: The Architecture of Jinni</H2>
+
+<p>
+Engines give transparent access to the underlying Java threads and are used to implement 
+local or remote, lazy or eager answer collection operations (findall) as well as basic
+control constructs at source level. 
+Inference engines running on separate threads can cooperate 
+through an easy to use flavor of the Linda coordination protocol. 
+
+<p>
+Remote or local dynamic database updates (with deterministic, synchronized 
+transactions) are provided on top of the basic Linda operations. 
+Fully dynamic, garbage collectible data structures, 
+are used, to take advantage of Java's automatic memory management.
+ 
+<p>
+Jinni is built as a portable Java as a lightweight component, consisting of a set
+of interpreters (called engines) each running on a separate thread, a blackboard local
+to each process and an efficient, self-contained socket based client/server networking layer.
+Jinni's <em>key features</em> are implemented in a compact package
+by combining these building blocks synergetically:
+
+<p>
+
+<UL>     
+<li> a trimmed down, simple, operatorless syntactic subset of Prolog,
+     
+<li> multiple asynchronous inference engines running on separate threads,
+     
+<li> a shared blackboard to communicate between engines using a simple
+       Linda-style subscribe/publish (in/out in Linda 
+       jargon) coordination protocol, based on associative search,
+     
+<li> high level networking operations allowing code mobility
+        [<a href="#migratory" name=CITEmigratory>2</a>,<a href="#aglets" name=CITEaglets>12</a>,<a href="#odissey" name=CITEodissey>11</a>,<a href="#cardelli97:ambients" name=CITEcardelli97:ambients>4</a>,<a href="#DOZmobility" name=CITEDOZmobility>19</a>,<a href="#Jul88" name=CITEJul88>13</a>] 
+        and remote execution,
+     
+<li> a straightforward Jinni-to-Java translator allowing packaging 
+      of Jinni programs as Java classes
+    
+<li> ability to load code directly from the Web and to show third party Web documents
+       (text, graphics, multi-media) by controlling applet contexts in browsers 
+    
+<li> backtrackable assumptions [<a href="#TDF:asian96" name=CITETDF:asian96>17</a>,<a href="#DT97:AGNL" name=CITEDT97:AGNL>8</a>] 
+      implemented through trailed, overridable undo actions, also
+      supporting Assumption Grammars, a variant of Prolog's Definite Clause Grammars
+</UL>
+<p>
+        <H2><A NAME="tth_sEc4">
+4</A>&nbsp;&nbsp;The Coordination Mechanism: How Distributed Components Are Synchronized</H2>
+
+<p>
+Local and remote thread synchronisation mechanisms are built on top of a
+Linda-style [<a href="#linda89" name=CITElinda89>6</a>,<a href="#dbt95a" name=CITEdbt95a>10</a>,<a href="#CasCia96" name=CITECasCia96>7</a>] coordination framework.
+Associative search is implemented through unification based pattern
+matching. Using mobile code operations places are melted together 
+into a scalable peer-to-peer network layer, 
+forming a `web of interconnected worlds' (Fig <A href="#../linda">1</A>):
+
+<p>
+The synergy between mobile code and Linda coordination allows an elegant,
+componentwise implementation. <em>Blackboard operations are implemented only
+between local threads and their (shared) local blackboard.</em> If interaction with
+a remote blackboard is needed, the thread simply moves to the place where
+it is located and proceed through local interaction. This keeps networking
+component code separate from Linda coordination code.
+
+<p>
+Four kernel operations (Linda and remote execution) can be used to express
+all the other communication and coordination patterns:
+
+<p>
+
+<UL>
+<li> out(X): puts X on the blackboard
+
+<li> in(X):  waits until it can take an object matching X from the blackboard
+
+<li> all(X,Xs): reads the list Xs matching X currently on the blackboard
+
+<li> the(Pattern,Goal,Answer): runs a thread executing Goal locally or at a default
+      remote Place
+</UL>
+<p>
+ The <tt>all/2</tt> operation, fetching the list of all matching terms 
+is used instead of (cumbersome) backtracking for alternative solutions over
+the network.
+Note that the only blocking operation is <tt>in/1</tt>.
+Blocking <tt>rd/1</tt> is easily
+emulated in terms of <tt>in/1</tt> and <tt>out/1</tt>,
+while non-blocking <tt>rd/1</tt> is emulated with <tt>all/2</tt>.
+For expressiveness, the following derived operations are provided:
+
+<p>
+
+<UL>
+<li> <tt>cout/1</tt>, which puts a term on the blackboard
+only if none of is instances are present,
+
+<li> <tt>cin/1</tt> which works like <tt>in/1</tt> but
+returns immediate failure if a matching term is absent
+
+<li> <tt>when/1</tt> (a more efficient a non-blocking rd/1)
+</UL>
+<p>
+
+<p><A NAME="tth_fIg1">
+</A> 
+<center></center> <center>      Figure 1: Basic Linda operations</center><A NAME="../linda">
+</A>
+<p>
+<p>
+        <H2><A NAME="tth_sEc5">
+5</A>&nbsp;&nbsp;Programming with Engines</H2> <A NAME="engines">
+</A>
+Jinni processes are organized by launching
+multiple interpreter engines having their own state.
+An engine can be seen as an abstract data-type which
+produces a (possibly infinite) stream of solutions as needed.
+To create a new engine, we use:
+
+<p>
+<font size="-1">
+<pre>
+  new_engine(Goal,AnswerTemplate,Handle)
+</pre></font>
+
+<p>
+Computation starts by calling <tt>Goal</tt> and producing, on demand, <em>instances</em>
+of <tt>AnswerTemplate</tt>
+ The <tt>Handle</tt> is a unique Java Object denoting the engine,
+assigned to its own thread. It will be used, for instance, to ask answers,
+one at a time, or to kill the engine.
+
+<p>
+To get an answer from the engine we use:
+<font size="-1">
+<pre>
+  ask_engine(Handle,Answer)
+</pre></font>
+
+<p>
+Note that Answer is an instance of the AnswerTemplate pattern passed at engine creation time,
+by <tt>new_engine</tt>.
+ Each engine can be seen as having its own virtual garbage collection process.
+As engines are simplified Prolog interpreters, they can
+backtrack independently using their (implicit) choice-point stack and trail
+during the computation of an answer.
+Once computed, an answer is copied from an engine to the master engine which initiated it. 
+Extraction of answers from an engine is based on a <em>monitor object</em> which
+synchronizes the producer and the consumer of the answer.
+
+<p>
+When the stream of answers reaches its end, <tt>ask_engine/2</tt>
+will simply fail. The resolution process in an engine
+can be discarded at any time with <tt>stop_engine/1</tt>. This allows avoiding the
+cost of backtracking in the case when a single
+answer is needed. The following example
+shows how to extract one solution from an engine:
+
+<p>
+<font size="-1">
+<pre>
+one_solution(X,G,R):-
+  new_engine(G,X,E),
+  ask_engine(E,Answer),
+  stop_engine(E),eq(Answer,R).
+</pre></font>
+
+<p>
+ The first call to <tt>ask_engine/2</tt> starts execution of Goal
+on a new thread creted by new_engine/3 and that either a term of the form <b>the(X)</b> or <b>no</b>
+is returned by <tt>ask_answer</tt>. Synchronization with this thread
+is performed when asking an answer, using a special monitor object.
+By extending the monitor <tt>Answer</tt> class, one can easily implement speculative
+execution allowing a bounded number of answers to be computed in advance.
+
+<p>
+ An all answer collection operations, findall/3 is emulated easily 
+by iterating over ask_engine/2 operations. 
+
+<p>
+<font size="-1">
+<pre>
+findall(X,G,Xs):-
+  new_engine(G,X,E),
+  once(extract_answers(E,Xs)).
+</pre></font>
+
+<p>
+<font size="-1">
+<pre>
+extract_answers(E,[X|Xs]):-
+  ask_engine(E,the(X)),
+  extract_answers(E,Xs).
+extract_answers(_,[]).
+</pre></font>
+
+<p>
+Note that lazy variants of <tt>findall</tt> can be designed by introducing
+a stream-inspired concept of <em>lazy list</em>. This can be implemented by using a
+special JavaObject tail containing an Engine handle, which overrides
+default unification into a call to <tt>ask_engine</tt> to instantiate the tail
+to a new answer, if available, and to the empty list otherwise.
+
+<p>
+        <H2><A NAME="tth_sEc6">
+6</A>&nbsp;&nbsp;Advanced Agent Coordination through Blackboard Constraints</H2>
+
+<p>
+A natural extension to Linda is to enable agents with
+<em>constraint solving</em> for the 
+selection of matching terms on the <em>blackboard</em>, instead of
+plain unification. This is implemented in Jinni through the use of 2 builtins:
+
+<p>
+Wait_for(Term,Constraint): waits for a Term on the blackboard, such that Constraint 
+is true, and when this happens, it 
+     removes the result of the match from the blackboard with an in/1 operation. 
+Constraint is either a single goal or a list of goals 
+     [G1,G2,..,Gn] to be executed on the server.
+     
+<p>
+Notify_about(Term): notifies about this term one of the blocked 
+client which waits for it with a matching  constraint i.e. 
+<font size="-1">
+<pre> 
+     notify_about(stock_offer(nscp,29)) 
+</pre></font>
+ would trigger execution of a client having issued 
+<font size="-1">
+<pre>
+     wait_for(stock_offer(nscp,Price),less(Price,30)).
+</pre></font>
+
+<p>
+The use of blackboard constraints was in fact suggested by a real-life stock
+market application. In a client/server Linda interaction, 
+triggering an atomic transaction when data
+verifying a simple arithmetic inequality becomes available, would
+be expensive. It would
+require repeatedly taking terms out of the blackboard, through expensive
+network transfers, and put them back unless the client can verify that a constraint
+holds. Our server side implementation checks a blackboard constraint only after a match
+occurs between new incoming data and the head of a suspended thread's constraint
+checking clause, i.e. a basic indexing mechanism is used to avoid useless
+computations. On the other hand, a mobile client thread can perform
+all the operations atomically on the server side, using local operations on the server,
+and come back with the results.
+The (simplified) server side fragment showing the implementation of
+<tt>wait_for and notify_about</tt> is as follows:
+
+<p>
+<font size="-1">
+<pre>
+wait_for(Pattern,Constraint):-
+  if(take_pattern(available_for(Pattern),Constraint),
+     true,
+     and(
+      local_out(waiting_for(Pattern,Constraint)),
+      local_in(holds_for(Pattern,Constraint))
+     )
+  ).
+</pre></font>
+
+<p>
+<font size="-1">
+<pre>
+notify_about(Pattern):-
+  if(take_pattern(waiting_for(Pattern,Constraint),Constraint),
+     local_out(holds_for(Pattern,Constraint)),
+     local_out(available_for(Pattern))
+  ).
+</pre></font>
+
+<p>
+<font size="-1">
+<pre>
+% takes the first matching Pattern for which Constraint holds
+take_pattern(Pattern,Constraint):-
+  local_all(Pattern,Ps),
+  member(Pattern,Ps),
+  Constraint,
+  local_cin(Pattern,_).
+</pre></font>
+
+<p>
+Note that each time the head of the waiting clause matches
+incoming data, its body is (re)-executed.
+It would be interesting to explore use of <em>memoing</em> to reduce re-execution overhead.
+Although termination of constraint checking is left in the programmer's hand,
+only one thread is affected by a loop in the code, the server's integrity as such
+not being compromised. We think that improvement of implementation technology
+for blackboard constraint solving rises
+some challenging open problems. Moreover, incorporating 
+server-side symbolic constraint reducers (CLP, FD or interval based)
+can dramatically improve performance for large scale problems.
+
+<p>
+        <H2><A NAME="tth_sEc7">
+7</A>&nbsp;&nbsp;Building Behaviors: basic Agent Programming constructs</H2>
+
+<p>
+Agents behaviors are implemented easily in terms of synchronized in/out Linda operations
+and mobile code. As an example of such functionality, let's take a look
+at two simple chat agents, which are part of Jinni's standard library: 
+
+<p>
+
+<b>Window 1&nbsp;&nbsp;</b>: a reactive channel listener 
+
+<p>
+<font size="-1">
+<pre>
+?-listen(fun(_)). 
+</pre></font>
+
+<p>
+
+<b>Window 2&nbsp;&nbsp;</b>: a selective channel publisher 
+
+<p>
+<font size="-1">
+<pre>
+?-talk(fun(jokes)). 
+</pre></font>
+
+<p>
+ They implement a front end to Jinni's associative publish/subscribe abilities. 
+The more general pattern <tt>fun(_)</tt> 
+will reach all the users interested in instances of <tt>fun/1</tt>, 
+in particular <tt>fun(jokes)</tt>. However, someone 
+publishing on an unrelated channel e.g. with <tt>?-talk(stocks(nasdaq))</tt>. 
+will not reach fun/1 listeners 
+because stocks(nasdaq) and fun(jokes) channel patterns are not unifiable. 
+
+<p>
+ A stock market agent's buy/sell components look as
+follows:
+
+<p>
+<font size="-1">
+<pre>
+sell(Who,Stock,AskPrice):-
+  % triggers a matching buy transaction
+  notify_about(offer(Who,Stock,AskPrice)).
+
+buy(Who,Stock,SellingPrice):-
+  % runs as a background thread
+  % in parallel with other buy operations
+  bg(try_to_buy(Who,Stock,SellingPrice)).
+
+try_to_buy(Me,Stock,LimitPrice):-
+  % this thread sets a blackboard constraint and waits
+  % until the constraint is solved to true
+  % by a corresponding sell transaction
+  wait_for(offer(You,Stock,YourPrice),[ % server side mobile code
+    lesseq(YourPrice,LimitPrice),
+    local_in(has(You,Stock)),
+    local_in(capital(You,YourCapital)), % server side 'local' in/1
+    local_in(capital(Me,MyCapital)),    % operations
+    compute('-',MyCapital,YourPrice,MyNewCapital),
+    compute('+',YourCapital,YourPrice,YourNewCapital),
+    local_out(capital(You,YourNewCapital)),
+    local_out(capital(Me,MyNewCapital)),
+    local_out(has(Me,Stock))
+  ]).
+</pre></font>
+
+<p>
+Note that this example also gives a glimpse on Jinni's 
+multithreaded client/server design (background thread launching with <tt>bg</tt>),
+as well as its <em>blackboard constraint solving
+ability</em> (<tt>wait_for, notify_about</tt>). 
+Also note that if multiple markets are implemented as Places, each providing
+a semantics for their local operations, agents can send mobile threads
+between places, No need to describe the networking opersations as such,
+at this level of abstraction.
+
+<p>
+        <H2><A NAME="tth_sEc8">
+8</A>&nbsp;&nbsp;Mobile Code: for expressiveness and for acceleration</H2>
+
+<p>
+An obvious way to accelerate slow Prolog processing for a Java  based
+system is through use of native (C/C++) methods. The simplest way
+to accelerate Jinni's Prolog processing is by including BinProlog
+as a dynamic library through Java's JNI (as implemented in the latest
+version of our BinProlog/C/Java interface).
+
+<p>
+However, a more general scenario, also usable for applets not
+allowing native method invocations is the use of a <em>remote accelerator</em>.
+This is achieved transparently through the use of <em>mobile code</em>.
+
+<p>
+       <H4><A NAME="tth_sEc8.0.1">
+8.0.1</A>&nbsp;&nbsp;Code, state and computation mobility</H4>
+The Oz 2.0 distributed programming proposal of [<a href="#DOZmobility" name=CITEDOZmobility>19</a>]
+makes <em>object mobility</em> more
+transparent, although the mobile entity is still
+the <em>state</em> of the objects, not <em>live code</em>.
+
+<p>
+Mobility of <em>live code</em> is called <em>computation mobility</em> [<a href="#cardelli97:mobile" name=CITEcardelli97:mobile>5</a>].
+It requires interrupting execution, moving the state of a runtime system
+(stacks, for instance) from one site to another and then resuming
+execution. Clearly, for some languages, this can be hard or completely
+impossible to achieve.
+
+<p>
+General Magic's Telescript and
+Odissey [<a href="#odissey" name=CITEodissey>11</a>] agent programming
+framework, IBM's Java based <em>aglets</em> [<a href="#aglets" name=CITEaglets>12</a>] as well as
+Luca Cardelli's Oblique [<a href="#migratory" name=CITEmigratory>2</a>]
+have pioneered implementation technologies achieving
+<em>computation mobility</em>.
+
+<p>
+       <H4><A NAME="tth_sEc8.0.2">
+8.0.2</A>&nbsp;&nbsp;Jinni's live code mobility</H4>
+In the case of Jinni, computation mobility is used both as an <em>accelerator</em> and
+an <em>expressiveness lifting</em> device. A live thread will migrate from Jinni
+to a faster remote BinProlog engine, do some CPU intensive work and then come back with
+the results (or just sent back results, using Linda coordination).
+A very simple way to ensure atomicity and security of
+complex networked transactions is to have the agent code move to
+the site of the computation, follow existing security rules,
+access possibly large databases and come back with the results.
+
+<p>
+Two simple <b>move/0</b> and <b>return/0</b> operations are used to transport
+computation to the server and back. The client simply waits until computation
+completes, when bindings for the first solution are propagated back:
+
+<p>
+<font size="-1">
+<pre>
+Window 1: a mobile thread 
+
+?-there,move,println(on_server),member(X,[1,2,3]),
+        return,println(back). 
+back
+X=1; 
+no. 
+
+Window 2: a server 
+
+?-run_server. 
+on_server 
+</pre></font>
+
+<p>
+In case return is absent, computation proceeds to the end of the transported continuation.
+Note that mobile computation is more expressive and more efficient than remote predicate calls as such. Basically, it <em>moves once</em>, and executes on the server <em>all future computations</em> of the current AND branch until a return instruction is hit,
+when it takes the remaining continuation and comes back. This can be seen by comparing real time execution speed for: 
+
+<p>
+<font size="-1">
+<pre>
+?-there,for(I,1,1000),run(println(I)),fail. 
+
+?-there,move,for(I,1,1000),println(I),fail. 
+</pre></font>
+ 
+<p>
+While the first query uses <tt>run/1</tt> each time to send a remote task to the server,
+the second moves once the full computation to the server where it executes without
+further requiring network communications.
+Note that the <tt>move/0, return/0</tt> pair cut nondeterminism for the transported segment
+of the current continuation. This avoids having to transport state of the choice-point stack
+as well as implementation complexity of multiple answer returns and tedious 
+distributed backtracking synchronization. Surprisingly, this is not a strong limitation,
+as the programmer can simply use something like:
+
+<p>
+<font size="-1">
+<pre>
+?-there,move,findall(X,for(I,1,1000),Xs),return,member(X,Xs).
+</pre></font>
+
+<p>
+ to first collect all solutions
+at the remote side and then explore them through (much more efficient) local
+backtracking after returning.
+Timout mechanisms can be used to deal with the case when
+the remote query is non-terminating.
+
+<p>
+        <H2><A NAME="tth_sEc9">
+9</A>&nbsp;&nbsp;Mutual Agent/Host Security: the <em>Bring Your Own Wine</em> Principle</H2>
+
+<p>
+Jinni has currently a <tt>login</tt> <tt>+ password</tt> mechanism for all remote
+operations, including mobile code. However, the combination of
+meta-interpretation and computation mobility opens the door
+for experimenting with novel security mechanisms.
+
+<p>
+Let us consider the (open) problem of mutually protecting a mobile
+agent from its (possibly malicious) host as well as the host from the
+(possibly malicious) agent. Protecting the host from the agent is
+basically simple and well known. It is achieved through
+building a <em>sandbox</em> around the code interpreter as in Java.
+The sandbox can filter (usually statically) the instruction set,
+ensuring, for instance, that local file operations are forbidden.
+
+<p>
+However, protecting the agent from injection of a malicious continuation
+from the host, to be executed after its return is basically an open problem.
+
+<p>
+We will sketch here a solution dealing with both problems.
+
+<p>
+It is known that (most) language interpreters are Turing-equivalent computational
+mechanisms, i.e. it is not statically decidable what they will do during
+their execution. For instance, we cannot statically predict
+if such an interpreter will halt or not on arbitrary code.
+
+<p>
+The main idea is very simple: <em>a mobile agent will bring its own 
+(Turing equivalent) interpreter</em><a href="#tthFtNtAAC" name=tthFrefAAC><sup>2</sup></a>,
+give it to the host for static checking of sandbox compliance. Note that a
+sufficient condition for an interpreter to be sandbox compliant is that it
+<em>does not use reflection</em> and <em>it only calls itself or builtins 
+provided by the sandbox</em>.
+Clearly, this can be statically checked, and ensures protection of the host
+against a malicious agent<a href="#tthFtNtAAD" name=tthFrefAAD><sup>3</sup></a>.
+Protecting the mobile agent who brought its own meta-interpreter is
+clearly simpler than running over an unknown/statically unpredictable
+interpreter provided by the host. Moreover, in the presence of
+first order continuations, the agent can check properties of
+future computations before actually executing potentially malicious
+code<a href="#tthFtNtAAE" name=tthFrefAAE><sup>4</sup></a>. Note that by bringing its Turing-equivalent interpreter,
+the agent can make sure that its own security checking mechanisms cannot be
+statically detected by the host. Clearly, supposing the contrary would imply that
+a malicious host would also solve the halting problem.
+
+<p>
+        <H2><A NAME="tth_sEc10">
+10</A>&nbsp;&nbsp;Application  domains</H2>
+
+<p>
+Jinni's client and server scripting abilities are intended to support 
+platform and vendor  independent Prolog-to-Java and 
+Prolog-to-Prolog bidirectional connection over the net and to 
+accelerate integration of the effective inference technologies 
+developed the last 20 years in the field of Logic Programming
+in mainstream Internet products. 
+
+<p>
+The next iteration is likely to bring a simple, plain English scripting
+language to be compiled to Jinni, along the lines of the 
+LogiMOO prototype, with speech recognizer/synthesizer based I/O.
+A connection between Jinni and its Microsoft Agent counterpart
+<em>Genie</em> are among the high priority tasks likely to be left to
+the growing community of Jinni co-developers<a href="#tthFtNtAAF" name=tthFrefAAF><sup>5</sup></a>. 
+
+<p>
+Among the potential targets for Jinni based products: lightweight rule
+based programs assisting customers of Java-enabled 
+appliances, from Web based TVs to mobile cell phones and car computers,
+all requiring knowledge components to adjust to 
+increasingly sophisticated user expectations. 
+
+<p>
+A stock market simulator is currently on the way to be implemented
+based on Jinni, featuring 
+user programmable intelligent agents. 
+It is planned to be connected to real world Internet based stock trade services,
+using Jinni's new support for fetching and filtering Web pages. 
+
+<p>
+Jinni's key features are currently have been recently ported to 
+BinProlog, which supports a similar multi-threading and networking
+model and at considerably higher engine performance, while
+transparently interoperating with Jinni through mobile code,
+remote predicate calls and Linda transactions.
+
+<p>
+        <H2><A NAME="tth_sEc11">
+11</A>&nbsp;&nbsp;Conclusion</H2>
+
+<p>
+The Jinni project shows that Logic Programming languages are
+well suited as the basic glue so much needed for elegant and cost
+efficient Internet programming. The ability to compress so much
+functionality in such a tiny package shows that building 
+logic programming components to be integrated in emerging tools
+like Java might be the most practical way towards mainstream
+recognition and widespread use of Logic Programming technology.
+Jinni's emphasis on functionality and expressiveness over performance,
+as well as its use of integrated multi-threading and networking,
+hint towards the priorities we consider important for future Logic
+Programming language design.
+
+<p>
+
+<H2>Acknowledgments</H2>
+We thank for support from NSERC (grants OGP0107411),
+as well as from E-COM Inc. and the Radiance Group Inc. 
+Special thanks go to Koen De Bosschere, Phil Cohen, Veronica Dahl,
+Bart Demoen, Ed Freeman, Don Garrett, Armin Minkler, Mai-Phuong Nguyen,
+Stephen Rochefort and Yu Zhang for fruitful interaction related to the design,
+implementation and testing of Jinni.
+
+<p>
+       <H2>References</H2>
+<DL compact>
+
+<p>
+<dt>[<a href="#CITEavalon" name=avalon>1</a>]</dt><dd>
+The Avalon MUD.
+ http://www.avalon-rpg.com/.
+
+<p>
+<dt>[<a href="#CITEmigratory" name=migratory>2</a>]</dt><dd>
+K.&nbsp;A. Bharat and L.&nbsp;Cardelli.
+ Migratory applications.
+ In <em>Proceedings of the 8th Annual ACM Symposium on User
+  Interface Software and Technology</em>, Nov. 1995.
+ http://gatekeeper.dec.com/ pub/DEC/SRC/research-reports/
+  abstracts/src-rr-138.html.
+
+<p>
+<dt>[<a href="#CITEcybergate" name=cybergate>3</a>]</dt><dd>
+BlackSun.
+ CyberGate.
+ http://www.blaxxsun.com/.
+
+<p>
+<dt>[<a href="#CITEcardelli97:ambients" name=cardelli97:ambients>4</a>]</dt><dd>
+L.&nbsp;Cardelli.
+ Mobile ambients.
+ Technical report, Digital, 1997.
+ http://www.research.digital.com/
+  SRC/personal/Luca_Cardelli/Papers.html.
+
+<p>
+<dt>[<a href="#CITEcardelli97:mobile" name=cardelli97:mobile>5</a>]</dt><dd>
+L.&nbsp;Cardelli.
+ Mobile Computation.
+ In J.&nbsp;Vitek and C.&nbsp;Tschudin, editors, <em>Mobile Object Systems
+  - Towards the Programmable Internet</em>, pages 3-6. Springer-Verlag,
+  LNCS&nbsp;1228, 1997.
+
+<p>
+<dt>[<a href="#CITElinda89" name=linda89>6</a>]</dt><dd>
+N.&nbsp;Carriero and D.&nbsp;Gelernter.
+ Linda in context.
+ <em>CACM</em>, 32(4):444-458, 1989.
+
+<p>
+<dt>[<a href="#CITECasCia96" name=CasCia96>7</a>]</dt><dd>
+S.&nbsp;Castellani and P.&nbsp;Ciancarini.
+ Enhancing Coordination and Modularity Mechanisms for a Languag e
+  with Objects-as-Multisets.
+ In P.&nbsp;Ciancarini and C.&nbsp;Hankin, editors, <em>Proc. 1st Int. Conf. on
+  Coordination Models and Languages</em>, volume 1061 of <em>LNCS</em>, pages 89-106,
+  Cesena, Italy, April 1996. Springer.
+
+<p>
+<dt>[<a href="#CITEDT97:AGNL" name=DT97:AGNL>8</a>]</dt><dd>
+V.&nbsp;Dahl, P.&nbsp;Tarau, and R.&nbsp;Li.
+ Assumption Grammars for Processing Natural Language.
+ In L.&nbsp;Naish, editor, <em>Proceedings of the Fourteenth International
+  Conference on Logic Programming</em>, pages 256-270, MIT press, 1997.
+
+<p>
+<dt>[<a href="#CITEDPT96:PAP" name=DPT96:PAP>9</a>]</dt><dd>
+K.&nbsp;De&nbsp;Bosschere, D.&nbsp;Perron, and P.&nbsp;Tarau.
+ LogiMOO: Prolog Technology for Virtual Worlds.
+ In <em>Proceedings of PAP'96</em>, pages 51-64, London, Apr. 1996.
+
+<p>
+<dt>[<a href="#CITEdbt95a" name=dbt95a>10</a>]</dt><dd>
+K.&nbsp;De&nbsp;Bosschere and P.&nbsp;Tarau.
+ Blackboard-based Extensions in Prolog.
+ <em>Software - Practice and Experience</em>, 26(1):49-69, Jan. 1996.
+
+<p>
+<dt>[<a href="#CITEodissey" name=odissey>11</a>]</dt><dd>
+GeneralMagicInc.
+ Odissey.
+ 1997.
+ available at http://www.genmagic.com/agents.
+
+<p>
+<dt>[<a href="#CITEaglets" name=aglets>12</a>]</dt><dd>
+IBM.
+ Aglets.
+ http://www.trl.ibm.co.jp/aglets.
+
+<p>
+<dt>[<a href="#CITEJul88" name=Jul88>13</a>]</dt><dd>
+E.&nbsp;Jul, H.&nbsp;Levy, N.&nbsp;Hutchinson, and A.&nbsp;Black.
+ Fine-Grained Mobility in the Emerald System.
+ <em>ACM Transactions on Computer Systems</em>, 6(1):109-133, February
+  1988.
+
+<p>
+<dt>[<a href="#CITEMBH95" name=MBH95>14</a>]</dt><dd>
+T.&nbsp;Meyer, D.&nbsp;Blair, and S.&nbsp;Hader.
+ WAXweb: a MOO-based collaborative hypermedia system for WWW.
+ <em>Computer Networks and ISDN Systems</em>, 28(1/2):77-84, 1995.
+
+<p>
+<dt>[<a href="#CITEinap96" name=inap96>15</a>]</dt><dd>
+P.&nbsp;Tarau.
+ Logic Programming and Virtual Worlds.
+ In <em>Proceedings of INAP96</em>, Tokyo, Nov. 1996.
+ keynote address.
+
+<p>
+<dt>[<a href="#CITEbp7advanced" name=bp7advanced>16</a>]</dt><dd>
+P.&nbsp;Tarau.
+ BinProlog 7.0 Professional Edition: Advanced BinProlog Programming
+  and Extensions Guide.
+ Technical report, BinNet Corp., 1998.
+ Available from <em>http://www.binnetcorp.com/BinProlog/www</em>.
+
+<p>
+<dt>[<a href="#CITETDF:asian96" name=TDF:asian96>17</a>]</dt><dd>
+P.&nbsp;Tarau, V.&nbsp;Dahl, and A.&nbsp;Fall.
+ Backtrackable State with Linear Affine Implication and
+  Assumption Grammars.
+ In J.&nbsp;Jaffar and R.&nbsp;H. Yap, editors, <em>Concurrency and
+  Parallelism, Programming, Networking, and Security</em>, Lecture Notes in
+  Computer Science 1179, pages 53-64, Singapore, Dec. 1996. "Springer".
+
+<p>
+<dt>[<a href="#CITElpnet96:virtual" name=lpnet96:virtual>18</a>]</dt><dd>
+P.&nbsp;Tarau and K.&nbsp;De&nbsp;Bosschere.
+ Virtual World Brokerage with BinProlog and Netscape.
+ In P.&nbsp;Tarau, A.&nbsp;Davison, K.&nbsp;De&nbsp;Bosschere, and M.&nbsp;Hermenegildo,
+  editors, <em>Proceedings of the 1st Workshop on Logic Programming Tools for
+  INTERNET Applications</em>, JICSLP'96, Bonn, Sept. 1996.
+ http://clement.info.umoncton.ca/&nbsp;lpnet.
+
+<p>
+<dt>[<a href="#CITEDOZmobility" name=DOZmobility>19</a>]</dt><dd>
+P.&nbsp;Van&nbsp;Roy, S.&nbsp;Haridi, and P.&nbsp;Brand.
+ Using mobility to make transparent distribution practical.
+ 1997.
+ manuscript.
+
+<p>
+</DL>
+<H2>Appendix: A Quick Introduction to Jinni</H2>
+
+<p>
+
+<H3>Getting started</H3>
+
+<p>
+
+<H4>Using Jinni through an applet</H4>
+
+<p>
+The latest version of Jinni is available as an applet at: 
+
+<p>
+<font size="-1">
+<pre>
+http://www.binnetcorp.com/Jinni
+</pre></font>
+
+<p>
+After enter a query like: 
+
+<p>
+<font size="-1">
+<pre>
+append(Xs,Ys,[1,2,3]). 
+</pre></font>
+
+<p>
+the applet will display the results in its Prolog console style
+lower window. 
+
+<p>
+
+<H4>Using Jinni in command line mode:</H4>
+
+<p>
+Consulting a new program:
+
+<p>
+<font size="-1">
+<pre>
+?-[&lt;myprog&#62;]. 
+</pre></font>
+
+<p>
+ will read in memory the file <tt>&lt;myprog&#62;.pro</tt> program replacing similarly named predicates with 
+new ones. It is actually a shorthand for reconsult/1. To accumulate clause for similarly named 
+predicates, use consult/1. The shorthand:
+
+<p>
+<font size="-1">
+<pre>
+?-co. 
+</pre></font>
+
+<p>
+ will reconsult again the last reconsulted file.  
+
+<p>
+
+<H4>Client/server interaction</H4>
+
+<p>
+To try out Jinni's client/server abilities, open 3 shell windows:
+
+<p>
+<font size="-1">
+<pre>
+Window 1
+
+java  Jinni 
+.............. 
+?-run_server. 
+ 
+
+Window 2
+
+?-there. 
+?-in(a(X)). 
+ 
+
+Window 3
+
+?-there. 
+?-out(a(hello)). 
+</pre></font>
+
+<p>
+When entering the out command in Window 3 you will see activity in Window 2. Through the server in Window 1, Window 3 
+has communicated the word "hello" returned as a result of the in query in Window 2! 
+ 
+<p>
+
+<H3>Bi-directional Jinni / BinProlog talk</H3>
+
+<p>
+As client, Jinni talks to BinProlog servers 
+with <tt>out, cin</tt> and <tt>all</tt> commands and with 
+<tt>the(Answer, Goal, Result)</tt>  or <tt>all(Answer, Goal, Results)</tt>
+remote execution queries. To try this out, 
+start an unrestricted BinProlog server with: 
+ 
+<p>
+<font size="-1">
+<pre>
+  ?-trust. 
+</pre></font>
+
+<p>
+BinProlog's <tt>trust/0</tt> starts a password protected server, willing to accept
+remote predicate calls and mobile code. BinProlog's default <em>run_server/0</em>
+only accepts a <em>limited
+set</em> (mostly Linda operations - a form of  <em>sandbox</em> security).  
+  As a server, Jinni understands out, all, cin, rd, in commands coming from BinProlog clients and uses multiple threads to 
+synchronize them as well as <tt>the(Answer,Goal,Result)</tt>
+ or <tt>all(Answer,Goal,ListOfResults)</tt> remote execution queries. 
+The most natural use is a Java server embedded into a larger application which communicates with Prolog clients. 
+Jinni-aware BinProlog clients or servers are available from 
+
+<p>
+<font size="-1">
+<pre>
+  http://www.binnetcorp.com/BinProlog 
+</pre></font>
+
+<p>
+Secure operations can be performed using Jinni's and BinProlog
+login and password facilities. Both Jinni and BinProlog support computation mobility. 
+The <b>move/0</b> command transport execution from <b>Jinni</b> client to a <b>BinProlog</b> server for accelerated execution. For instance the Jinni command: 
+
+<p>
+<font size="-1">
+<pre>
+?-there,move,for(I,1,1000),write(I),nl,fail.
+</pre></font>
+
+<p>
+ would trigger execution in the much faster BinProlog server where the 1000 numbers will be printed out. 
+
+<p>
+Remote exection is deterministic and restricted to a segment of the current AND-continuation. The command:
+
+<p>
+<font size="-1">
+<pre>
+?-there,move,findall(I,for(I,1,10),Is),return,member(I,Is). 
+</pre></font>
+
+<p>
+ will return the values for <b>Is</b> computed on the <b>Jinni</b> server,
+which can be explored, after <b>return/0</b>, through local backtracking by <b>member/2</b>,
+on the client side. This combination of move-findall-return-member shows that
+implementing code mobility as deterministic remote execution of
+a segment of the current AND-branch does not limit its expressiveness.
+
+<p>
+Follow the <em>demos</em> link at:  for
+an example of Web based Jinni application.
+
+<p>
+<hr><H3>Footnotes:</H3>
+
+<p><a name=tthFtNtAAB></a><a href="#tthFrefAAB"><sup>1</sup></a> Jinni implements Prolog dynamic database operations in terms of 
+non-blocking local Linda operations.
+<p><a name=tthFtNtAAC></a><a href="#tthFrefAAC"><sup>2</sup></a> Inspired from the technique,
+some restaurants in Canada apply to wine, to avoid paying expensive licensing 
+fees: they ask you to bring your own. Subtle side effects on the customer's
+ mind are therefore also her own responsibility.
+<p><a name=tthFtNtAAD></a><a href="#tthFrefAAD"><sup>3</sup></a> In multi-threaded systems like Jinni, 
+non-termination based resource attacks are not an issue, as the interpreter
+can be made to run on its own thread and therefore it cannot bloc the host's
+server mechanism.
+<p><a name=tthFtNtAAE></a><a href="#tthFrefAAE"><sup>4</sup></a> In fact, in the case of Jinni's mobile code, the returning 
+continuation is unified with the one left home, as the natural way to
+ propagate bindings computed remotely. As far as the continuation contains 
+ no metacalls or clause 
+database operations, no malicious actions as such can be attached by the visited 
+host
+<p><a name=tthFtNtAAF></a><a href="#tthFrefAAF"><sup>5</sup></a> Jinni's 
+sustained growth is insured through a relatively
+unconventional <em>bazaar</em> style
+development process, similar to Linux and more recently Netscape client products.
+<p><hr><small>File translated from T<sub><font size="-1">E</font></sub>X by <a href="http://hutchinson.belmont.ma.us/tth/">T<sub><font size="-1">T</font></sub>H</a>, version 2.00.<br>On  4 Mar 1999, 14:18.</small>
+</HTML>

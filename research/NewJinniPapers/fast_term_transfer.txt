@@ -1,0 +1,52 @@
+A Fast And Compact Prolog Term Transfer Format
+
+We describe a portable binary format for fast transfer
+of Prolog terms. Applications include fast
+Prolog networking and persistent term store
+implementations.
+
+StringTable,TermHeap
+
+a(f(X),Y):-b(X,hello),c(10,g(Y)).
+
+ 0: FUN f/1
+ 1: VAR 1
+ 2: FUN a/2
+ 3: VAR 1
+ 4: VAR 4
+ 5: FUN b/2
+ 6: VAR 1
+ 7: FUN hello/0
+ 8: FUN g/1
+ 9: VAR 4
+10: FUN c/2
+11: INT 10
+12: VAR 8
+13: FUN ','/2
+14: VAR 5
+15: VAR 10
+16: FUN ':-'/2
+17: VAR 2
+18: VAR 13
+
++ term building micro-interpreters:
+
+VAR: relocate to H+ VarNumber
+FUN: relocate to actual hash code
+other: just copy
+
+XML encoding:
+
+a(f(X),Y):-b(X,hello),c(10,g(Y)).
+
+<fun iff,2>
+  <fun a,2>
+    <fun f,1>
+       <var> 1 
+       </var>
+    </fun>
+       <var> 2
+       </var>
+  </fun>
+  ....
+</fun>

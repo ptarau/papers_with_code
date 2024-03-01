@@ -1,0 +1,20 @@
+PROJECT GOALS
+
+We investigate code generation and memory management technologies which allow
+implementation of high performance Java Virtual Machine (JVM) and .NET based
+runtime systems for Logic Programming Languages.
+
+We design a code translation mechanism mapping the instruction set of
+a simplified continuation passing Prolog abstract machine to the JVM and
+.NET and extend their  Runtime Systems for the execution of the resulting code.
+
+Implementing a Runtime System in a language like Java which provides
+automated memory management functions and safety features (like built-in index
+checking and array initialization), requires a consistent approach to memory
+management based on a simple ultimate goal: minimizing total memory
+management time.
+
+Based on these assumptions we provide and analyze a number of garbage collection
+and dynamic array algorithms for Java and .NET based Prolog engines and study
+their theoretical complexity model and their empirical effectiveness.
+

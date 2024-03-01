@@ -1,0 +1,65 @@
+Memory Management of Java based Prolog Runtime Systems
+
+Abstract:
+
+Implementing a Prolog Runtime System in a language like
+Java which provides its own automated memory managment
+and safety features (like built-in index checking and
+array initialization) requires a consistent approach to
+memory management based on a simple ultimate goal:
+minimizing total memory management time (the sum of
+Java's own and ours). 
+
+Based on these assumptions we provide and analyze
+a number of garbage collection and dynamic array algorithms
+for an all-dynamic Prolog engine (Jinni 2002) and draw some
+surprising conclusions on their theoretical complexity model
+and their empirical effectiveness.
+
+ 
+\section{Introduction}
+
+Assumptions:
+
+- Java has MM - gc
+- Java initializes new arrays
+- Java has index checking and exceptions
+- Java provides fast array copy (C-based)
+- we provide an all dynamic runtime system (stacks
+  which expand/shrink together with heap GC)
+- our Prolog engine is reentrant - multiple
+  threads might run at the same time
+
+Conclusions:
+
+- as Java already spends the time to check array
+  bounds we will expand data areas on catching
+  stack overflows triggering index exceptions
+- as new arrays get initialized - the complexity
+  cost is already payed when expanding the stacks - this
+  makes (simpler) sliding colectors as good theoreticaly
+  as copying collectors
+- we fine tune our algorithms to minimize total MM time:
+  by minimizing allocation of new Java objects as well
+  as avoidable expand/shrink and GC operations
+
+
+\section{Overview of Prolog Memory Managment algorithms}
+
+- sliding (Appleby & all) + sliding SWI
+- Bevemyr,Lindgren - simple copying
+- Demoen,Engels,Tarau - stack preserving copying
+
+\section{Dynamic array algorithms for Prolog stacks}
+\section{A simple Multi-pass sliding GC algorithm}
+\section{An optimized two pass algorithm}
+- heap already doubled - let's use upper
+  heap both as a marking array and a relocation
+  array
+\section{Our final one pass algorithm}
+\section{Incremental GC algorithms}
+\section{Adaptive GC and Dynamic Array Algorithms}
+\section{Empirical Evaluation}
+  - tables providing performance data
+\section{Related Work}
+\section{Conclusion}

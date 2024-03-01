@@ -1,0 +1,12 @@
+Evaluation Algorithms for Extractive Summaries
+
+- joint work with Fahmida Hamid and David Haraburda -
+
+We start by observing that a summary for the same document can be quite different when written by different humans. This makes comparing a machine generated summary against a set of human written ones an interesting problem, for which we discuss a new methodology  based on weighted relatedness to reference summaries, normalized by the relatedness of reference summaries among themselves.
+
+Comparing two summaries is also sensitive to their lengths and the length of the document they are extracted from. To address this, we argue that the overlap between two summaries should be compared against the average intersection size of random sets.
+
+Further challenges come from comparing human written abstractive summaries to machine generated extractive ones. We discuss a flexible evaluation mechanism using semantic equivalence relations derived from WordNet and word2vec.
+
+We conclude with an overview of our ongoing work on building a data repository based on scientific documents where author-written summaries provide a baseline for the evaluation of computer generated ones.
+

@@ -1,0 +1,123 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <AssemblyKeyContainerName>
+    </AssemblyKeyContainerName>
+    <AssemblyName>Jwam</AssemblyName>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+    <DefaultClientScript>JScript</DefaultClientScript>
+    <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
+    <DefaultTargetSchema>IE50</DefaultTargetSchema>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>
+    </RootNamespace>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <StartupObject>
+    </StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <ProjectGuid>{062C6EF0-B48F-11D3-A7E3-0090274242A7}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BaseAddress>285212672</BaseAddress>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>
+    </DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <NoWarn>
+    </NoWarn>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>2</WarningLevel>
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BaseAddress>285212672</BaseAddress>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>
+    </DefineConstants>
+    <DebugSymbols>false</DebugSymbols>
+    <NoWarn>
+    </NoWarn>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>2</WarningLevel>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System">
+      <Name>System</Name>
+    </Reference>
+    <Reference Include="System.Data">
+      <Name>System.Data</Name>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Name>System.XML</Name>
+    </Reference>
+    <Reference Include="vjslib">
+      <Name>vjslib</Name>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="notes.txt" />
+    <Content Include="README.txt" />
+    <None Include="csyn.pro" />
+    <None Include="dbak.bat" />
+    <None Include="eval.pro" />
+    <None Include="funs.pro" />
+    <None Include="go.bat" />
+    <None Include="jgo.bat" />
+    <None Include="lib_.pro" />
+    <None Include="lib_aig.pro" />
+    <None Include="lib_all.pro" />
+    <None Include="lib_and_eq.pro" />
+    <None Include="lib_and_xor.pro" />
+    <None Include="lib_impl.pro" />
+    <None Include="lib_impl_eq0.pro" />
+    <None Include="lib_impl_leq.pro" />
+    <None Include="lib_impl_xor.pro" />
+    <None Include="lib_impl_xor1.pro" />
+    <None Include="lib_land1.pro" />
+    <None Include="lib_leq.pro" />
+    <None Include="lib_leq0.pro" />
+    <None Include="lib_leq01.pro" />
+    <None Include="lib_leq1.pro" />
+    <None Include="lib_less.pro" />
+    <None Include="lib_lnand01.pro" />
+    <None Include="lib_lnand1.pro" />
+    <None Include="lib_lnor.pro" />
+    <None Include="lib_lnor1.pro" />
+    <None Include="lib_lor1.pro" />
+    <None Include="lib_nand.pro" />
+    <None Include="lib_nand1.pro" />
+    <None Include="lib_nand_nor.pro" />
+    <None Include="lib_nor.pro" />
+    <None Include="lib_nor0.pro" />
+    <None Include="rgo.bat" />
+    <None Include="showsyn.pro" />
+    <None Include="syn.pro" />
+    <None Include="tests.pro" />
+    <None Include="tools.pro" />
+    <None Include="ttbits.pro" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.VisualJSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,562 @@
+\pdfoutput=1
+% cocoon 09 subm. 63
+\documentclass[]{INCLUDES/llncs}
+\usepackage{TOOLS/dcpic,pictexwd}
+\input TOOLS/jhheader.tex
+\title{
+    On primes and pairing/unpairing functions
+ }
+\author{Paul Tarau}
+\institute{
+   Department of Computer Science and Engineering\\
+   University of North Texas\\
+   {\em E-mail: tarau@cs.unt.edu}
+}
+
+\begin{document}
+\maketitle
+\date{}
+
+\begin{abstract}
+The paper explores in the form of a {\em literate Haskell program}
+interactions between prime numbers and {\em pairing/unpairing
+functions} deriving from the simple intuition that, like the product of two
+primes, unpairing operations are also reversible. An interesting concept, {\em
+hyper-primes} emerges, which turns out to be a superset of Fermat primes.
+
+{\bf Keywords}:
+{\em 
+pairing/unpairing functions,
+multiset encodings,
+prime number sequences,
+Fermat primes,
+computational mathematics
+}
+\end{abstract}
+
+\begin{comment}
+\begin{code}
+module ISOPRIMES where
+import Data.List
+import Data.Bits
+import Ratio
+import Random
+import ISO0
+\end{code}
+\end{comment}
+
+\section{Introduction}
+
+Paul Erd\"{o}s's statement, shortly before he died, that {\em ``It will be
+another million years at least, before we understand the primes''} is
+indicative of the difficulty of the field as perceived by number theorists.
+The growing number of conjectures \cite{journals/fuin/CegielskiRV07} and the
+large number of still unsolved problems involving prime numbers \cite{CP2005} shows 
+that the field is still
+open to surprises, after thousands of years of efforts by some of the brightest human
+minds.
+
+Interestingly, some significant progress on prime numbers correlates with
+unexpected paradigm shifts, the prototypical example being Riemann's paper
+\cite{riemannPrimes} connecting primality and complex analysis, all evolving
+around the still unsolved {\em Riemann Hypothesis}
+\cite{VTW86,conf/stoc/Miller75,chaitinRiemann}. 
+The genuine difficulty of the problems and the seemingly deeper and deeper 
+connections with fields ranging from cryptography to quantum
+physics suggest that unusual venues might be worth trying out. 
+
+A significant number of recent results on prime numbers involve
+extensive computer experiments \cite{BBC1999} as their most interesting
+properties quickly take us beyond the edges of computability. In particular,
+despite fascination with {\em Fermat primes} some basic
+conjectures about them remains unanswered - for instance it is still not known
+if there are any other Fermat primes besides 3,5,17,257 and 65537.
+
+This paper will explore in the form of a {\em literate Haskell program} some
+unusual interactions between prime numbers and {\em pairing/unpairing
+functions} deriving from the simple intuition that, like the product of two
+primes, unpairing operations are also reversible. An interesting concept, {\em
+hyper-primes} emerges which turns out to be a superset of Fermat primes.
+
+The paper is organized as follows: section \ref{pairings} describes
+pairing/unpairing functions and studies some of their algebraic properties that are used
+in section \ref{pp} to introduce {\em hyper-primes} and study their
+connection to Fermat primes and related conjectures.
+Section \ref{related} overviews some related work and section \ref{concl}
+concludes the paper.
+
+To make the paper
+self-contained as a literate Haskell program, we will provide in the
+{\tt Appendix} the relevant code borrowed from \cite{sac09fISO} to be
+able use the embedded data transformation language
+specified in \cite{sac09fISO} as a set of operations on a groupoid of
+isomorphisms connecting various data types. 
+
+\section{Pairing/Unpairing} \label{pairings}
+
+A {\em pairing} function is an isomorphism $f:Nat \times Nat
+\rightarrow Nat$. Its inverse is called {\em unpairing}.
+
+
+\subsection{A Bitwise Pairing/Unpairing Function}
+We will now introduce an unusually simple pairing function 
+(also mentioned in \cite{pigeon}, p.142).
+
+The function {\tt bitpair} works by splitting a 
+number's big endian bitstring
+representation into odd and even bits, 
+while its inverse {\tt bitunpair}
+blends the odd and even bits back together.
+Pairs of natural numbers will be hosted as a special type, {\tt Nat2}:
+\begin{code}
+type Nat2 = (Nat,Nat)
+\end{code}
+we define:
+\begin{code}
+bitpair ::  Nat2 -> Nat
+bitpair (i,j) = 
+  set2nat ((evens i) ++ (odds j)) where
+    evens x = map (2*) (nat2set x)
+    odds y = map succ (evens y)
+
+bitunpair :: Nat->Nat2  
+bitunpair n = (f xs,f ys) where 
+  (xs,ys) = partition even (nat2set n)
+  f = set2nat . (map (`div` 2))
+\end{code}
+
+We can derive the following Encoder:
+\begin{code}
+nat2 :: Encoder Nat2
+nat2 = compose (Iso bitpair bitunpair) nat
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as nat2 nat 2008
+(60,26)
+*ISO> as nat nat2 (60,26)
+2008
+\end{codex}
+
+Figure \ref{iso2008b} shows the
+directed graph describing recursive application of {\tt bitunpair}.
+
+\FIG{iso2008b}{Graph obtained by recursive application of {\tt bitunpair}
+for 2008}{0.40}{iso2008b.pdf}
+
+Given that unpairing functions are bijections from $Nat$ to $Nat \times Nat$
+they will progressively cover all points having natural number coordinates in
+their range in the plane. Figure \ref{isounpair1}
+shows the curves generated by {\tt bitunpair}.
+
+\FIG{isounpair1}
+{2D curve connecting values of {\tt bitunpair n} for $n \in [0..2^{10}-1]$}
+{0.40}{isounpair1.pdf}
+
+\subsection{Encoding Unordered Pairs}
+To derive an encoding of unordered pairs, i.e. 2 element sets, one
+can combine pairing/unpairing with conversion between sequences and
+sets:
+\begin{code}
+pair2unord_pair (x,y) = fun2set [x,y]
+unord_pair2pair [a,b] = (x,y) where 
+  [x,y]=set2fun [a,b]   
+
+unord_unpair = pair2unord_pair . bitunpair
+unord_pair = bitpair . unord_pair2pair
+\end{code}
+We can derive the Encoder:
+\begin{code}
+set2 :: Encoder [Nat]
+set2 = compose (Iso unord_pair2pair pair2unord_pair) nat2
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as set2 nat 2008
+[60,87]
+*ISO> as nat set2 it
+2008
+\end{codex}
+
+\subsection{Encodings Multiset Pairs}
+To derive an encoding of 2 element multisets, one
+can combine pairing/unpairing with conversion between sequences and
+multisets:
+\begin{code}
+pair2mset_pair (x,y) = (a,b) where [a,b]=fun2mset [x,y]
+mset_unpair2pair (a,b) = (x,y) where [x,y]=mset2fun [a,b]
+
+mset_unpair = pair2mset_pair . bitunpair
+mset_pair = bitpair . mset_unpair2pair
+\end{code}
+We can derive the following Encoder:
+\begin{code}
+mset2 :: Encoder Nat2
+mset2 = compose (Iso mset_unpair2pair pair2mset_pair) nat2
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as mset2 nat 2008
+(60,86)
+*ISO> as nat mset2 it
+2008
+\end{codex}
+
+Figure \ref{isounpair3} shows the curve generated by {\tt mset\_unpair}
+covering the lattice of points in its range.
+
+\FIG{isounpair3}
+{2D curve connecting values of {\tt mset\_unpair n} for $n \in [0..2^{10}-1]$}
+{0.40}{isounpair3.pdf}
+
+
+\subsection{Some algebraic properties of pairing functions}
+The following propositions state some simple
+algebraic identities between pairing operations acting on ordered, unordered and multiset pairs.
+
+\begin{prop}
+Given the function definitions:
+\begin{code}
+bitlift x = bitpair (x,0)
+bitlift' = (from_base 4) . (to_base 2)
+
+bitclip = fst . bitunpair
+bitclip' = (from_base 2) . (map (`div` 2)) . (to_base 4) . (*2)
+
+bitpair' (x,y) = (bitpair (x,0))   +   (bitpair(0,y))
+xbitpair (x,y) = (bitpair (x,0)) `xor` (bitpair (0,y))
+obitpair (x,y) = (bitpair (x,0))  .|.  (bitpair (0,y))
+
+pair_product (x,y) = a+b where
+  x'=bitpair (x,0)
+  y'=bitpair (0,y)
+  ab=x'*y'
+  (a,b)=bitunpair ab
+\end{code}
+the following identities hold:
+\begin{equation}
+bitlift \equiv bitlift'
+\end{equation}
+\begin{equation}
+bitclip \equiv bitclip'
+\end{equation}
+\begin{equation}
+bitclip \circ bitlift \equiv id 
+\end{equation}
+\begin{equation}
+bitpair (0,n) \equiv 2*bitpair(n,0)
+\end{equation}
+\begin{equation}
+bitpair (0,n) \equiv 2*(bitlift~n)
+\end{equation}
+\begin{equation}
+bitpair (n,n) \equiv 3*(bitlift~n)
+\end{equation}
+\begin{equation}  \label{bitpow}
+bitpair (2^n,0) \equiv  ({2^n})^2
+\end{equation}
+\begin{equation}  \label{biteq}
+bitpair (2^{2^n}+1,0) \equiv 2^{2^{n+1}}+1
+\end{equation}
+\begin{equation}
+bitpair' \equiv bitpair \equiv xbitpair \equiv obitpair
+\end{equation}
+\begin{equation}
+bitpair (x,y) \equiv (bitlift~x)+2*(bitlift~y) 
+\end{equation}
+\begin{equation}
+pair\_product \equiv *
+\end{equation}
+\end{prop}
+
+\begin{prop}
+Given the function definitions
+\begin{code}
+bitpair'' (x,y) = mset_pair (min x y,x+y) 
+
+bitpair''' (x,y) = unord_pair [min x y,x+y+1]
+
+mset_pair' (a,b) = bitpair (min a b, (max a b) - (min a b)) 
+
+mset_pair'' (a,b) = unord_pair [min a b, (max a b)+1]
+
+unord_pair' [a,b] = bitpair (min a b, (max a b) - (min a b) -1) 
+
+unord_pair'' [a,b] = mset_pair (min a b, (max a b)-1)
+\end{code}
+the following identities hold:
+\begin{equation}
+bitpair \equiv bitpair'' \equiv bitpair '''
+\end{equation}
+\begin{equation} \label{mseteq}
+mset\_pair \equiv mset\_pair' \equiv mset\_pair ''
+\end{equation}
+\begin{equation}
+unord\_pair \equiv unord\_pair' \equiv unord\_pair ''
+\end{equation}
+\end{prop}
+
+\section{Primes and Pairing Functions} \label{pp}
+Products of two prime numbers have the interesting property that they provide
+the special case when no information is lost by multiplication, in the sense of
+\cite{DBLP:journals/tit/Pippenger05}. Indeed, in this case multiplication is
+reversible, i.e. the two factors can be recovered given the product. 
+As the product is comparatively easy to compute, while in case of large primes
+factoring is believed intractable, this property has well-known uses in
+cryptography.
+Given the isomorphism between natural numbers and primes, mapping a prime to its
+position in the sequence of primes, one can transport pairing/unpairing
+operations to prime numbers
+\begin{code}
+ppair pairingf (p1,p2) | is_prime p1 && is_prime p2 = 
+  from_pos_in ps (pairingf (to_pos_in ps p1,to_pos_in ps p2)) where 
+    ps = primes
+
+to_pos_in xs x = fromIntegral i where Just i=elemIndex x xs
+from_pos_in xs n = xs !! (fromIntegral n)
+  
+punpair unpairingf p | is_prime p = (from_pos_in ps n1,from_pos_in ps n2) where 
+  ps=primes
+  (n1,n2)=unpairingf (to_pos_in ps p)
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> ppair bitpair (11,17)
+269
+*ISO> punpair bitunpair it
+(11,17)
+\end{codex}
+Clearly, this defines a bijection $f : Primes \times Primes \rightarrow Primes$
+that is tempting to compare with the product of two primes. 
+Figs. \ref{isoppairs} (given in Appendix) and \ref{isomsetprimes} shows the
+surfaces generated by products and multiset pairings of primes. While both commutative
+operations are reversible and likely to be asymptotically equivalent in
+terms of information density, one can notice the much smoother transition in the case
+of lossless multiplication.
+
+\FIG{isomsetprimes}
+{Lossless multiset pairing of primes}
+{0.40}{isomsetprimes.pdf}
+
+Given an {\em unpairing function} {$u:Nat \rightarrow Nat \times Nat$} and a
+predicate {\tt p(n)} over the set of natural numbers, it makes sense to
+investigate subsets of $Nat$ such that if {\tt p} holds for {\tt n} then it also
+holds after applying the unpairing function {\tt u} to {\tt n}. More
+interestingly, one can look at subsets for which this property holds recursively.
+
+Assuming a prime recognizer {\tt is\_prime} and a generator {\tt primes} 
+for the stream of prime numbers (see Appendix), we can define:
+\begin{code}
+hyper_primes u = [n|n<-primes, all_are_primes (uparts u n)] where
+  all_are_primes ns = and (map is_prime ns)
+  
+uparts u = sort . nub . tail . (split_with u) where
+    split_with _ 0 = []
+    split_with _ 1 = []
+    split_with u n = n:(split_with u n0)++(split_with u n1) where
+      (n0,n1)=u n  
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> take 20 (hyper_primes bitunpair)
+[2,3,5,7,11,13,17,19,23,29,31,43,47,59,71,79,83,89,103,139]
+\end{codex}
+This leads to the following conjecture:
+\begin{conj}
+The set generated by (hyper\_primes bitpair)
+is infinite.
+\end{conj}
+
+Figure \ref{isop12} % and \ref{isop2} 
+shows the complete unpairing graph for two
+hyper-primes obtained with {\tt bitunpair}.
+
+%\FIG{isop1}{Unpairing graph for hyper-prime 1783}{0.60}{isop1.pdf}
+%\FIG{isop2}{Unpairing graph for hyper-prime 2109167}{0.60}{isop2.pdf}
+
+\VFIGS{isop12}
+{{\tt bitunpair} hyper-primes}
+{1783}{2109167}{isop1.pdf}{isop2.pdf}
+
+\section{Hyper-primes and Fermat primes}
+One could expect to model more closely the behavior of primes and products by
+focusing on commutative functions like the multiset pairing function
+{\tt mset\_pair}:
+\begin{codex}
+*ISO> take 16 (hyper_primes mset_unpair)
+[2,3,5,13,17,113,173,257,10753,17489,34897,34961,43633,43777,65537,142781101]
+\end{codex}
+We remind that:
+\begin{df}
+A Fermat-prime is \cite{Riesel63,Keller83} a prime of the form $2^{2^n}+1$ with
+$n>0$.
+\end{df}
+Fig. \ref{fermat} shows a hyper-prime that is also a Fermat prime
+and a hyper-prime that is not a Fermat prime.
+
+\VFIGS{fermat}
+{{\tt mset\_unpair} hyper-primes}
+{A Fermat prime}{A Non-Fermat prime}{isofermat.pdf}{isonfermat.pdf}
+
+We can now state that:
+\begin{conj}
+All Fermat primes are {\tt mset\_unpair} induced hyper-primes.
+\end{conj}
+We can observe that this would follow from
+the widely believed conjecture that the only Fermat primes are
+[3,5,17,257,65537] as these 5 primes are indeed on our list of
+{\tt mset\_unpair} hyperprimes.
+
+In the (unlikely) event of the alternative, we will now state:
+\begin{prop} \label{pfermat}
+If there are Fermat primes other than [3,5,17,257,65537] then there are
+Fermat primes that are not  {\tt mset\_unpair} hyper-primes.
+\end{prop}
+To prove Prop. \ref{pfermat} we need a few additional results.
+First, the following known fact, implying that we only need to prove that there
+are primes of the form $2^{2^n}+1$ that are not hyper-primes.
+\begin{lem}
+If $n>0$ and $2^n+1$ is prime then $n$ is a power of $2$. 
+\end{lem}
+It is easy to prove, from the definition of {\tt mset\_pair} that:
+\begin{lem}
+\begin{equation}
+mset\_pair~(2^{2^n}+1,2^{2^n}+1) \equiv 2^{2^{n+1}}+1
+\end{equation}
+\end{lem}
+Indeed, from the identity \ref{mseteq} we obtain
+\begin{equation}
+mset\_pair (a,a) \equiv bitpair (a,0)
+\end{equation}
+and then observe that from \ref{biteq} it follows that
+\begin{equation}
+bitpair (2^{2^n}+1,0) \equiv 2^{2^{n+1}}+1
+\end{equation}
+We can now prove Prop. \ref{pfermat}.
+If $2^{2^{n+1}}+1$ is a Fermat prime that is also a
+hyper-prime, then $2^{2^{n}}+1$ would be also a Fermat prime that is hyper-prime.
+This would form a descending sequence of consecutive Fermat primes - a
+contradiction, given that
+for instance, $2^{32}+1 = 641 * 6,700,417$ is not prime\footnote{As pointed
+out by L. Euler in 1732.}.
+
+
+\section{Related work} \label{related}
+
+The paper relies on the compositional and extensible data
+transformation framework connecting most of the fundamental data types used in computer
+science with a {\em groupoid of isomorphisms} described in \cite{arxiv:fISO}.
+
+Pairing functions have been used in work on decision problems as early as
+\cite{robinson50,robinsons68b}. A
+typical use in the foundations of mathematics is
+\cite{DBLP:journals/tcs/CegielskiR01}.
+An extensive study of various pairing functions and their 
+computational properties is presented in 
+\cite{DBLP:conf/ipps/Rosenberg02a}.
+
+While we have not made use of any significantly advanced facts about prime
+numbers, the following references circumscribe the 
+main topics to which our experiments can be connected
+\cite{DBLP:journals/tit/Pippenger05,CP2005,Young98,Riesel85,Keller83,journals/fuin/CegielskiRV07}.
+
+
+\section{Conclusion} \label{concl}
+We have explored some computational analogies
+between  pairing functions
+and prime numbers in a framework for experimental
+mathematics implemented as a literate Haskell
+program. An interesting concept - hyper-primes has
+emerged that might be useful to
+number theorists working on related problems
+involving Fermat primes.
+
+
+\bibliographystyle{INCLUDES/splncs}
+\bibliography{INCLUDES/theory,tarau,INCLUDES/proglang,INCLUDES/biblio,INCLUDES/syn}
+
+\input iso0.tex 
+
+\subsection*{Ranking/unranking of sets, multisets and finite sequences}
+First, an isomorphism between sets and finite sequences (the Root of the
+groupoid of isomorphisms) is defined, resulting in the Encoder {\tt set}:
+\begin{code}
+set2fun xs = shift_tail pred (mset2fun xs) where
+  shift_tail _ [] = []
+  shift_tail f (x:xs) = x:(map f xs)
+  
+fun2set = (map pred) . fun2mset . (map succ)
+
+set :: Encoder [Nat]
+set = Iso set2fun fun2set
+\end{code}
+
+\label{natset} We can {\em rank/unrank} a set represented as a list of distinct
+natural numbers by observing that it can be seen
+as the list of exponents of {\tt 2} in the number's
+base {\tt 2} representation.
+\begin{code}
+nat_set = Iso nat2set set2nat 
+
+nat2set n | n>=0 = nat2exps n 0 where
+  nat2exps 0 _ = []
+  nat2exps n x = if (even n) then xs else (x:xs) where
+    xs=nat2exps (n `div` 2) (succ x)
+
+set2nat ns = sum (map (2^) ns)
+\end{code}
+The resulting Encoder is:
+\begin{code}
+nat :: Encoder Nat
+nat = compose nat_set set
+\end{code}
+
+We obtain ranking/unranking function for multisets, indirectly, through the
+Encoder {\tt mset}:
+\begin{code}
+mset2fun = sort (zipWith (-) (xs) (0:xs))
+
+fun2mset ns = tail (scanl (+) 0 ns) 
+
+mset :: Encoder [Nat]
+mset = Iso mset2fun fun2mset
+\end{code}
+
+\subsection*{Primes}
+The following code implements factoring function {\tt to\_primes} a primality
+test ({\tt is\_prime}) and a generator for the infinite stream of prime numbers
+{\tt primes}.
+
+\begin{code}
+primes = 2 : filter is_prime [3,5..]
+is_prime p = [p]==to_primes p
+
+to_primes n | n>1 = to_factors n p ps where 
+  (p:ps) = primes
+
+to_factors n p ps | p*p > n = [n]
+to_factors n p ps | 0==n `mod` p = p : to_factors (n `div` p)  p ps 
+to_factors n p ps@(hd:tl) = to_factors n hd tl
+\end{code}
+
+We will briefly describe here the functions used to visualize various data
+types with the help of Haskell libraries providing interfaces to {\tt graphviz}
+and {\tt gnuplot}.
+
+\subsection*{Conversions to/from a given base}
+The following two functions convert a number to/from a given base. Numbers in a
+given base are represented as lists of coefficients of the respective
+polynomials, in ascending order.
+\begin{code}
+to_base base n = d : (if q==0 then [] else (to_base base q)) where
+   (q,d) = quotRem n base
+
+from_base base [] = 0
+from_base base (x:xs) | x>=0 && x<base = x+base*(from_base base xs)
+\end{code}
+
+\FIG{isoppairs}
+{Lossless multiplication of primes}
+{0.40}{isoppairs.pdf}
+
+\end{document}

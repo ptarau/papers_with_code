@@ -1,0 +1,1178 @@
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<META NAME="GENERATOR" CONTENT="TtHgold 2.24">
+                                                                      
+<title> 
+    Fluents: A Refactoring of Prolog for Uniform Reflection and Interoperation with External Objects
+</title>
+ 
+<H1 align=center>
+    Fluents: A Refactoring of Prolog for Uniform Reflection and Interoperation with External Objects
+ </H1>
+
+<p>
+
+<H3 align=center>Paul Tarau </H3>
+
+<p>
+
+<H3 align=center> </H3>
+
+<p>
+
+<H2> Abstract</H2>
+On top of a simple kernel (Horn Clause Interpreters with LD-resolution) 
+we introduce <b>Fluents</b>,
+high level stateful objects which empower and simplify
+the architecture of logic programming languages through reflection of the underlying 
+interpreter, while providing uniform interoperation patterns
+with object oriented and procedural languages.
+
+<p>
+We design a Fluent class hierarchy which includes 
+first-class stateful objects representing
+the meta-level Horn Clause Interpreters, file, URL, socket Readers and Writers, 
+as well as data structures like terms and lists, with high-level operations
+directly mapped to iterative constructs in the
+underlying implementation language.
+Fluents melt naturally in the fabric of
+Logic Programming languages and
+provide elegant composition operations, reusability,
+resource recovery on backtracking and persistence. 
+The Web site of our Kernel Prolog prototype,
+ allows 
+the reader to try out online the examples discussed in this paper.
+
+<p>
+<em><b>Keywords</b>: 
+Logic Programming Language Design and Implementation,
+Interoperation of Declarative and Stateful Languages, 
+Meta-Programming and Reflection
+</em>
+<p>
+<p>        <H2><A NAME="tth_sEc1">
+1</A>&nbsp;&nbsp;Introduction</H2>
+
+<p>
+Despite significant syntactic, semantic and implementational variations, 
+Logic Programming languages share a common kernel: 
+<em>Horn Clause Resolution</em><a href="#tthFtNtAAB" name=tthFrefAAB><sup>1</sup></a>, a semantically and operationally 
+well understood calculus.
+As it is the case with pure functional programming languages,
+this calculus allows reasoning with referentially transparent,
+stateless entities. 
+
+<p>
+However, the resolution process as such, is obviously not stateless,
+as it proceeds in time, step by step. If we want to preserve the ability to 
+<em>reflect</em> in the object language the resolution
+process provided by the underlying
+interpreter, even simple abstractions like 
+the sequence of alternative answers computed by the interpreter,
+will require non-trivial additional programming
+language constructs. While implementing reflection mechanisms,
+a careful language designer will be quickly faced with the need 
+to pass Occam's razor to keep in check the explosion of 
+redundant ontology.
+
+<p>
+Evolving algebras [<a href="#gurevich:evolving" name=CITEgurevich:evolving>6</a>] 
+have shown
+that programming languages can be seen as a combination of a basic,
+<em>terminating step</em> and some form of <em>iterative closure</em> operation.
+Linear logic [<a href="#girard:linear:tcs:87" name=CITEgirard:linear:tcs:87>5</a>,<a href="#andreoli:linear:iclp:90" name=CITEandreoli:linear:iclp:90>1</a>] has provided a more accurate description of the state
+of the proof process, with emphasis on seeing formulas as <em>resources</em>,
+with special notation indicating if they are unique or reusable.
+
+<p>
+Independently, the same need for <em>state representation with minimal new ontology</em>
+arises from the need for simplified <em>interoperation</em> of declarative
+languages with conventional software and operating system services
+which often relay on stateful entities.
+
+<p>
+Through constructs ranging from plain file or socket streams in C, 
+to lazy list streams in languages like Scheme, 
+iterators in Java or C++,  monadic constructs
+[<a href="#wadler93:cont" name=CITEwadler93:cont>18</a>,<a href="#BT95a:ILPS" name=CITEBT95a:ILPS>2</a>] 
+in Haskell or in <font face=symbol>l</font
+>-Prolog,
+declarative I/O in Mercury [<a href="#mercury" name=CITEmercury>12</a>],
+share the need for <em>abstracting away the nature of the stepping process</em> 
+in a (finite or infinite, actual or generated as needed) sequence.
+Moreover, in the case of a declarative language implemented
+in a procedural or object oriented language,
+a uniform reflection mechanism is needed,
+for consistent modeling of stateful external objects
+providing native services.
+
+<p>
+This paper will introduce a concept of first class <em>fluents</em> on top of
+Horn Clauses with LD-Resolution
+to provide reflection of the underlying
+interpreter
+and interoperation with external stateful components, in
+a uniform way.
+ 
+<p>
+When seen from inside an Interpreter, other Interpreters will appear as 
+instances of Fluents (Sources) producing a stream of answers.
+Through a set of suitable abstractions, they will be put to
+work as reusable components cooperating through independent
+resolution processes.
+
+<p>
+We will also describe a set of Fluent constructors which create Fluents from
+conventional data structures like lists, strings, files, terms and clauses
+and then provide Fluent Composers - allowing to elegantly combine them
+as building blocks for software components.
+
+<p>
+We will provide two compact meta-interpreters showing how backtracking and
+forward derivation can both be reflected (and controlled) at source level.
+
+<p>
+As a practical outcome, we provide a redesign of some
+key Prolog built-ins, of possible use in the next iteration
+of the ISO Prolog standardization process.
+
+<p>
+        <H2><A NAME="tth_sEc2">
+2</A>&nbsp;&nbsp;First Class Horn Clause Interpreters</H2>
+
+<p>
+      <H3><A NAME="tth_sEc2.1">
+2.1</A>&nbsp;&nbsp;Fluents: from Reflection to Interoperation with External Objects</H3>
+
+<p>
+We will build <em>Kernel Prolog</em> as a collection of Horn Clause Interpreters 
+running LD-resolution on a default clause database and calling built-in operations.
+Each of them has a constructor which initializes them with a <em>goal</em> and 
+an <em>answer pattern</em>.
+In fact, they will be seen as possibly infinite <em>sources of answers</em> which 
+can be explored one by one. 
+The object encapsulating the state of the interpreter is very similar to
+a file descriptor encapsulating the advancement of a file reader.
+We will call such stateful entities evolving in time <em>Fluents</em>.
+
+<p>
+Kernel Prolog Interpreters will possess, through built-in calls,
+the ability to create and query other Interpreters,
+as part of a general mechanism to a manipulate <b>Fluents</b>.
+<em>Fluents</em> encapsulating interpreters, like any other 
+stateful objects, will have their independent life-cycles.
+
+<p>
+This general mechanism will allow Kernel Prolog interpreters 
+to interoperate with the underlying object oriented implementation language,
+which will provide to and request from the interpreters,
+various services through a hierarchy of <b>Fluents</b>.
+
+<p>
+      <H3><A NAME="tth_sEc2.2">
+2.2</A>&nbsp;&nbsp;Interpreters as Answer Sources</H3>
+
+<p>
+<b>Answer Sources</b> can be seen as generalized iterators, allowing
+a given program to control answer production in another.
+Each Answer Source works as a separate Horn Clause LD-resolution interpreter
+(a very compact Java implementation of such an interpreter is given in the APPENDIX).
+
+<p>
+The <b>Answer Source</b> constructor initializes a new interpreter.
+
+<p>
+<font size="-1">
+<pre>
+answer_source(AnswerPattern,Goal,AnswerSource)
+</pre></font>
+
+<p>
+  creates a new Horn Clause solver, uniquely identified
+by <b>AnswerSource</b>, which shares code
+with the currently running program and is initialized
+with resolvent <b>Goal</b>. <b>AnswerPattern</b> is a term, usually
+a list of variables occurring in <b>Goal</b>.
+
+<p>
+The <b>get/2</b> operation (to be provided by all <b>Sources</b>, see section <A href="#fluents">3</A> ) is used 
+to retrieve successive answers generated by an Answer Source, on demand.
+
+<p>
+<font size="-1">
+<pre>
+get(AnswerSource,AnswerInstance)
+</pre></font>
+
+<p>
+  tries to harvest the answer computed starting
+from <b>Goal</b>, as a instance of <b>AnswerPattern</b>. If an answer
+is found, it is returned as <b>the(AnswerInstance)</b>, otherwise <b>no</b> 
+is returned. Note that once <b>no</b> has been
+returned, all subsequent <b>get/2</b> on the same <b>AnswerSource</b> will return <b>no</b>.
+Returning distinct functors in the case of success and failure allows
+further case analysis in a pure Horn Clause style, without needing Prolog's CUT operation. 
+Bindings are not propagated to the original <b>Goal</b>
+or <b>AnswerPattern</b> when <b>get/2</b> retrieves an answer,
+i.e. <b>AnswerInstance</b> is obtained by first standardizing apart
+(renaming) the variables in <b>Goal</b> and <b>AnswerPattern</b>, and then
+backtracking over its alternative answers in a separate Prolog
+interpreter. Therefore, backtracking in the caller interpreter does
+not interfere with the new Answer Source's iteration over answers. Note
+however that backtracking over the Answer Source's creation point as such, 
+makes it unreachable and therefore subject to garbage collection.
+
+<p>
+Finally, an Answer Source is stopped with the <b>stop</b> operation (implemented by
+all <b>Sources</b>, see section <A href="#fluents">3</A>).
+<font size="-1">
+<pre>
+stop(AnswerSource)
+</pre></font>
+
+<p>
+ The <b>stop/1</b> operation is called automatically 
+when no more answers can be produced
+as well as through the Fluent's <b>undo</b> operation on backtracking.
+
+<p>
+        <H2><A NAME="tth_sEc3">
+3</A>&nbsp;&nbsp;Fluent Classes and their Operations</H2> <A NAME="fluents">
+</A>
+
+<p>
+After seeing how AnswerSources encapsulate interaction with an interpreter,
+we will proceed with building a class hierarchy which generalizes this interaction
+pattern to external objects. The crux of this design is to make stateful external
+objects and interpreters communicate with a given interpreter in a uniform way.
+This turns out to be a very natural process, as modern "pattern aware" [<a href="#DesignPats" name=CITEDesignPats>4</a>]
+object oriented design
+usually results in &#239;nterpreter-like" classes providing their services through
+high level abstractions. For instance, the Java classes in the Collections
+framework (JDK 1.2 and later), closely model set and finite function mathematics
+and are usable without any reference to "data-structure level" implementation detail.
+
+<p>
+We will first describe the root of our hierarchy, 
+the <b>Fluent</b> class, then give some examples of simple Fluents and operations on Fluents.
+
+<p>
+Fluents are created with specific <em>constructors</em>, usually 
+by converting from other Fluents or conventional 
+Prolog data structures like Terms, Lists or Databases. 
+All <b>Fluents</b> are  enabled with a <b>stop/1</b>  operation which releases their resources (most 
+<b>Fluents</b> also call <b>stop</b> on backtracking, through their internal <b>undo</b> operation). 
+
+<p>
+In our Java based reference implementation, the Fluent class looks as follows:
+
+<p>
+<font size="-1">
+<pre>
+// Constructor, which adds this Fluent to the parent's trail. 
+class Fluent extends SystemObject {
+  Fluent(Prog p) {trailMe(p);}
+
+  // add the fluent to the parent Interpreter's Trail
+  protected void trailMe(Prog p) {
+    if(null!=p) p.getTrail().push(this);
+  }
+  
+  // usable (through overriding) to release resources
+  // and/or stop ongoing computations
+  public void stop() {}
+
+  // release resources on backtracking, if needed
+  protected void undo() {stop();}
+}
+</pre></font>
+
+<p>
+ <b>Sources</b> are <b>Fluents</b> enabled with an extra <b>get/2</b> operation. 
+Typical <b>Sources</b> are Horn Clause Interpreters, File, URL or String Readers, Fluents built from 
+Prolog lists, Fluents iterating over data structures like Vectors or Hashtables or Queues in the
+underlying implementation language.
+Note that the constructor <b>Fluent(Prog p)</b> is trailed on the
+caller program <b>p</b>'s trail, and provides an <b>undo</b> operation to be called
+by <b>p</b> on backtracking, to release resources through the Fluent's <b>stop</b> method.
+
+<p>
+The Source abstract class looks as follows:
+
+<p>
+<font size="-1">
+<pre>
+abstract class Source extends Fluent {
+
+  Source(Prog p) {super(p);}
+  
+  abstract public Term get();
+}
+</pre></font>
+
+<p>
+ <b>Sinks</b> are fluents enabled with an extra <b>put/2</b> and <b>collect/2</b> operation.
+Typical Sinks are <b>ClauseWriters</b> or <b>CharWriters</b> targeted to TermCollectors
+(implemented as a Java <b>Vectors</b> collecting Prolog terms), <b>StringSinks</b> (implemented as 
+a Java <b>StringBuffers</b> collecting String representations of Prolog terms).
+
+<p>
+The Sink abstract class looks as follows:
+
+<p>
+<font size="-1">
+<pre>
+abstract class Sink extends Fluent {
+
+  Sink(Prog p) {super(p);}
+  
+  // sends T to the Sink for tasks as accumulation or printing
+  abstract public int put(Term T);
+  
+  // returns data previously sent to the Sink
+  // (if collection ability is present)
+  public Term collect() {return null;}
+}
+</pre></font>
+
+<p>
+ Not surprisingly, <em>even Prolog databases</em> are first class citizens 
+implemented as extensions of <b>Sources</b> 
+which provide <b>add/2, remove/2, collect/2</b> operations. 
+
+<p>
+Fluents can be seen as <em>resources</em> which go through state transitions as a result 
+of  <b>put/2</b>, <b>get/2</b> and <b>stop/1</b> operations. 
+They end their life cycle in a stopped state when all the data structures 
+and/or threads they  hold are freed. 
+
+<p>
+      <H3><A NAME="tth_sEc3.1">
+3.1</A>&nbsp;&nbsp;Fluent Composers</H3>
+
+<p>
+<em>Fluent composers</em> provide abstract operations on <b>Fluents</b>. They are usually implemented
+with lazy semantics.
+
+<p>
+For instance, <b>append_sources/3</b> creates a new <b>Source</b> with a <b>get/2</b> 
+operation such that when the first <b>Source</b> is stopped, iteration continues over 
+the elements of the second <b>Source</b>.   
+
+<p>
+<b>Compose_sources/3</b> provides a cartesian
+product style composition, the new <b>get/2</b> operation returning pairs of 
+elements of the first and second <b>Source</b>. 
+
+<p>
+<b>Reverse_source/2</b> builds a new Source <b>R</b> from a (finite) Source <b>F</b>, such 
+that <b>R</b>'s <b>get/2</b> method returns elements of <b>F</b> in reverse order.
+
+<p>
+<b>Split_source/3</b> is a cloning operation creating two <b>Source</b>
+objects identical to the <b>Source</b> given as first argument. It allows writing 
+programs which iterate over a given <b>Source</b> multiple times. 
+
+<p>
+<b>Sources</b> and <b>Sinks</b> are related through a <b>discharge(Source,Sink)</b> 
+operation which sends all the elements of the <b>Source</b> to the given <b>Sink</b>.
+This allows for instance copying in a generic way a stream of answers of an Interpreter 
+as well as data coming from a URL, through a socket, to a file, without having to 
+iterate explicitly or know details on how data is actually produced and what
+its concrete representation is.
+
+<p>
+      <H3><A NAME="tth_sEc3.2">
+3.2</A>&nbsp;&nbsp;Fluent Modifiers</H3>
+
+<p>
+Fluent modifiers allow dynamically changing some attributes of a give Fluent. For instance
+<b>set_persistent(Fluent,YesNo)</b> is used to make a Fluent survive failure,
+by disabling its <b>undo</b> method, which, by default, applies the Fluent's 
+<b>stop</b> method on backtracking.
+
+<p>
+        <H2><A NAME="tth_sEc4">
+4</A>&nbsp;&nbsp;Source level extensions through new definitions</H2>
+
+<p>
+To give a glimpse to the expressiveness of the resulting language,
+we will now introduce, through definitions in Kernel Prolog, a number of
+built-in predicates known as &#239;mpossible to emulate" in
+Horn Clause Prolog (except by significantly
+lowering the level of abstraction and implementing
+something close to a Turing machine).
+
+<p>
+      <H3><A NAME="tth_sEc4.1">
+4.1</A>&nbsp;&nbsp;Negation and <tt>once/1</tt></H3>
+
+<p>
+These constructs are implemented simply by discarding all but
+the first solution produced by a Solver.
+
+<p>
+<font size="-1">
+<pre>
+% returns the(X) or no as first solution of G
+first_solution(X,G,Answer):- 
+  answer_source(X,G,Solver),
+  get(Solver,Answer),
+  stop(Solver).
+
+% succeeds by binding G to its first solution or fails
+once(G):-first_solution(G,G,the(G)).
+
+% succeeds without binding G, if G fails
+not(G):-first_solution(_,G,no).
+</pre></font>
+
+<p>
+      <H3><A NAME="tth_sEc4.2">
+4.2</A>&nbsp;&nbsp;Reflective Meta-Interpreters</H3>
+
+<p>
+The simplest meta-interpreter <b>metacall/1</b>
+just reflects backtracking through <b>element_of/2</b>
+over deterministic Answer Source operations. 
+
+<p>
+<font size="-1">
+<pre>
+metacall(Goal):-
+  answer_source(Goal,Goal,E),
+  element_of(E,Goal).
+  
+element_of(I,X):-get(I,the(A)),select_from(I,A,X).
+
+select_from(_,A,A).
+select_from(I,_,X):-element_of(I,X).
+</pre></font>
+
+<p>
+ We can see <b>metacall/1</b> as an operation which fuses two
+orthogonal language features provided by Answer Sources:
+<em>computing an answer of a Goal</em>, and <em>advancing to the next
+answer</em>, through the source level operations <b>element_of/2</b> and
+<b>select_from/3</b> which 'borrow' the ability to backtrack from the
+underlying interpreter. The existence of this simple meta-interpreter indicates
+that <b>answer_sources</b> lift expressiveness of first-order
+Horn Clause logic significantly.
+
+<p>
+<em>Note that <b>element_of/2</b> works generically on <b>Sources</b> 
+and is therefore reusable, for instance, to backtrack over the character codes
+of a file or a URL</em>. 
+
+<p>
+After showing that we can emulate metacalls, we will use,
+for convenience, variables directly in predicate call position.
+
+<p>
+Note also that an Answer Source enumerates elements of the transitive closure of
+the <em>clause unfolding</em> relation [<a href="#Tarau93:CONS" name=CITETarau93:CONS>15</a>,<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>16</a>]. 
+
+<p>
+If our interpreter can access a single unfolding step
+through a similar Fluent, a <em>finer grained meta-interpreter</em> can be built
+as follows. Let's introduce a new Fluent,
+
+<p>
+<font size="-1">
+<pre>
+unfolder_source(Clause,Source)
+</pre></font>
+
+<p>
+ which, given a Clause  produces
+a stream of clauses  obtained by
+unfolding the first atom on the right side against a matching clause in the database. 
+Each step is described through an (associative) clause
+composition operation <font face=symbol>�</font
+> as follows:
+
+<p>
+Let <tt>A<sub>0</sub>:-A<sub>1</sub>,A<sub>2</sub>,...,A<sub>n</sub></tt> and 
+<tt>B<sub>0</sub>:-B<sub>1</sub>,...,B<sub>m</sub></tt> be two clauses (suppose n &gt; 0, m <font face=symbol>�</font
+> 0). We define 
+ 
+<tt>(A<sub>0</sub>:-A<sub>1</sub>,A<sub>2</sub>,...,A<sub>n</sub>)</tt> <font face=symbol>�</font
+> 
+<tt>(B<sub>0</sub>:-B<sub>1</sub>,...,B<sub>m</sub>) = 
+(A<sub>0</sub>:-B<sub>1</sub>,...,B<sub>m</sub>,A<sub>2</sub>,...,A<sub>n</sub>)</tt><font face=symbol>q</font
+>
+
+<p>
+with <font face=symbol>q</font
+> = mgu(<tt>A<sub>1</sub></tt>,<tt>B<sub>0</sub></tt>). If the atoms <tt>A<sub>1</sub></tt> and
+<tt>B<sub>0</sub></tt> do not unify, the result of the composition is denoted as <font face=symbol>^</font
+> (failure).
+Furthermore, we consider <tt>A<sub>0</sub>:-true,A<sub>2</sub>,...,A<sub>n</sub></tt> 
+to be equivalent to <tt>A<sub>0</sub>:-A<sub>2</sub>,...,A<sub>n</sub></tt>, and 
+for any clause <tt>C</tt>, <tt><font face=symbol>^</font
+> <font face=symbol>�</font
+> C = C <font face=symbol>�</font
+> <font face=symbol>^</font
+> = <font face=symbol>^</font
+></tt>.
+As usual, we assume that at least one operand has been renamed to a 
+variant with variables standardized apart.
+
+<p>
+We can now build a meta-interpreter which implements the transitive closure of the unfolding
+operation <font face=symbol>�</font
+> (provided as the get/2 operation of an Unfolder Source in the underlying 
+implementation language), combined with backtracking trough <b>element_of/2</b>.
+
+<p>
+<font size="-1">
+<pre>
+unfold_solve(Goal):-unfold(':-'(Goal,Goal),':-'(Goal,true)).
+
+unfold(Clause,Clause).
+unfold(Clause,Answer):-
+  unfolder_source(Clause,Unfolder),
+  element_of(Unfolder,NewClause),
+  unfold(NewClause,Answer).
+</pre></font>
+
+<p>
+ Note that this meta-interpreter will provide both backtracking and recursion for
+implementing Prolog's LD-resolution search. Clearly, alternative search mechanisms
+can be programmed quite easily.
+ 
+<p>
+      <H3><A NAME="tth_sEc4.3">
+4.3</A>&nbsp;&nbsp;If-then-else</H3>
+
+<p>
+Once we have <em>first_solution</em> and <em>metacall</em> operations, emulating
+if-then-else is easy. 
+<p>
+<font size="-1">
+<pre>
+% if Cond succeeds executes Then otherwise Else
+if(Cond,Then,Else):-
+  first_solution(successful(Cond,Then),Cond,R),
+  select_then_else(R,Cond,Then,Else).
+
+select_then_else(the(successful(Cond,Then)),Cond,Then,_):-Then.
+select_then_else(no,_,_,Else):-Else.
+</pre></font>
+
+<p>
+      <H3><A NAME="tth_sEc4.4">
+4.4</A>&nbsp;&nbsp;All-solution predicates</H3>
+
+<p>
+All-solution predicates like findall/3 can be obtained by collecting
+answers through recursion.
+
+<p>
+<font size="-1">
+<pre>
+% if G has a finite number of solutions 
+% returns a list Xs of copies of X each
+% instantiated correspondingly
+findall(X,G,Xs):-
+   answer_source(X,G,E),
+   get(E,Answer),
+   collect_all_answers(Answer,E,Xs).
+
+% collects all answers of a Solver
+collect_all_answers(no,_,[]).
+collect_all_answers(the(X),E,[X|Xs]):-
+   get(E,Answer),
+   collect_all_answers(Answer,E,Xs).
+</pre></font>
+
+<p>
+ Note that, again, the <b>collect_all_answers</b> operation  is generic, and works
+on any <b>Source</b>. This suggest providing a built-in Source-to-List
+converter <b>source_list/2</b> which can be made more efficient
+in the underlying implementation language where iteration 
+replaces <b>collect_all_answers/3</b>'s recursion while 
+also the eliminating interpretation overhead.
+
+<p>
+The alternative definition of findall/3 becomes simply:
+
+<p>
+<font size="-1">
+<pre>
+findall(X,G,Xs):- 
+   answer_source(X,G,Solver),
+   source_list(Solver,Xs).
+</pre></font>
+
+<p>
+      <H3><A NAME="tth_sEc4.5">
+4.5</A>&nbsp;&nbsp;Term copying and instantiation state detection</H3>
+As standardizing variables apart upon return of answers is
+part of the semantics of <tt>get/2</tt>, term copying
+is just computing a first solution to <tt>true/0</tt>.
+Implementing <tt>var/1</tt> uses the fact that only free
+variables can have copies unifiable with two distinct constants.
+
+<p>
+<font size="-1">
+<pre>
+copy_term(X,CX):-first_solution(X,true,the(CX)).
+var(X):-copy_term(X,a),copy_term(X,b).
+</pre></font>
+
+<p>
+ The previous definitions have shown that the resulting
+language subsumes (through user provided definitions)
+constructs like negation as failure, if-then-else,
+once, <b>copy_term</b>, <b>findall</b> - this justifies its name <em>Kernel
+Prolog</em>. As Kernel Prolog
+contains negation as failure, following [<a href="#ISOProlog" name=CITEISOProlog>3</a>]
+we can, in principle, use it for an executable
+specification of full Prolog.
+
+<p>
+      <H3><A NAME="tth_sEc4.6">
+4.6</A>&nbsp;&nbsp;Implementing Exceptions</H3>
+
+<p>
+While it is possible to implement exceptions at source level as shown in
+[<a href="#td94:LOPSTR" name=CITEtd94:LOPSTR>17</a>], through a continuation passing program transformation (binarization),
+an efficient, constant time implementation can simply
+allow the interpreter to return a new answer pattern
+as indication of an exception. We have chosen this implementation scenario
+in our Kernel Prolog compiler which provides a <b>return/1</b> operation
+to exit an engine's emulator loop with an arbitrary answer pattern,
+possibly before the end of a successful derivation.
+
+<p>
+<font size="-1">
+<pre>
+throw(E):-return(exception(E)).
+
+catch(Goal,Exception,OnException):-
+  answer_source(answer(Goal),Goal,Source),
+  element_of(Source,Answer),
+  do_catch(Answer,Goal,Exception,OnException,Source).
+  
+do_catch(exception(E),_,Exception,OnException,Source):-
+  if(eq(E,Exception),
+     OnException % call action if matching
+     throw(E)    % throw again otherwise
+  ),
+  stop(Source).
+do_catch(the(Goal),Goal,_,_,_).
+</pre></font>
+
+<p>
+The <b>throw/1</b> operation returns a special exception
+pattern, while the <b>catch/3</b> operation
+stops the engine, calls a handler on matching exceptions
+or re-throws non-matching ones to the next layer.
+
+<p>
+        <H2><A NAME="tth_sEc5">
+5</A>&nbsp;&nbsp;Built-ins as a Library of Fluents</H2>
+
+<p>
+Modular extension of Kernel Prolog through new built-ins 
+is based on an Object Oriented hierarchy of Fluents. 
+
+<p>
+       <H3><A NAME="tth_sEc5.1">
+5.1</A>&nbsp;&nbsp;Lists and Terms as Source Fluents</H3>
+
+<p>
+Sequential Prolog data structures are mapped to Fluents naturally.
+For instance, <b>list_source/2</b> creates a new Fluent based on a
+List, such that its <b>get/2</b> operation will return one element
+of the list at a time.  Similarly <b>term_source/2</b> 
+creates a Fluent from an N-argument compound term, such that
+its <b>get/2</b> method will return first its function symbol then
+each argument. They are directly usable for composition/decomposition
+operations like <b>univ/2</b> (also known as <tt>=../2</tt>):
+
+<p>
+<font size="-1">
+<pre>
+univ(T,FXs):-if(var(T),list_to_fun(FXs,T),fun_to_list(T,FXs)).
+
+list_to_fun(FXs,T):-list_source(FXs,I),source_term(I,T).
+fun_to_list(T,FXs):-term_source(T,I),source_list(I,FXs).
+</pre></font>
+
+<p>
+ As they can be converted easily to/from 
+Prolog data-structures, Fluents are usable as <em>canonical
+representation for data objects</em> as well as for <em>computational
+processes</em> (like in the case of <b>answer_sources</b>).
+<em>Fast iteration on Fluents, using loops over efficient native data structures in the 
+implementation language, replace recursion in the object language.</em>
+This makes it possible to build high performance Fluent based logic
+programming implementations in relatively slow languages like Java (
+preliminary benchmarks indicate that our ongoing Jinni 2000 implementation 
+is within an order of magnitude of the fastest C-based Prolog implementations,
+and it is likely to match quite closely slower ones like SWI Prolog).
+Interoperation with external objects is also simpler as implementation
+language operations can be applied to Fluents directly.
+
+<p>
+      <H3><A NAME="tth_sEc5.2">
+5.2</A>&nbsp;&nbsp;File, URL and Database I/O in Kernel Prolog</H3>
+
+<p>
+File and URL I/O operations are provided by encapsulating Java's
+Reader and Writer classes as Fluents. Clause and character 
+Readers are seen as instances of Sources and therefore benefit
+from Source composition operations. Moreover, Prolog operations traditionally
+captive to predefined list based implementations (like DCGs)
+can be made generic and mapped to work directly
+on Sources like file, URL and socket Readers.
+
+<p>
+Dynamic clause databases are also made visible as <b>Fluents</b>, 
+and reflection of the interpreter's own handling of the Prolog 
+database becomes possible. As an additional benefit, multiple databases are provided, to
+simplify adding module, object or agent layers at source level. By combining
+database and communication (socket or RMI) Fluents abstractions
+like mobile code are built easily and naturally.
+
+<p>
+      <H3><A NAME="tth_sEc5.3">
+5.3</A>&nbsp;&nbsp;Memoing Fluents</H3>
+
+<p>
+Most Fluents are designed, by default, to be usable only once, 
+and to release all resources held (automatically on backtracking or under
+programmer's control when their <b>stop</b> operation is invoked). 
+While Fluent operations like
+<b>split_fluent/3</b> can be 
+used<a href="#tthFtNtAAC" name=tthFrefAAC><sup>2</sup></a> 
+to duplicate most Source Fluents, the following alternative
+provides a more efficient alternative.
+
+<p>
+A <b>Memoing Fluent</b> is built on top of a Source Fluent
+by progressively <em>accumulating</em> computed values in a List or dynamic array. 
+A Memoing Fluent can be shared between multiple consumers which want
+to avoid recomputation of a given value.
+
+<p>
+      <H3><A NAME="tth_sEc5.4">
+5.4</A>&nbsp;&nbsp;Fluent based Lazy Lists</H3>
+
+<p>
+Lazy Lists can be seen as an instance of Memoing Fluents: they
+accumulate successive values of a Source Fluent in a (reusable)
+list. The simple Lazy List abstraction in our reference implementation
+works as follows:
+
+<p>
+<font size="-1">
+<pre>
+  source_lazy_list(Source, LazyList)
+</pre></font>
+
+<p>
+ creates a new LazyList object from a Source object:
+
+<p>
+<font size="-1">
+<pre>
+  lazy_head(LazyList, LazyHead)
+</pre></font>
+
+<p>
+ extracts the current head element of the list. 
+Iteration over the list is provided by
+
+<p>
+<font size="-1">
+<pre>
+  lazy_tail(LazyList, LazyTail)
+</pre></font>
+
+<p>
+ which returns LazyTail, a new lazy list encapsulating
+the next stage of the Source fluent.
+
+<p>
+While complete automation of lazy lists through a form
+of attributed variable construct is possible, we have 
+chosen a simpler implementation scenario based on the
+previously described operations, mainly because overriding
+unification with execution of an arbitrary procedure would
+introduce potential <em>non-termination</em>  - something which
+would break the very idea of keeping the execution
+mechanism as close as possible to basic Horn Clause resolution,
+as available in classic Prolog.
+
+<p>
+Based on these operations, a lazy <b>findall/3</b> is simply:
+
+<p>
+<font size="-1">
+<pre>
+% creates lazy list from an answer source
+lazy_findall(X,G,LazyList):-
+  answer_source(X,G,S),
+  source_lazy_list(S,LazyList).
+</pre></font>
+
+<p>
+ In fact, the behavior of the lazy list encapsulating 
+<b>lazy_findall's</b> advancement
+on alternative solutions produced by an Answer Source, 
+is indistinguishable from a lazy list constructed from 
+an ordinary <b>list_source</b>:
+
+<p>
+<font size="-1">
+<pre>
+% creates a lazy list from a List
+lazy_list(List,LazyList):-
+  list_source(List,S),
+  source_lazy_list(S,LazyList).
+</pre></font>
+
+<p>
+ The following operations are centered
+around the <b>lazy_tail/3</b> advancement operation,
+which produces a lazily growing reusable list.
+This list is explored with <b>lazy_element_of/2</b>
+in a way similar to the way ordinary 
+lists are explored with <b>member/2</b> and ordinary
+Sources are explored with <b>element_of/2</b>.
+
+<p>
+<font size="-1">
+<pre>
+% explores a lazy list in a way compatible with backtracking
+% allows multiple 'consumers' to access the list, end ensures that
+% the lazy list advances progressively and consistently
+lazy_element_of(XXs,X):-
+  lazy_decons(XXs,A,Xs),
+  lazy_select_from(Xs,A,X).
+
+% backtracks over the lazy list
+lazy_select_from(_,A,A).
+lazy_select_from(XXs,_,X):-lazy_element_of(XXs,X).
+
+% returns a head/tail pair of a non-empty lazy list
+lazy_decons(XXs,X,Xs):-
+  lazy_head(XXs,X),
+  lazy_tail(XXs,Xs).
+</pre></font>
+
+<p>
+ A minor change in Prolog's chronological backtracking is needed however:
+only the creation point of the lazy list is subject to trailing, and
+the complete lazy list is discarded at once. This is achieved
+in our reference implementation by giving to each lazy list its own
+(dynamically growing) trail, and by providing an <b>undo</b> operation
+which rewinds the trail completely when backtracking passes the
+lazy list object's creation point.
+
+<p>
+         <H2><A NAME="tth_sEc6">
+6</A>&nbsp;&nbsp;Related work</H2>
+Similar to the Answer Sources described in this paper, 
+<em>engine</em> constructs 
+have been part of systems like Oz [<a href="#SchulteSmolka:94" name=CITESchulteSmolka:94>11</a>,<a href="#OzEngines:97" name=CITEOzEngines:97>10</a>] 
+BinProlog [<a href="#bp7advanced" name=CITEbp7advanced>13</a>] and Jinni [<a href="#tarau:shaker" name=CITEtarau:shaker>14</a>].
+
+<p>
+The main differences with Oz engines are:
+
+<UL>
+<p>
+
+<li> while Oz designers have chosen not to handle backtracking 
+in exchange for the ability of sharing variables between different threads, 
+Kernel Prolog provides <em>encapsulated backtracking</em>, local to
+a given <b>Answer Source</b>
+
+<li> Oz engines are not separated from the underlying multi-threading model,
+they are not simple Horn Clause processors, they are part of Oz's 
+computation spaces - which include threads and constraint stores
+
+<li> in Oz, answers are returned only when a computation space is stable - the engine mechanism 
+in Oz is overloaded as a synchronization device - which in our case is an orthogonal concept
+
+<li> Oz engines have been designed for a different purpose, i.e. to program alternative
+search algorithms or for local constraint propagation, 
+while our objective is a uniform reflection mechanism for multiple
+first order Horn Clause interpreters and interoperation with 
+(other) external stateful objects
+</UL>
+<p>
+Fluents share some design objectives with Haskell's IO Monad approach [<a href="#haskell98" name=CITEhaskell98>9</a>] - 
+which essentially encapsulates the state of the external world in a single stateful
+entity on which IO operates as a sequence of transitions. Our fluents can be seen
+as an abstraction for multiple stateful worlds organized as a typed inheritance hierarchy
+and specialized toward <em>source</em> and <em>sink</em> roles - corresponding to abstract
+<em>read</em> and <em>write</em> operations. Note however that some sink fluents provide 
+a <b>collect</b> operation allowing to build new sources. Arguably, fluents offer a
+more flexible management of input and output flows than the monolithical IO Monad.
+In fact, John Hughes recent proposal to replace monads with the more powerful
+concept of arrow [<a href="#hughes:arrows" name=CITEhughes:arrows>7</a>] with emphasis on directionality hints towards
+possible evolution towards a fluent-like concept.
+
+<p>
+Java's own design of Reader and Writer class trees and the ability to transform streams
+into new streams with stronger properties or elements of a different granularity (which
+in fact serves as the implementation bases for some of our fluents, behind the scenes)
+and its recently introduced Collection framework [<a href="#JavaCollections" name=CITEJavaCollections>8</a>] also show convergence towards
+similar design patterns.
+
+<p>
+Our previous work on the Jinni agent programming language [<a href="#tarau:shaker" name=CITEtarau:shaker>14</a>] and 
+BinProlog [<a href="#bp7advanced" name=CITEbp7advanced>13</a>]
+has described similar engine constructs. However, 
+the key idea of seeing engines
+as instances of Fluents, 
+the separation of engines from the multi-threading mechanism,
+the reconstruction of Prolog's built-ins as a hierarchy
+of Fluent classes and the interoperation of external objects encapsulated as 
+Fluent instances are definitely new.
+
+<p>
+ New languages based on relatively pure subsets of Prolog like 
+Mercury [<a href="#mercury" name=CITEmercury>12</a>]
+have been designed as targets of more efficient implementation 
+technologies and for their reliability in building large software systems.
+While Horn Clauses with negation have been extensively studied and
+some of the techniques described in this paper might be well known to experienced Prolog
+programmers, the very idea of systematically exploring the gains in expressive power
+as a result of having multiple pure Prolog interpreters as
+first order objects, has not been explored yet, to our best knowledge.
+
+<p>
+        <H2><A NAME="tth_sEc7">
+7</A>&nbsp;&nbsp;Future work</H2>
+
+<p>
+We have recently finished the first cut of a fast WAM based implementation of 
+Kernel Prolog in Java and integrated it with the interpreter described in this paper.
+Preliminary benchmarks indicate being constantly within one order of magnitude from
+the fastest C-based Prolog implementations.
+
+<p>
+This opens the door for a number of real-life software applications.
+
+<p>
+The advent of component based software development and intelligent appliances
+requiring small, special purpose, self contained, still powerful processing elements,
+makes Kernel Prolog an appealing implementation technique for building logic programming
+components. In particular, in the case of small, wireless interconnected devices,
+subject to severe memory and bandwidth limitations, compact and orthogonally designed
+small language processors are instrumental. 
+
+<p>
+Our ongoing commercial Palm Prolog and Prolog-in-Java implementations
+use respectively C and Java variants of a fast Horn Clause LD-resolution WAM emulator
+based on the Kernel Prolog design described in this paper.
+This high-performance Kernel Prolog compiler (subject of an upcoming paper) will
+also provide support for Agent Classes - a new form of code structuring which promises 
+to bring logic programming to functionality beyond the usual object oriented 
+Prolog extensions, within a declarative framework.
+
+<p>
+Here are a few open issues and some other ongoing or projected Kernel Prolog 
+related developments:
+
+<p>
+
+<UL>
+<li> executable specification of ISO Prolog in terms of Kernel Prolog
+
+<li> a study of Kernel Prolog's invariance under program transformations (unfolding)
+
+<li> type checking / type inference mechanisms for Kernel Prolog
+
+<li> lightweight engine creation and engine reuse techniques for Kernel Prolog
+
+<li> Kernel Prolog as a basis of embedded Prolog component technology 
+     and Prolog based Palm computing
+</UL>
+<p>
+        <H2><A NAME="tth_sEc8">
+8</A>&nbsp;&nbsp;Conclusion</H2>
+We have provided a design for the uniform interoperation of Horn Clause Solvers 
+with stateful entities (Fluents) ranging from external procedural and object oriented
+language services like I/O operations, to other, 'first class citizen' Horn Clause Solvers.
+As a result, a simplified Prolog built-in predicate system has
+emerged. 
+
+<p>
+By collapsing the semantic gap between Horn Clause logic
+and (most of) the full Prolog language into three surprisingly
+simple, yet very powerful operations, we hope to open the
+doors not only for an implementation technology for a new
+generation of lightweight Prolog processors but also
+towards a better understanding of the intrinsic elegance hiding
+behind the core concepts of the logic programming paradigm.
+
+<p>
+Our Horn Clause Solvers encapsulated as Fluents provide the
+ability to communicate
+between distinct OR-branches as an practical alternative 
+to the use assert/retract based side effects, in implementing
+all-solution predicates. Moreover, lazy variants of all solution
+predicates are provided as a natural extension to Fluent based lazy lists.
+
+<p>
+Finally, high level Fluent Composers allow combining component
+functionality in generic, data representation independent ways.
+
+<p>
+ <H2>References</H2>
+<DL compact>
+
+<p>
+<dt>[<a href="#CITEandreoli:linear:iclp:90" name=andreoli:linear:iclp:90>1</a>]</dt><dd>
+J.-M. Andreoli and R.&nbsp;Pareschi.
+ Linear objects: Logical processes with built-in inheritance.
+ In D.H.D. Warren and P.&nbsp;Szeredi, editors, <em>7th Int. Conf. Logic
+  Programming</em>, Jerusalem, Israel, 1990. MIT Press.
+
+<p>
+<dt>[<a href="#CITEBT95a:ILPS" name=BT95a:ILPS>2</a>]</dt><dd>
+Yves Bekkers and Paul Tarau.
+ Monadic Constructs for Logic Programming.
+ In John Lloyd, editor, <em>Proceedings of ILPS'95</em>, pages 51-65,
+  Portland, Oregon, December 1995. MIT Press.
+
+<p>
+<dt>[<a href="#CITEISOProlog" name=ISOProlog>3</a>]</dt><dd>
+P.&nbsp;Deransart, A.&nbsp;Ed-Dbali, and L.&nbsp;Cervoni.
+ <em>Prolog: The Standard</em>.
+ Springer-Verlag, Berlin, 1996.
+ ISBN: 3-540-59304-7.
+
+<p>
+<dt>[<a href="#CITEDesignPats" name=DesignPats>4</a>]</dt><dd>
+E.&nbsp;Gamma, R.&nbsp;Helm, R.&nbsp;Johnson, J.&nbsp;Vlissides, and G.&nbsp;Booch.
+ <em>Design Patterns : Elements of Reusable Object-Oriented
+  Software</em>.
+ Professional Computing. Addison-Wesley, 1995.
+ ISBN: 0201633612.
+
+<p>
+<dt>[<a href="#CITEgirard:linear:tcs:87" name=girard:linear:tcs:87>5</a>]</dt><dd>
+J.-Y. Girard.
+ Linear logic.
+ <em>Theoretical Computer Science</em>, (50):1-102, 1987.
+
+<p>
+<dt>[<a href="#CITEgurevich:evolving" name=gurevich:evolving>6</a>]</dt><dd>
+Yuri Gurevich.
+ Evolving algebras: An attempt to discover semantics.
+ <em>Bulletin of the EATCS</em>, 43:264-284, 1991.
+
+<p>
+<dt>[<a href="#CITEhughes:arrows" name=hughes:arrows>7</a>]</dt><dd>
+John Hughes.
+ Generalizing Monads to Arrows.
+ Technical report.
+ available from: http://www.cs.chalmers.se/&nbsp;rjmh/Arrows/.
+
+<p>
+<dt>[<a href="#CITEJavaCollections" name=JavaCollections>8</a>]</dt><dd>
+Sun Microsystems.
+ The Java Collections Framework.
+ Technical report.
+ available from:
+  http://java.sun.com/products/jdk/1.2/docs/guide/collections/.
+
+<p>
+<dt>[<a href="#CITEhaskell98" name=haskell98>9</a>]</dt><dd>
+Simon Peyton&nbsp;Jones and John Hughes.
+ Haskell 98: A Non-strict, Purely Functional Language.
+ Technical report, February 1999.
+ available from: http://www.haskell.org/onlinereport/.
+
+<p>
+<dt>[<a href="#CITEOzEngines:97" name=OzEngines:97>10</a>]</dt><dd>
+Christian Schulte.
+ Programming constraint inference engines.
+ In Gert Smolka, editor, <em>Proceedings of the Third International
+  Conference on Principles and Practice of Constraint Programming</em>, volume 1330
+  of <em>Lecture Notes in Computer Science</em>, pages 519-533, Schlo&#223
+  Hagenberg, Austria, October 1997. Springer-Verlag.
+
+<p>
+<dt>[<a href="#CITESchulteSmolka:94" name=SchulteSmolka:94>11</a>]</dt><dd>
+Christian Schulte and Gert Smolka.
+ Encapsulated search in higher-order concurrent constraint
+  programming.
+ In Maurice Bruynooghe, editor, <em>Logic Programming: Proceedings of
+  the 1994 International Symposium</em>, pages 505-520, Ithaca, NY, USA, November
+  1994. The MIT Press.
+
+<p>
+<dt>[<a href="#CITEmercury" name=mercury>12</a>]</dt><dd>
+Zoltan Somogyi, Fergus Henderson, and Thomas Conway.
+ The Mercury Language Web Site.
+ 1998.
+ http://www.cs.mu.oz.au/research/mercuryl.
+
+<p>
+<dt>[<a href="#CITEbp7advanced" name=bp7advanced>13</a>]</dt><dd>
+Paul Tarau.
+ BinProlog 7.0 Professional Edition: Advanced BinProlog Programming
+  and Extensions Guide.
+ Technical report, BinNet Corp., 1998.
+ Available from http://www.binnetcorp.com/BinProlog.
+
+<p>
+<dt>[<a href="#CITEtarau:shaker" name=tarau:shaker>14</a>]</dt><dd>
+Paul Tarau.
+ Inference and Computation Mobility with Jinni.
+ In K.R. Apt, V.W. Marek, and M.&nbsp;Truszczynski, editors, <em>The
+  Logic Programming Paradigm: a 25 Year Perspective</em>, pages 33-48. Springer,
+  1999.
+ ISBN 3-540-65463-1.
+
+<p>
+<dt>[<a href="#CITETarau93:CONS" name=Tarau93:CONS>15</a>]</dt><dd>
+Paul Tarau and M.&nbsp;Boyer.
+ Nonstandard Answers of Elementary Logic Programs.
+ In J.M. Jacquet, editor, <em>Constructing Logic Programs</em>, pages
+  279-300. J.Wiley, 1993.
+
+<p>
+<dt>[<a href="#CITETarau90:PLILP" name=Tarau90:PLILP>16</a>]</dt><dd>
+Paul Tarau and Michel Boyer.
+ Elementary Logic Programs.
+ In P.&nbsp;Deransart and J.&nbsp;Maluszy\'nski, editors, <em>Proceedings of
+  Programming Language Implementation and Logic Programming</em>, number 456 in
+  Lecture Notes in Computer Science, pages 159-173. Springer, August 1990.
+
+<p>
+<dt>[<a href="#CITEtd94:LOPSTR" name=td94:LOPSTR>17</a>]</dt><dd>
+Paul Tarau and Veronica Dahl.
+ Logic Programming and Logic Grammars with First-order
+  Continuations.
+ In <em>Proceedings of LOPSTR'94, LNCS, Springer</em>, Pisa, June 1994.
+
+<p>
+<dt>[<a href="#CITEwadler93:cont" name=wadler93:cont>18</a>]</dt><dd>
+Philip Wadler.
+ Monads and composable continuations.
+ <em>Lisp and Symbolic Computation</em>, pages 1-17, 1993.
+
+<p>
+</DL> <hr><H3>Footnotes:</H3>
+
+<p><a name=tthFtNtAAB></a><a href="#tthFrefAAB"><sup>1</sup></a> The most commonly used variation
+is Prolog's LD-resolution which combines a depth-first search rule with
+a left-to-right selection rule.
+<p><a name=tthFtNtAAC></a><a href="#tthFrefAAC"><sup>2</sup></a> 
+The astute reader might notice that Linear Logic provers 
+provide similar operations. This is by no means accidental, a resource
+conscious proof procedure will usually provide explicit means to 
+implement multiple use of a resource. 
+<p><hr><small>File translated from T<sub><font size="-1">E</font></sub>X by <a href="http://hutchinson.belmont.ma.us/tth/">T<sub><font size="-1">T</font></sub>Hgold</a>, version 2.24.<br>On 27 Jul 2000, 23:53.</small>
+</HTML>

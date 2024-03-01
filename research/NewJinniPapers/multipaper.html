@@ -1,0 +1,970 @@
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<META NAME="GENERATOR" CONTENT="TtHgold 2.24">
+                                                                        
+<title>0mm</title>
+0mm
+
+<p>
+ 
+<title> 
+  Multicast Protocols for Jinni Agents
+</title>
+ 
+<H1 align=center>
+  Multicast Protocols for Jinni Agents
+ </H1>
+
+<p>
+
+<H3 align=center>
+ Satyam Tyagi,
+ Paul Tarau,
+ Armin Mikler
+ </H3>
+
+<p>
+    Department of Computer Science<br>
+   University of North Texas<br>
+   P.O. Box 311366<br>
+   Denton, Texas 76203<br>
+   E-mail: <em>{tyagi,tarau,mikler}@cs.unt.edu</em><br>
+
+<p>
+
+<H3 align=center> </H3>
+
+<p>
+
+<H3 align=center> </H3>
+
+
+<H2> Abstract</H2>
+We extend the Jinni Agent Programming Infrastructure 
+with a multicast network transport layer. 
+We show that the resulting protocol emulates 
+client/server exchanges while providing high performance
+multicasting of remote calls to multiple sites.
+To ensure that our agent infrastructure runs&nbsp;efficiently independently of router-level multicast support,
+we also describe a blackboard based 
+algorithm for locating a randomly 
+roaming agent for message delivery. 
+Jinni's orthogonal design, separating blackboards from networking
+and multi-threading, turns out to be easy to adapt to support
+a generalization of Jinni's Linda based coordination model.
+The resulting system is particularly well suited for building large scale,
+agent based, IP transparent, fault tolerant, tele-teaching and shared virtual reality applications.
+<p>
+<p>
+ <b>Keywords:</b> <em>Mobile Computations, Intelligent Mobile Agents, Logic Programming, Blackboard based Coordination, Networking Software Infrastructure, Multicast, Java3D based Shared Virtual Reality, IP Transparent Communication</em>
+
+<p>
+        <H2><A NAME="tth_sEc1">
+1</A>&nbsp;&nbsp;Introduction</H2>
+
+<p>
+The advent of networked, mobile, ubiquitous computing
+has brought a number of challenges, which require new ways to deal
+with increasingly complex patterns of interaction: autonomous, reactive 
+and mobile computational entities are needed to take care of unforeseen
+problems, to optimize the flow of communication, to offer a simplified,
+and personalized view to end users. These requirements naturally lead
+towards the need for <em>agent programs</em> with increasingly
+sophisticated inference capabilities, as well as autonomy and self-reliance.
+To host them with minimal interference to their main mission, we need
+a software infrastructure providing a minimal basic ontology - 
+ideally as simple and self contained as 
+the IP packet universe on top of which the Internet is built.  
+
+<p>
+Conveniently encapsulated as <em>agents</em>, software artifacts enabled
+with autonomy, dynamic knowledge exchange and network transparent 
+mobility (as key features) have emerged.
+
+<p>
+An important number of early software agent applications 
+are described in [<a href="#bradshaw96:software" name=CITEbradshaw96:software>3</a>]
+and, in the context of new generation networking software, in [<a href="#tennenhouse96:towards" name=CITEtennenhouse96:towards>30</a>,<a href="#cugola96:characterization" name=CITEcugola96:characterization>14</a>]. 
+
+<p>
+Mobile code/mobile computation technologies are pioneered by General Magic's
+Telescript (see [<a href="#odissey" name=CITEodissey>17</a>] 
+for their Java based <em>mobile agent</em> product) and IBM's Java based Aglets [<a href="#aglets" name=CITEaglets>20</a>].
+Other mobile agent and mobile object related work illustrate the rapid
+growth of the field:
+[<a href="#steensbaard95:object" name=CITEsteensbaard95:object>24</a>,<a href="#agentTCL" name=CITEagentTCL>18</a>,<a href="#gray98:tcl" name=CITEgray98:tcl>19</a>,<a href="#kotz97:agent" name=CITEkotz97:agent>21</a>,<a href="#white98:thesis" name=CITEwhite98:thesis>31</a>,<a href="#white96:telescript" name=CITEwhite96:telescript>32</a>,<a href="#strasser96:mole" name=CITEstrasser96:mole>25</a>]
+
+<p>
+Implementation technologies for mobile code are studied in 
+[<a href="#adl-tabatabai96:efficient" name=CITEadl-tabatabai96:efficient>1</a>].
+Early work on the Linda coordination framework [<a href="#linda89" name=CITElinda89>7</a>,<a href="#CasCia96" name=CITECasCia96>8</a>,<a href="#sharedpro91" name=CITEsharedpro91>4</a>] 
+has shown its potential for coordination of multi-agent systems.
+The logical modeling and planning aspects of computational Multi-Agent systems have been pioneered
+by [<a href="#cohen:79a" name=CITEcohen:79a>13</a>,<a href="#cohen:89a" name=CITEcohen:89a>11</a>,<a href="#kowalski:91a" name=CITEkowalski:91a>22</a>,<a href="#wooldridge:92a" name=CITEwooldridge:92a>33</a>,<a href="#cohen:94a" name=CITEcohen:94a>10</a>,<a href="#cohen:95a" name=CITEcohen:95a>12</a>,<a href="#lesperance:95a" name=CITElesperance:95a>23</a>,<a href="#chaibdraa:94a" name=CITEchaibdraa:94a>9</a>].
+
+<p>
+Jinni 2000 is a multi-threaded Java based Prolog system with modular,
+plugin networking layer, designed as an agent programming library,
+through a combination of Java and Prolog components. It supports mobile
+agents either directly through a mobile thread abstraction or 
+as a combination of remote predicate calls, client/server components,
+multiple networking layers and blackboards. 
+
+<p>
+      <H3><A NAME="tth_sEc1.1">
+1.1</A>&nbsp;&nbsp;Overview of the paper</H3>
+The paper is divided into 8 sections. Section 2 describes the Jinni's Mobile Agent Architecture briefly and some of Jinni's
+functionalities and advantages. Section 3 introduces us to the recently developed Multicast layer for Jinni and some
+of its advantages. Section 4 outlines the Synchronization of Multicast Agents with Blackboards.
+Section 5 explores some important properties of multicast networks, which are significant for Jinni in particular, and mobile agents 
+and mobile computing in general. In section 6 we describe two applications for Multicast Agents using the Jinni Agent 
+Programming Infrastructure. Section 7 discusses some of the problems and related areas to be explored in future.
+Finally we conclude with section 8 stating current achievements, ongoing applications and new possibilities.
+
+<p>
+        <H2><A NAME="tth_sEc2">
+2</A>&nbsp;&nbsp;The Jinni Architecture</H2>
+
+      <H3><A NAME="tth_sEc2.1">
+2.1</A>&nbsp;&nbsp;Ontology</H3>
+Jinni is based on simple <b>Things, Places, Agents</b> ontology.
+
+<p>
+<b>Things</b> are Prolog terms (trees containing constants and variables, which can be unified and other compound sub-terms).
+
+<p>
+<b>Places</b> are processes with at least one server and a blackboard allowing synchronized multi-user Linda 
+and Remote Predicate Call transactions. The blackboard stores Prolog terms, which can be retrieved by agents.
+
+<p>
+<b>Agents</b> are collections of threads executing various goals at various places. Each thread is mobile, may 
+visit multiple places and may bring back results.
+
+<p>
+      <H3><A NAME="tth_sEc2.2">
+2.2</A>&nbsp;&nbsp;Basic Features</H3>
+Jinni is a Prolog interpreter written in Java, which provides an infrastructure for mobile logic programming (Prolog) based agents. It spawns interpreters as threads over various network sites and each interpreter has its own state. Computation mobility is mapped to data mobility (through use of meta-interpreters, data can be treated as code). Mobile threads can capture first order ``AND''-continuations (as ``OR'' continuations would cause backtracking, which is not a good idea over the network) and resume execution at remote site by fetching code as needed.
+
+<p>
+Shared blackboards are used for communication and coordination of agents. Jinni has an orthogonal design and separates high level networking operations (supporting remote predicate calls and code mobility), from Linda coordination code. It has various plugins for GUI, different Network layers (in particular the multicast layer described in this paper) and a Java3d interface, which can be plugged in as an extension. Jinni 2000 embeds a fast incremental compiler, which provides Prolog processing within a factor of 5-10 from the fastest C-based implementations around.
+
+<p>
+For more details on Jinni see [<a href="#tarau:dipcl99" name=CITEtarau:dipcl99>26</a>,<a href="#tarau:paam99" name=CITEtarau:paam99>27</a>].
+
+      <H3><A NAME="tth_sEc2.3">
+2.3</A>&nbsp;&nbsp;Data, Code and Computation Mobility</H3>
+
+<p>
+While <em>data</em> and <em>code</em> mobility present no challenge in a Java
+environment, migrating the state of the computation from one machine or 
+process to another still requires a separate set of tools. 
+Java's remote method invocations (RMI) add transparent control mobility
+and a (partially) automated form of <em>object mobility</em>
+i.e. integrated code (class) and data (state) mobility.
+
+<p>
+Mobility of live code is called <em>computation mobility</em> [<a href="#cardelli97:mobile" name=CITEcardelli97:mobile>5</a>].
+It requires interrupting execution, moving the state of a runtime system
+(stacks, for instance) from one site to another and then resuming
+execution. Clearly, for some languages, this can be hard or completely
+impossible to achieve (C/C++) while in other languages like Java
+it still requires class specific serialization methods (providing writing and reading
+of objects to/from byte streams).
+
+<p>
+Conventional mobile code systems like IBM's Aglets [<a href="#aglets" name=CITEaglets>20</a>] 
+require serialization hints from the programmer and do not implement a fully generic
+reflective computation mobility infrastructure. Aglets do not provide code
+mobility as they assume that code is already available at the destination site.
+In practice this means that the mobile code/mobile computation layer is
+not really transparent to the programmer. 
+
+<p>
+In contrast, our architecture is based on building an autonomous layer consisting of
+a reflective interpreter, which provides the equivalent of implicit serialization 
+and supports orthogonal transport mechanisms for
+data, code and computation state. 
+The key idea is simply that by 
+introducing interpreters spawned as threads by a server at each networked site, 
+<em>computation mobility</em> 
+at object-level is mapped to <em>data mobility</em> at meta-level
+in a very straightforward way. A nice consequence is transport independence
+coming from the uniform representation of data, code and computation state
+(in practice this means that Corba, RMI, HLA or plain/multicast sockets
+can be used interchangeably as a transport mechanism).
+
+<p>
+      <H3><A NAME="tth_sEc2.4">
+2.4</A>&nbsp;&nbsp;Advantages of Computation Mobility</H3>
+
+<p>
+Current agent programming infrastructures use message passing as the key
+communication mechanism. Existing Concurrent Constraint Logic Programming
+languages (and multi-paradigm languages like Distributed Oz) 
+support distributed programming and coordination through monotonic 
+stores and shared logical variables. 
+
+<p>
+By contrast, we want to explore the impact of mobile live 
+computations, lightweight multi-engine/multi-threaded script
+interpreters, blackboard constraints and multicast based coordination 
+on building mobile multi-agent systems. Our distributed 
+Linda blackboards generalize concurrent constraint programming stores by allowing
+non-monotonic updates of assertional constraints [<a href="#tarau:paam99" name=CITEtarau:paam99>27</a>]. 
+With our multicast layer we implement transparently replication of
+shared blackboards distributed over different places.
+
+<p>
+We refer to [<a href="#tarau:dipcl99" name=CITEtarau:dipcl99>26</a>,<a href="#goodidea" name=CITEgoodidea>15</a>] for more detailed discussion on the advantages of computation mobility.
+
+<p>
+        <H2><A NAME="tth_sEc3">
+3</A>&nbsp;&nbsp;A Multicast Layer for Jinni</H2>
+
+<p>
+      <H3><A NAME="tth_sEc3.1">
+3.1</A>&nbsp;&nbsp;Multicast</H3>
+
+<p>
+Multicast is a technique that allows data, including packet form, to be simultaneously 
+transmitted to a selected set of destinations on a network. Some networks, such as Ethernet,
+support multicast by allowing a network interface to belong to one or more multicast groups. 
+
+<p>
+<b>2.</b> To transmit identical data simultaneously to a selected set of destinations 
+in a network, usually without obtaining acknowledgment of receipt of the transmission [<a href="#feds" name=CITEfeds>29</a>].
+
+<p>
+The key concepts of Multicast Networks are described in [<a href="#multicast" name=CITEmulticast>16</a>]. 
+On an Ethernet (Most popular LAN architecture) each message is broadcasted and the 
+machine seeing its own address grabs the message. The multicast packets are also sent 
+in a similar way except that more than one interface picks them up.
+
+<p>
+Thus the spreading and cloning of agent threads/agents themselves on the whole network 
+or a subset <em>multicast group</em> is now a single step operation. This leads to important 
+speed up especially when multiple copies of same code need to be executed 
+at different places (like for parallel searches or for simultaneous 
+display in shared virtual reality applications).
+
+<p>
+      <H3><A NAME="tth_sEc3.2">
+3.2</A>&nbsp;&nbsp;Multicast in Jinni</H3>
+Multicasting has various interesting properties, which make it well
+suited for an agent platform like Jinni. An important advantage of multicasting 
+agents is that, the same code can be run in parallel at the same time 
+in one single operation at different remote sites, retrieving different 
+data available at different sites.
+
+       <H4><A NAME="tth_sEc3.2.1">
+3.2.1</A>&nbsp;&nbsp;The API</H4><b>: </b>
+A minimal API consists of two predicates one to run multicast servers, 
+which service requests for multicast clients and second to send 
+multicast requests to these servers:<br><br>
+<b>run_mul_server</b> This joins a multicast group with an address 
+and port. The server now is listening on this port and can receive 
+remote requests for local execution. (When we join a group we are 
+telling the kernel, ``I am interested in this multicast group. 
+So, deliver (to any process interested in them, not only to me) any 
+datagram that you see in this network interface with this 
+multicast group in its destination field.'')<br><br>
+ <b>run_server</b>, which was there for unicast servers is extended to<br>
+<b>run_mul_server</b>		defaults to <b>Host = 224.1.1.1, Port = 7001</b><br>
+<b>run_mul_server(Port)</b>	defaults to <b>Host = 224.1.1.1</b><br>
+<b>run_mul_server(Host, Port)</b><br><br>
+ Notice that <b>run_mul_server</b> has a Host field as well, because it does not 
+run on the local IP but on a multicast address i.e. 224.x.x.x 239.x.x.x<br><br>
+ <b>remote_mul_run(G)</b> This is kind of a goal (G), which is multi-casted to the group to be run 
+remotely on all the multicast servers accepting requests for this group.<br><br>
+ <b>remote_run(G)</b>, which was there for unicast requests is extended to<br>
+<b>remote_mul_run(G)</b>		which defaults to <b>Host = 224.1.1.1, Port = 7001</b><br>
+<b>remote_mul_run(Host, Port, AnswerPattern, Goal, Password, Result)</b><br><br>
+Our set of multicast servers runs by listening for packets on their group and by responding 
+back on the group's multicast address. Clients listening on this <em>multicast group</em> 
+receive these results.
+An important  issue here is that the server should be able to distinguish between a request and a reply,
+otherwise it would keep responding back to its own replies. This is solved by introducing a 
+simple header distinguishing the two types of messages.
+
+<p>
+        <H2><A NAME="tth_sEc4">
+4</A>&nbsp;&nbsp;Synchronizing Multicast Agents with Blackboard Constraints</H2>
+The synergy between mobile code and Linda coordination allows an elegant, component wise implementation.
+<em>Blackboard operations are implemented only between local threads and their (shared) local blackboard.</em> 
+If interaction with remote blackboard is needed, the thread simply moves to the place where
+it is located and proceeds through local interaction. The interesting thing with multicast is that the 
+thread can be multi-casted to a set of places and can interact at all these places locally. This gives an 
+appearance that all these blackboards are one to the members of this multicast groups. For example the 
+<b>remote_mul_run(mul_all(a(X),Xs))</b> operation is multi-casted to all servers in the group. It collects 
+lists of matching results at these remote servers and the output is unicast-ed from all these remote sites to the local blackboard.
+
+<p>
+This can be achieved as follows:<br><br>
+<b>mul_all(X,Xs):-mul_all('localhost',7001,X,Xs).</b> <br><br>
+<b>mul_all(Port,X,Xs):-mul_all('localhost',Port,X,Xs).</b> - (the defaults where our server, which receives the results is running)<br><br>
+<b>mul_all(Host,Port,X,Xs):-all(X,Xs),</b> - executes on remote servers.<br>
+<b>	remote_run(Host,Port,forall(member(Y,Xs),out(Y)))</b> - executes back on our server.<br><br>
+Host and Port determine the address we want the answers to come back on and the answers are written on the local blackboard from where they can be collected.
+
+<p>
+<em>Note: in/1 and out/1 are basic Linda blackboard predicates</em>[<a href="#linda89" name=CITElinda89>7</a>]
+
+<p>
+
+<p><A NAME="tth_fIg1">
+</A> 
+<center></center> <center>      Figure 1: Basic Linda operations with Multicast</center><A NAME="lindaop">
+</A>
+<p>
+<p>
+Places are melted into peer-to-peer network layer forming a `web of interconnected worlds'. Now different 
+worlds can be grouped into multicast groups. The member of multicast groups viewed as these groups as one world. 
+The concept extends further as groups can intersect and be subsets or supersets and basically have combination of unicast and
+multicast worlds. The point is that each agents views the world it is interacting with depends on how it is moving its threads to different places. 
+
+<p>
+In the Fig. 1 A, B unicast outputs to two different worlds while C multicasts output to both. The `unicast all' in E is able to collect from only one blackboard while `multicast all' in D collects from both. The <b>all</b> operations collect multiple copies of the term <b>a(3)</b>, but a sort operation could remove such duplication.
+
+<p>
+        <H2><A NAME="tth_sEc5">
+5</A>&nbsp;&nbsp;Some Properties and their Consequences</H2>
+There are various interesting properties of multicast networks, which open up many possibilities for future work
+especially regarding mobile agents and new architectures for their implementation. 
+
+<p>
+As previously discussed there are three types of mobility in a network software environment:<em>data mobility, code mobility and computation or thread mobility</em>. An important shortcoming of computation mobility was that if the thread was providing a service or listening on a particular <b>(host, port)</b> it could no longer do so once it moved. In other words, ports are not mobile.
+
+<p>
+Some properties of multicast addresses and ports overcome exactly this shortcoming. These properties are:
+
+<p>
+
+<UL>
+<li> multicast address and port are same for a multicast group and are independent 
+of host or IP address of the host(<em>IP Transparent</em>)
+
+<p>
+
+<li> it is possible to have two servers with same multicast address and 
+port running on the same machine. 
+(<em>In other words we do not need to investigate if a server with same port and IP is already running.</em>) Both servers can respond to the request, a client can chose if it wants one or all answers. Also a header can be put, which helps servers discard requests not intended for them.
+
+<p>
+This means that when live code or a thread migrates it can just does a <em>joingroup</em> <a href="#tthFtNtAAB" name=tthFrefAAB><sup>1</sup></a> on the same group it belonged to and start 
+listening or providing service on the same multicast address and port.
+</UL>
+<p>
+      <H3><A NAME="tth_sEc5.1">
+5.1</A>&nbsp;&nbsp;Impact on mobile Computers and transient IP-address systems</H3>
+A mobile computer like a laptop, palmtop etc. does not have a permanent IP-address because one may connect to one's office, home, in an airplane etc. The transient IP address can also come from one connecting through a dialup connection to an ISP. Such systems can launch mobile agents and receive results when connected and hence can be clients [<a href="#goodidea" name=CITEgoodidea>15</a>].
+
+<p>
+An important impact of the proposed multicast agent architecture on such transient IP-address systems is that they can also <em>provide a service</em> and <em>listen</em> on a known multicast address and port whenever they are connected to the Internet. This is possible because to listen on a multicast port one's IP address is not needed. One can have any IP address and still listen on the same Multicast address and port.
+
+<p>
+Another concept in the Jinni architecture is that of <b>mobile Linda servants</b>[<a href="#td:tlp" name=CITEtd:tlp>28</a>]. A <b>servant</b> is an agent, which is launched and on reaching the destination can pull commands from the launching site or other clients, and run them locally.
+
+<p>
+
+<pre>
+servant:-
+  in(todo(Task)),
+  call(Task),
+  servant.
+</pre>
+
+<p>
+Note that the servant is a background thread and blocks when none of the
+ clients in the group have a task to be done i.e. no `busy wait' is involved [<a href="#td:tlp" name=CITEtd:tlp>28</a>].
+
+<p>
+We will try to expand on these two concepts of multicast and servants to generalize the 
+client/server architecture especially for mobile and transient IP-address systems.
+  
+<p>
+<b>Case 1 Mobile Servers</b><br>
+Even when the mobile server is disconnected it can have <b>servant agents</b> 
+running on it, doing the processing for its clients and posting results or 
+queries on the local blackboard. In the mean time, the clients keep making 
+lists of the tasks they want to get done on the server. When the server comes up,
+ the servant can pull the list of tasks to be done by clients and run them. Also the 
+ server can have a new IP address but the same multicast address, 
+ when the server reconnects. The clients having knowledge of this 
+ can collect the required responses from the servers' blackboard.
+
+<p>
+<b>Case 2 Mobile Clients</b><br>
+Even when disconnected, the mobile client can launch an agent on a different machine, 
+which can do the listening for it. Whenever the client reconnects it can pull list 
+of tasks and results (<em>the agents do processing</em>) from the agent and destroy the agent. 
+Whenever the client is disconnecting it can launch the agent again.
+
+<p>
+This concept can also be extended, as both clients and servers can be made mobile 
+or with unknown or transient IP-addresses with multicasting. As we discussed before, 
+to communicate on a multicast channel we do not need to know the IP. We explore this 
+concept of IP transparent communication further in the next subsection. Some ideas of 
+this mixed mobility of computers and agents are discussed in [<a href="#ambi" name=CITEambi>6</a>].
+
+<p>
+This architecture could possibly be three-tier. The applets connect to their server,
+which offers services to other clients. The server now posts the requests on the local 
+blackboard to be pulled by the applets and executed locally on their machine.
+
+<p>
+      <H3><A NAME="tth_sEc5.2">
+5.2</A>&nbsp;&nbsp;IP Transparent Architecture for a Platform of Mobile Agents.</H3>
+
+<p>
+Consider a group of agents moving freely in the network. Let's assume each agent is a member of two multicast groups: a common shared group address between all agents and a unique personal multicast address. Whenever they propagate they do a <em>joingroup</em> on both these multicast groups.
+
+<p>
+The analogy for private address is that of a cell phone. Each agent can communicate with the others on its private multicast address <b>being completely unaware about the location of one it is sending messages to.</b>
+
+<p>
+The best analogy for the shared common address is that of a broadcast radio channel. Whenever an existing agent spawns a new agent it gives the new agent the set of addresses known to it and the new agent chooses a new private multicast address and communicates to the rest of the agents (via the shared common group address) its private address. Metaphorically, this is like (<b>broadcasting on the radio channel its cell phone number to communicate with it</b>)
+
+<p>
+The main advantage of this architecture is that it carries out communication amongst different agents without any knowledge of each others current location, i.e. no agent requires the knowledge of other's IP address to communicate whether they want the communication to be public within a group or private.
+
+<p>
+Among the application of a such an architecture could be found in situations where the agents need to communicate with each other but do not have a fixed itinerary or the itinerary changes with the decision the agent makes. The address need not be communicated on each hop but only when a new agent is spawned it needs to make its address known.
+
+<p>
+For now, the important question of lost messages during transportation of agents remains unanswered. One must not forget multicast is based on UDP and messages can be lost. However, real-time applications like video games, which consider late messages as lost messages could be target applications. Also one of the reliable multicast protocols [<a href="#newmul" name=CITEnewmul>2</a>] may be used.
+
+<p>
+      <H3><A NAME="tth_sEc5.3">
+5.3</A>&nbsp;&nbsp;Fault tolerant computing</H3>
+
+<p>
+Here we suggest a protocol, which tries to make sure that even when some agents crash the number of agents is preserved.
+
+<p>
+Consider the above architecture with each agent having <b>k</b> (<b>k</b> is a small number greater than 1 say 2 or 3) copies and its own number. Each agent issues a heart beat message on its private channel with its number with a fixed beat time interval (T<sub>beat</sub>). The agents will have an expiry timeout in case the beat is not received for a particular amount of time from a particular agent (T<sub>exp</sub>). The agent with the next number in cyclic [<b>(n+1) mod k</b>] order generates a new agent with <b>id</b> number <b>n</b> on expiry of timer (T<sub>exp</sub>). 
+
+<p>
+Although, each agent is listening for only the previous agent in the cyclic order but even if one agent is left the whole agent group will grow back again. Consider a group of three agents <b>1</b>, <b>2</b> and <b>3</b>. If any two die let's say <b>2</b> and <b>3</b> then <b>1</b> will spawn <b>3</b>, which will in turn eventually spawn <b>2</b> and hence the group will grow back again. 
+
+<p>
+This makes sure with a good probability that we always have approximately <b>k</b> agents on each private channel.
+
+<p>
+        <H2><A NAME="tth_sEc6">
+6</A>&nbsp;&nbsp;Overcoming Agent Location Problem in absence of Multicast enabled routers</H2>
+In large mobile agent systems agents frequently need to delegate services to other
+agents. This ability of mobile agents comes from their ability to communicate. This
+gives arise to the problem of locating a randomly roaming agent for message delivery. In the
+previous section we proposed an approach based on Multicast which is highly efficient within a
+LAN but outside is dependent on Network Routers being capable of Multicast. 
+
+<p>
+In this section we propose another approach which is based on Linda Blackboards and does not 
+require any Network Router support.
+
+<p>
+<em>The problem can be trivially solved in case we assume a home site associated with an agent.
+In this case, when looking for a particular agent we simply check at the home site
+where the agent is currently located and deliver the message to it, while the agent updates
+it's home site every time before leaving for a new site. In this way even if the message
+arrives before the agent leaves the message is simply posted on the blackboard and when 
+the agent arrives it can check for it's messages.
+</em>
+<p>
+The real problem arises in large multi-agent systems in which agents have different capabilities
+and agents receive tasks dynamically and an agent can a receive a task which it can not perform
+due to incompatible capability or expertise and needs to locate another agent in it's vicinity who can.
+In our approach as an agent moves from site to site minimally it posts it's presence message on the
+blackboard (<b>out(i_am_here(MyID))</b>). As the agent is about to move it removes it's entry 
+(<b>in(i_am_here(MyID))</b>) and posts the next location it is going to (<b>out(nexthop(MyID, NextAdd))</b>). Hence, 
+the agent leaves in some sense it's trace. This trace may have mechanism such as timeouts 
+to insure that it is not greater than a definite length. The <b>ID</b> of the agent has 
+certain capabilities associated with it. Another agent could do an associative
+lookup on the blackboard for agents with a particular capability get the <b>ID</b> of any agent with a 
+trace on the blackboard and start following the trace to catchup with the agent to delegate a service
+or deliver a message.
+
+<p>
+There could be two extremes in the task of locating an agent depending on how the agent performs
+updates as it moves. The agent could update whole of it's path on a movement, which makes movement 
+an expensive operation. Another extreme is that the agent updates only it's local blackboard, 
+which requires a traversal of it's whole path by every message making message delivery an expensive 
+operation. In our approach we hybridize the two extremes and share update operation task among agents and 
+messages agents and analyze the cost of the update operation, and search for delivery of a message.
+
+<p>
+In our approach the agent only updates it's local blackboard with it's next hop information
+The message catches agent does a (<b>cin(i_am_here(ID))</b>) which is an advanced
+Linda construct translating to an atomic (<b>rd(i_am_here(ID))-&#62;in(i_am_here(ID));false</b>). This makes
+sure message agent never blocks. In case it fails to find the agent it does an (<b>in(nexthop(ID, NextAdd))</b>)
+and (<b>out(nexthop(ID, NextAdd))</b>) and departs to the next hop. If it is able to find the agent it holds 
+the agent as the agent can not move unless it's <b>ID</b> is kept back on the blackboard, communicates 
+with the agent, and updates all the sites it had visited till now.
+
+<p>
+Let's now analyse the complexity of our approach.<br><br>
+(N) maximum distance of agent from current site (maximum possible length of trace of path).<br>
+(Tn) Time for movement of agent from one site to another (Processing=large + movement)<br>
+(Tm) Time for movement of message from one site to another (Processing &nbsp;=0 + movement)<br>
+Assumption: Tn &#62; Tm<br>
+(E) Extra Nodes traversed by agent once message starts tracking<br>
+Tn * E = Tm * (E + N)<br>
+E = N/(Tn - Tm)<br>
+Total nodes traversed by the message<br>
+= E + N<br>
+= N(1 + 1/(Tn - Tm)<br>
+Tu Update time of one node  Tu = Tm (Processing &nbsp;=0)<br>
+Total nodes searched = E + N<br>
+Total nodes updated = E + N<br>
+Total Time to search and Update = 2 * Tm * N * (1 + 1/(Tn - Tm))<br>
+
+<p>
+After update operation if the agent has moved K places and a message originating at one of the updated places 
+wants to find the agent then it's<br>
+Total Time to search and Update = 2 * Tm * K * (1 + 1/(Tn - Tm)) order of K
+
+<p>
+Now if a message comes after agent has moved another K places.
+then we have two possibilities either it is from one of the places
+updated in the current step or previous step. In the worst case<br>
+Total Time to search and Update = 2 * Tm * (K + 1) * (1 + 1/(Tn - Tm)) order of K + 1
+
+<p>
+After S such steps the worst case is<br>
+Total Time to search and Update = 2 * Tm * (K + S) * (1 + 1/(Tn - Tm)) order of K + S
+
+<p>
+Now if N is the maximum nodes (Path Length) then we know that K is
+the nodes it visits in every step and S is the number of steps hence<br>
+K*S  &lt;  N<br>
+if we have a good case K = S (approx.) then K+S &lt; 2*sqrt(N)<br>
+Time to search and update = 4 * Tm * sqrt(N) * (1 + 1(Tn - Tm))
+
+<p>
+The worst case messages are sent after <b>N</b> moves <b>(K=N)</b> of the agent they have to 
+trace all <b>N</b> nodes to find the agent (In this case messages are so infrequent that
+it maybe unimportant). Also, if messages are sent after every move <b>(K=1)</b> and we are
+sending a message from just updated node the nexthop information is only at the 
+previous node if we have to search for the agent from any node the complexity becomes <b>N</b>
+(but the probabilty of this should become low as <b>S</b> increases).
+
+<p>
+The code for experimentation with the agent location problem appears in the appendix. It
+also shows how simple it is to experiment with mobile agent algorithms with the Jinni's
+Mobile Agent Infrastructure.
+
+<p>
+        <H2><A NAME="tth_sEc7">
+7</A>&nbsp;&nbsp;Applications</H2>
+
+<p>
+We will now overview a number of applications likely to benefit
+from a multicast agent infrastructure.
+
+<p>
+      <H3><A NAME="tth_sEc7.1">
+7.1</A>&nbsp;&nbsp;Tele-teaching</H3>
+
+<p>
+A set of intelligent agents on student machines, join the multicast group of a teaching server (<b>run_mul_server</b>).
+
+<p>
+The agents can always be given required information or `todo' tasks from the server as needed on the multicast channel (<b>remote_mul_run(out(a(X)))</b>).
+
+<p>
+The server can collect responses posted on the local blackboards by the agents with the extended blackboard concept (<b>remote_mul_run(mul_all(a(X)))</b>) .
+
+<p>
+The application is more suited to present circumstances as most routers are incapable of multicast. It is however easy to ensure that classrooms are on a single LAN capable of multicast. The main advantage here is that even though the system is interactive the model is not <em>message based - query/response</em>. The agents are reactive and intelligent and the responses/queries are posted on the local blackboard from which the server can collect periodically or be informed to collect after a certain time. The model is flexible and can be extended and made more flexible by adding unicast channels and subset multicast groups for teamwork in students.
+
+<p>
+      <H3><A NAME="tth_sEc7.2">
+7.2</A>&nbsp;&nbsp;Java3D based Shared Virtual Reality</H3>
+
+<p>
+
+<p><A NAME="tth_fIg2">
+</A> 
+<center>  <br><img src="pic1.gif" alt="Picture 1"><p>
+<br>Picture Not Created.<br></center> <center>      Figure 2: <em>Synchronized Java3d worlds using multicast.</em></center>
+<A NAME="normal">
+</A>
+<p>
+<p>
+The three concepts of <em>intelligent logic programmable agents</em>, <em>multicast single step synchronization</em> and <em>Java3D visualization</em> provide an interesting synergy for game programming. We will now explore an implementation architecture we have prototyped on Jinni 2000's multicast layer.
+
+<p>
+       <H4><A NAME="tth_sEc7.2.1">
+7.2.1</A>&nbsp;&nbsp;The User's interface</H4><b>: </b>
+
+<p>
+The user interface is based on shared Java3D virtual worlds.<br>
+Each user can join at anytime by joining a given multicast group.<br>
+Each user can create and own objects, which he/she/it can manipulate.<br>
+The user is opaque to the knowledge if he/she/it is playing against/with another user or an intelligent agent.
+
+       <H4><A NAME="tth_sEc7.2.2">
+7.2.2</A>&nbsp;&nbsp;The implementation</H4><b>: </b>
+The main advantage we have in our implementation is that there is no centralized server. The application is completely distributed. If one user's machine goes down only the objects controlled by him/her go down. This is achieved by having the state being multi-casted to all users and stored only on the local blackboards from where it is to be collected when a new user logs in. The next subsection describes a basic Java3D API on which the virtual world is built and the interface is provided. 
+
+       <H4><A NAME="tth_sEc7.2.3">
+7.2.3</A>&nbsp;&nbsp;The basic API</H4><b>: </b>
+<b>java3d_init</b> initializes and opens Java3d window and joins the multicast group and collects (<b>remote_mul_run(mul_all(a(X)))</b>) current state from the blackboards of other users.<br>
+<b>new_obj</b> creates a new object and puts the state on local blackboard (<b>out(a(X))</b>) and multicasts the predicate call to currently subscribed users.<br>
+<b>move_obj</b> moves the object if owned and modifies (<b>in(a(X)),out(a(Y))</b>) the state on local blackboard and multicasts the predicate call to currently subscribed users.<br>
+<b>remove_obj</b> removes the current object clears entry (<b>in(a(X))</b>) from local blackboard and multicasts the change to currently subscribed users.
+
+<p>
+The blackboards preserve the current state. The multicasting makes sure all updates are single step. The agent scripts are written in Prolog and the visualization is based on Java3D. The logic of agents can be changed and different agents can have different personalities as per the learning logic, algorithm and experience of the agent. The agents generate keyboard and mouse events to play with humans (making them more similar to human interaction).
+
+<p>
+The Fig. 2 shows three multicast synchronized Java3D worlds, running under our prototype, in three process windows. In a real game they are distributed over the network.
+
+        <H2><A NAME="tth_sEc8">
+8</A>&nbsp;&nbsp;Some Problems and Future work</H2>
+There are some inherent problems with multicast. The protocol is UDP based (probably because it is not a great idea for each receiver to send an acknowledgment to each sender and flood the network). Also one can never know how many users are currently subscribed to a group. This makes blocking reads (<b>in(a(X))</b>) impossible, as we do not know how many responses to loop for. Currently we have implemented multicast <b>outs</b>, which do not require responses and non blocking multicast reads (<b>mul_all</b>), which collect responses from remote sites and respond on a unicast channel. Some possible scenarios for experimentation would be first matching response or first (k) matching response. Also currently multicast application remains untested on the Internet, as we are confined to the Ethernet LAN. With the new generation routers capable of multicast, it would be interesting to test the applications and protocols over larger domains. The unreliability in the protocol makes it unsuitable for some applications. Our multicast agents work well in real time applications for which a delayed packet is equivalent to a lost packet. Some future work would depend on implementation of reliable multicast protocols and its impact assuming that Internet routers will become more and more multicast aware.
+
+<p>
+        <H2><A NAME="tth_sEc9">
+9</A>&nbsp;&nbsp;Conclusion</H2>
+We have outlined here an extension of Jinni with a transport layer using multicast sockets. We have also shown some interesting properties of multicast, which have opened various new possibilities for mobile agents and mobile computers. We are currently working on certain applications, which we have shown can be greatly simplified, speeded up and improved with multicast extended version of Jinni. We suppose that the possibilities and applications we have shown here is only a starting point for an unusual niche for Logic Programming based software tools. The spread of multicast technology from simple LANs to the complete Internet and the development of reliable protocols for multicast [<a href="#newmul" name=CITEnewmul>2</a>] will necessitate further exploration, to achieve greater insights on mobile agent technology and realize its full potential and possible impact.
+
+<p>
+<font size="-1"><H2>References</H2>
+<DL compact>
+
+<p>
+<dt>[<a href="#CITEadl-tabatabai96:efficient" name=adl-tabatabai96:efficient>1</a>]</dt><dd>
+A.-R. Adl-Tabatabai, G.&nbsp;Langdale, S.&nbsp;Lucco, and R.&nbsp;Wahbe.
+ Efficient and Language-independent Mobile Programs.
+ In <em>Proceedings of the ACM SIGPLAN '96 Conference on Programming
+  Language Design and Implementation (PLDI)</em>, pages 127-136, Philadelphia,
+  Pa., May 1996.
+
+<p>
+<dt>[<a href="#CITEnewmul" name=newmul>2</a>]</dt><dd>
+K.&nbsp;P. Birman.
+ Reliable Multicast Goes Mainstream.
+ Technical report, Dept. of Computer Science, Cornell University,
+  1999.
+ Available from
+  http://www.cs.odu.edu/&nbsp;mukka/tcos/e_bulletin/vol9no2/birman.html.
+
+<p>
+<dt>[<a href="#CITEbradshaw96:software" name=bradshaw96:software>3</a>]</dt><dd>
+J.&nbsp;Bradshaw, editor.
+ <em>Software Agents</em>.
+ AAAI Press/MIT Press, Menlo Park, Cal., 1996.
+
+<p>
+<dt>[<a href="#CITEsharedpro91" name=sharedpro91>4</a>]</dt><dd>
+A.&nbsp;Brogi and P.&nbsp;Ciancarini.
+ The Concurrent Language, Shared Prolog.
+ <em>ACM Trans. Prog. Lang. Syst.</em>, 13(1):99-123, 1991.
+
+<p>
+<dt>[<a href="#CITEcardelli97:mobile" name=cardelli97:mobile>5</a>]</dt><dd>
+L.&nbsp;Cardelli.
+ Mobile Computation.
+ In J.&nbsp;Vitek and C.&nbsp;Tschudin, editors, <em>Mobile Object Systems
+  - Towards the Programmable Internet</em>, pages 3-6. Springer-Verlag,
+  LNCS&nbsp;1228, 1997.
+
+<p>
+<dt>[<a href="#CITEambi" name=ambi>6</a>]</dt><dd>
+L.&nbsp;Cardelli.
+ Abstractions for Mobile Computation.
+ Technical report, Microsoft Research, Apr. 1999.
+
+<p>
+<dt>[<a href="#CITElinda89" name=linda89>7</a>]</dt><dd>
+N.&nbsp;Carriero and D.&nbsp;Gelernter.
+ Linda in Context.
+ <em>CACM</em>, 32(4):444-458, 1989.
+
+<p>
+<dt>[<a href="#CITECasCia96" name=CasCia96>8</a>]</dt><dd>
+S.&nbsp;Castellani and P.&nbsp;Ciancarini.
+ Enhancing Coordination and Modularity Mechanisms for a Language with
+  Objects-as-Multisets.
+ In P.&nbsp;Ciancarini and C.&nbsp;Hankin, editors, <em>Proc. 1st Int. Conf.
+  on Coordination Models and Languages</em>, volume 1061 of <em>LNCS</em>, pages
+  89-106, Cesena, Italy, April 1996. Springer.
+
+<p>
+<dt>[<a href="#CITEchaibdraa:94a" name=chaibdraa:94a>9</a>]</dt><dd>
+B.&nbsp;Chaib-draa and P.&nbsp;Levesque.
+ Hierarchical Models and Communication in Multi-Agent Environments.
+ In <em>Proceedings of the Sixth European Workshop on Modelling
+  Autonomous Agents and Multi-Agent Worlds (MAAMAW-94)</em>, pages 119-134,
+  Odense, Denmark, Aug. 1994.
+
+<p>
+<dt>[<a href="#CITEcohen:94a" name=cohen:94a>10</a>]</dt><dd>
+P.&nbsp;R. Cohen and A.&nbsp;Cheyer.
+ An Open Agent Architecture.
+ In O.&nbsp;Etzioni, editor, <em>Software Agents - Papers from the 1994
+  Spring Symposium (Technical Report SS-94-03)</em>, pages 1-8. AAAIP, Mar.
+  1994.
+
+<p>
+<dt>[<a href="#CITEcohen:89a" name=cohen:89a>11</a>]</dt><dd>
+P.&nbsp;R. Cohen, M.&nbsp;L. Greenberg, D.&nbsp;M. Hart, and A.&nbsp;E. Howe.
+ Trial by Fire: Understanding the Design Requirements for Agents in
+  Complex Environments.
+ <em>AI Magazine</em>, 10(3):32-48, 1989.
+
+<p>
+<dt>[<a href="#CITEcohen:95a" name=cohen:95a>12</a>]</dt><dd>
+P.&nbsp;R. Cohen and H.&nbsp;J. Levesque.
+ Communicative Actions for Artificial Agents.
+ In <em>Proceedings of the First International Conference on
+  Multi-Agent Systems (ICMAS-95)</em>, pages 65-72, San Francisco, CA, June 1995.
+
+<p>
+<dt>[<a href="#CITEcohen:79a" name=cohen:79a>13</a>]</dt><dd>
+P.&nbsp;R. Cohen and C.&nbsp;R. Perrault.
+ Elements of a Plan Based Theory of Speech Acts.
+ <em>Cognitive Science</em>, 3:177-212, 1979.
+
+<p>
+<dt>[<a href="#CITEcugola96:characterization" name=cugola96:characterization>14</a>]</dt><dd>
+G.&nbsp;Cugola, C.&nbsp;Ghezzi, G.&nbsp;P. Picco, and G.&nbsp;Vigna.
+ A characterization of mobility and state distribution in mobile code
+  languages.
+ In <em>2nd ECOOP Workshop on Mobile Object Systems</em>, pages 10-19,
+  Linz, Austria, July 1996.
+
+<p>
+<dt>[<a href="#CITEgoodidea" name=goodidea>15</a>]</dt><dd>
+A.&nbsp;K. David&nbsp;Chess, Colin&nbsp;Harrison.
+ Mobile agents: Are they a good idea?
+ Technical report, IBM Research Division, T. J. Watson Research
+  Center, 1995.
+
+<p>
+<dt>[<a href="#CITEmulticast" name=multicast>16</a>]</dt><dd>
+S.&nbsp;Deering.
+ <em>Multicast routing in a datagram internetwork</em>.
+ PhD thesis, Stanford University, Dec. 1991.
+
+<p>
+<dt>[<a href="#CITEodissey" name=odissey>17</a>]</dt><dd>
+GeneralMagicInc.
+ Odissey.
+ Technical report, 1997.
+ available at http://www.genmagic.com/agents.
+
+<p>
+<dt>[<a href="#CITEagentTCL" name=agentTCL>18</a>]</dt><dd>
+R.&nbsp;S. Gray.
+ Agent tcl: A flexible and secure mobile agent system.
+ In <em>Proceedings of the Fourth Annual Tcl/Tk Workshop</em>, pages
+  9-23, July 1996.
+ http://www.cs.dartmouth.edu/&nbsp;agent/papers/tcl96.ps.Z.
+
+<p>
+<dt>[<a href="#CITEgray98:tcl" name=gray98:tcl>19</a>]</dt><dd>
+R.&nbsp;S. Gray.
+ Agent tcl: A flexible and secure mobile-agent system.
+ Technical Report PCS-TR98-327, Dartmouth College, Computer Science,
+  Hanover, NH, Jan. 1998.
+ Ph.D. Thesis, June 1997.
+
+<p>
+<dt>[<a href="#CITEaglets" name=aglets>20</a>]</dt><dd>
+IBM.
+ Aglets.
+ Technical report, 1999.
+ http://www.trl.ibm.co.jp/aglets.
+
+<p>
+<dt>[<a href="#CITEkotz97:agent" name=kotz97:agent>21</a>]</dt><dd>
+D.&nbsp;Kotz, R.&nbsp;Gray, S.&nbsp;Nog, D.&nbsp;Rus, S.&nbsp;Chawla, and G.&nbsp;Cybenko.
+ Agent TCL: Targeting the needs of mobile computers.
+ <em>IEEE Internet Computing</em>, 1(4):58-67, July/August 1997.
+
+<p>
+<dt>[<a href="#CITEkowalski:91a" name=kowalski:91a>22</a>]</dt><dd>
+R.&nbsp;Kowalski and J.-S. Kim.
+ A Metalogic Programming Approach to Multi-Agent Knowledge and
+  Belief.
+ In V.&nbsp;Lifschitz, editor, <em>AI and Mathematical Theory of
+  Computation: Papers in Honour of John McCarthy</em>. Academic Press, 1991.
+
+<p>
+<dt>[<a href="#CITElesperance:95a" name=lesperance:95a>23</a>]</dt><dd>
+Y.&nbsp;L&#233;sperance, H.&nbsp;J. Levesque, F.&nbsp;Lin, D.&nbsp;Marcu, R.&nbsp;Reiter, and R.&nbsp;B.
+  Scherl.
+ Foundations of a Logical Approach to Agent Programming.
+ In M.&nbsp;Wooldridge, J.&nbsp;P. M&#252;ller, and M.&nbsp;Tambe, editors, <em>
+  Intelligent Agents II (LNAI 1037)</em>, pages 331-346. Springer-Verlag:
+  Heidelberg, Germany, 1996.
+
+<p>
+<dt>[<a href="#CITEsteensbaard95:object" name=steensbaard95:object>24</a>]</dt><dd>
+B.&nbsp;Steensbaard and E.&nbsp;Jul.
+ Object and native code thread mobility among heterogeneous computers.
+ In <em>Proceedings of the 15th ACM Symposium on Operating Systems
+  Principles</em>, pages 68-78, Copper Moutain, Co., Dec. 1995.
+
+<p>
+<dt>[<a href="#CITEstrasser96:mole" name=strasser96:mole>25</a>]</dt><dd>
+M.&nbsp;Straﬂer, J.&nbsp;Baumann, and F.&nbsp;Hohl.
+ Mole - a Java based mobile agent system.
+ In <em>2nd ECOOP Workshop on Mobile Object Systems</em>, pages 28-35,
+  Linz, Austria, July 1996.
+
+<p>
+<dt>[<a href="#CITEtarau:dipcl99" name=tarau:dipcl99>26</a>]</dt><dd>
+P.&nbsp;Tarau.
+ A Logic Programming Based Software Architecture for Reactive
+  Intelligent Mobile Agents.
+ In P.&nbsp;Van&nbsp;Roy and P.&nbsp;Tarau, editors, <em>Proceedings of
+  DIPLCL'99</em>, Las Cruces, NM, Nov. 1999.
+ http://www.binnetcorp.com/wshops/ICLP99DistInetWshop.html.
+
+<p>
+<dt>[<a href="#CITEtarau:paam99" name=tarau:paam99>27</a>]</dt><dd>
+P.&nbsp;Tarau.
+ Intelligent Mobile Agent Programming at the Intersection of Java and
+  Prolog.
+ In <em>Proceedings of The Fourth International Conference on The
+  Practical Application of Intelligent Agents and Multi-Agents</em>, pages
+  109-123, London, U.K., 1999.
+
+<p>
+<dt>[<a href="#CITEtd:tlp" name=td:tlp>28</a>]</dt><dd>
+P.&nbsp;Tarau and V.&nbsp;Dahl.
+ High-Level Networking with Mobile Code and First Order
+  AND-Continuations.
+ <em>Theory and Practice of Logic Programming</em>, 1(1), Mar. 2001.
+ Cambridge University Press.
+
+<p>
+<dt>[<a href="#CITEfeds" name=feds>29</a>]</dt><dd>
+N.&nbsp;C.&nbsp;S. Technology and S.&nbsp;Division.
+ Telecommunications:Glossary of TeleCommunication terms:Federal
+  Standard 1037C.
+ Technical report, General Service Administration Information
+  Technology Sevice, Aug. 1996.
+ Available from http://www.its.bldrdoc.gov/fs-1037/dir-023/_3404.htm.
+
+<p>
+<dt>[<a href="#CITEtennenhouse96:towards" name=tennenhouse96:towards>30</a>]</dt><dd>
+D.&nbsp;L. Tennenhouse and D.&nbsp;J. Wetherall.
+ Towards an active network architecture.
+ <em>Computer Communication Review</em>, 26(2), Apr. 1996.
+
+<p>
+<dt>[<a href="#CITEwhite98:thesis" name=white98:thesis>31</a>]</dt><dd>
+D.&nbsp;E. White.
+ A comparison of mobile agent migration mechanisms.
+ Senior Honors Thesis, Dartmouth College, June 1998.
+
+<p>
+<dt>[<a href="#CITEwhite96:telescript" name=white96:telescript>32</a>]</dt><dd>
+J.&nbsp;E. White.
+ Telescript technology: Mobile agents.
+ In Bradshaw [<a href="#bradshaw96:software" name=CITEbradshaw96:software>3</a>].
+ Also available as General Magic White Paper.
+
+<p>
+<dt>[<a href="#CITEwooldridge:92a" name=wooldridge:92a>33</a>]</dt><dd>
+M.&nbsp;Wooldridge.
+ <em>The Logical Modelling of Computational Multi-Agent Systems</em>.
+ PhD thesis, Department of Computation, UMIST, Manchester, UK, Oct.
+  1992.
+ (Also available as Technical Report MMU-DOC-94-01, Department of
+  Computing, Manchester Metropolitan University, Chester St., Manchester, UK).
+
+<p>
+</DL></font>
+<H2>Appendix A:Prolog code for agent location problem</H2>
+
+<pre>
+%the randomly moving agent
+next_step(ID,Ports,Port):-  
+  %select randomly a port where I wish to go next
+  select_port(Ports,Port,SelectPort),
+  println(here(ID)),
+  %if I have been here before I need to clean up the old value of next port
+  (rd(been_here(ID))-&#62;
+    in(nextport(ID,_Val))
+    ;
+    println(firstvisit(ID)), 
+    out(been_here(ID)) 
+  ),
+  out(i_here(ID)),
+  %relax do processing
+  sleep(10),
+  %if i_here(ID) held by some tracking agent then wait for it
+  in(i_here(ID)),
+  % now leave the port of the next place to be visited
+  out(nextport(ID,SelectPort)),
+  println(gone(ID)),
+  % goto nextport and do the same
+  bg(remote_run(localhost,SelectPort,_,next_step(ID,Ports,SelectPort),none,_)).
+
+%selects a randomly generated port
+select_port(Ports,Port,SelectPort):-
+  remove_item(Port,Ports,RealPorts),
+  random(X),
+  (X&lt;0-&#62;
+    X1 is X * -1
+    ;
+    X1 is X
+  ),
+  length(RealPorts,N),
+  Nex is X1 mod N,
+  Next is Nex + 1,
+  nth_member(SelectPort,RealPorts,Next).
+
+searchagent(ID,Port,List,Sorted):-
+  sort(List,Sorted),
+  (cin(i_here(ID))-&#62;
+    %if agent is here hold it
+    println(found(ID)),
+    [Currport|Rest]=List,
+    sort(Rest,UpdateList), 
+    %update all the sites traversed till now
+    update(ID,Currport,UpdateList),
+    %release the agent
+    out(i_here(ID)),
+    %actually track ends here
+    sleep(50)
+    ;
+    println(searching(ID))
+  ),
+  println(Sorted),
+  in(nextport(ID,Port)),
+  out(nextport(ID,Port)),
+  println(thenextport(Port)),
+  sleep(1).
+
+%tracks the agent with given ID and builds the list of nodes it has travelled
+trackagent(ID,List):-
+  searchagent(ID,Port,List,Sorted),
+  bg(remote_run(localhost,Port,_,trackagent(ID,[Port|Sorted]),none,_)).
+
+update(ID,Port,Sorted):-
+  %update all ports found till now except the current place where we are
+  member(P,Sorted),
+  not(P=Port),
+  println(P),
+  bg(remote_run(localhost,P,_,the_update(ID,Port),none,_)),
+  fail;true.
+
+the_update(ID,Port):-
+  in(nextport(ID,OldPort)),
+  println(updated(OldPort,Port)),
+  out(nextport(ID,Port)).
+</pre>
+
+<p>
+<hr><H3>Footnotes:</H3>
+
+<p><a name=tthFtNtAAB></a><a href="#tthFrefAAB"><sup>1</sup></a> When we join a group we are telling the kernel, ``I am interested in this multicast group. So, deliver (to any process interested in them, not only to me) any datagram that you see in this network interface with this multicast group in its destination field.''
+<p><hr><small>File translated from T<sub><font size="-1">E</font></sub>X by <a href="http://hutchinson.belmont.ma.us/tth/">T<sub><font size="-1">T</font></sub>Hgold</a>, version 2.24.<br>On  6 Jun 2001, 10:22.</small>
+</HTML>

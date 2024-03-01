@@ -1,0 +1,1225 @@
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd"><HTML>
+<META NAME="GENERATOR" CONTENT="TtH 2.00">
+                                                                          [0]   
+<title> 
+	The BinProlog Experience: Implementing \\ 
+	a High-Performance Continuation Passing \\
+        Prolog Engine \\
+</title>
+ 
+<H1 align=center>
+	The BinProlog Experience: Implementing <br>
+	a High-Performance Continuation Passing <br>
+        Prolog Engine <br>
+ </H1>
+
+<H3 align=center>
+ Paul Tarau&nbsp;<a href="#tthFtNtAAB" name=tthFrefAAB><sup>1</sup></a>
+ </H3>
+
+<p>
+
+<H3 align=center> </H3>
+
+<p>
+                             
+<H2> Abstract</H2>
+BinProlog<a href="#tthFtNtAAC" name=tthFrefAAC><sup>2</sup></a> is a compact 
+C-emulated Prolog engine based on the continuation passing program transformation introduced in [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>21</a>]. By transformation to binary programs (consisting of clauses having only one atom in the head and the body) a slow-down is expected as conventional WAM's highly optimized environments are replaced by a heap-only run-time system. However, empirically this is not confirmed: BinProlog is at this point among the fastest C-emulated Prolog engines (450 KLIPS on a 25MHz Sparcstation 10-20). This paper gives the necessary implementation and benchmarking information that explains why our approach is a competitive alternative to the conventional WAM. We go into the details of data representation and compare the optimization opportunities offered by the BinWAM (our engine) with conventional WAM optimizations while describing
+some of BinProlog's new implementation techniques as its
+<em>tag-on-data term-representation</em> and <em>term-compression</em> scheme
+and it's copy-once heap-based <tt>findall</tt>.
+
+<p>
+<em>Keywords: implementation of Prolog, WAM optimizations, program transformations, binary logic programs, continuation passing style compilation, data-representations for Prolog run-time systems</em>.
+<p>
+<p>
+        <H2><A NAME="tth_sEc1">
+1</A>&nbsp;&nbsp;Introduction</H2>
+BinProlog is a C-emulated Prolog engine based on a program transformation introduced in [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>21</a>]. It replaces the WAM by a more compact continuation passing logic engine [<a href="#Tarau91:JAP" name=CITETarau91:JAP>16</a>] based on a mapping of full Prolog to binary logic programs (binarization).
+As conventional WAM's highly optimized environments are discarded in favor of a heap-only run-time system<a href="#tthFtNtAAD" name=tthFrefAAD><sup>3</sup></a> 
+an important slow-down was expected.
+
+<p>
+We have decided however to put aside the established <em>common knowledge</em> about the WAM, its indexing and its usual data representations and
+start from the special case of binary logic programs (having only one atom in the head and the body) and the `pure theory' of LD-resolution as described for the special case of binary programs in [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>21</a>]<a href="#tthFtNtAAE" name=tthFrefAAE><sup>4</sup></a>.
+
+<p>
+The relatively surprising result was that our engine is now fairly equivalent if not better than standard WAM implementations. Even without list-optimizations, BinProlog 2.30 is 1.5-2 times faster than SB-Prolog 3.1 and matches well-engineered standard WAM implementations like C-emulated SICStus 2.1 on most of the benchmarks.
+
+<p>
+How much of the speed of BinProlog comes from the opportunities opened by specializing the WAM to binary programs and how much comes from other factors?
+
+<p>
+BinProlog
+has no low-level `tricks'. We do not use assembly code or
+threading with first order labels. The
+emulator is a completely goto-less standard C program.
+A relatively small number of distinct opcodes (129) covering
+unification, control and built-ins with some instruction
+and term compression generating about 4K of extra code
+are `standard' optimizations more heavily used in other emulated
+WAM implementations.
+
+<p>
+Everything else being equal,
+our binarization based abstract machine (the <em>BinWAM</em>)
+looks empirically very competitive
+with environment based conventional WAMs.
+
+<p>
+We will show in this paper how the binarization based approach
+`called for' the simplifications in data-structure representation
+which actually pushed our compiler to its natural limits.
+The overall experience shows  that, as in the case of RISC
+hardware, performance comes often simply by doing <em>less</em>
+instead of doing <em>more</em>. 
+
+<p>
+We will start by reviewing the program transformation
+that allows compilation of logic programs towards a
+simplified WAM specialized for the execution of binary logic programs.
+We refer the reader to [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>21</a>] for the original
+definition of this transformation.
+
+<p>
+        <H2><A NAME="tth_sEc2">
+2</A>&nbsp;&nbsp;The binarization transformation</H2>
+
+<p>
+Binary clauses have only one atom in the body 
+(except for some inline `builtin' operations like arithmetics)
+and therefore they need no `return' after a call.
+A transformation introduced in [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>21</a>] allows to
+faithfully represent logic programs with operationally equivalent
+binary programs.
+
+<p>
+To keep things simple we will describe our transformations in the case
+of definite programs. First, we need to modify the well-known description
+of SLD-resolution [<a href="#LL87" name=CITELL87>13</a>] to be closer to Prolog's operational
+semantics. We will follow here the notations of [<a href="#pt93b" name=CITEpt93b>22</a>].
+
+<p>
+Let us define the <em>composition</em> operator <font face=symbol>Å</font
+> 
+that combines clauses by unfolding the leftmost body-goal
+of the first argument.
+
+<p>
+
+   <b>Definition 1</b> <em>
+Let <tt>A<sub>0</sub>:-A<sub>1</sub>,A<sub>2</sub>,...,A<sub>n</sub></tt> and 
+<tt>B<sub>0</sub>:-B<sub>1</sub>,...,B<sub>m</sub></tt> be two clauses (suppose n<font face=symbol> &gt; </font
+>0, m <font face=symbol>³</font
+> 0). We define 
+ <tt>(A<sub>0</sub>:-A<sub>1</sub>,A<sub>2</sub>,...,A<sub>n</sub>)</tt> <font face=symbol>Å</font
+> 
+<tt>(B<sub>0</sub>:-B<sub>1</sub>,...,B<sub>m</sub>) = (A<sub>0</sub>:-B<sub>1</sub>,...,B<sub>m</sub>,A<sub>2</sub>,...,A<sub>n</sub>)</tt><font face=symbol>q</font
+>
+
+<p>
+with <font face=symbol>q</font
+> = mgu(<tt>A<sub>1</sub></tt>,<tt>B<sub>0</sub></tt>). If the atoms <tt>A<sub>1</sub></tt> and
+<tt>B<sub>0</sub></tt> do not unify, the result of the composition is denoted as <font face=symbol>^</font
+>.
+Furthermore, as usual, we consider <tt>A<sub>0</sub>:-true,A<sub>2</sub>,...,A<sub>n</sub></tt> 
+to be equivalent to <tt>A<sub>0</sub>:-A<sub>2</sub>,...,A<sub>n</sub></tt>, and for any clause <tt>C</tt>, <tt><font face=symbol>^</font
+> <font face=symbol>Å</font
+> C = C <font face=symbol>Å</font
+> <font face=symbol>^</font
+> = <font face=symbol>^</font
+></tt>.
+We assume that at least one operand has been renamed to a variant with fresh variables. 
+</em>
+<p>
+This Prolog-like inference rule is called LD-resolution and it has
+the advantage of giving a more accurate description of Prolog's operational semantics than SLD-resolution.
+
+<p>
+Before defining the binarization transformation, we describe two
+auxiliary transformations.
+
+<p>
+The first transformation converts facts into rules by  giving
+them the atom <tt>true</tt> as body. E.g., the fact <tt>p</tt> is
+transformed into the rule <tt>p :- true</tt>.
+
+<p>
+The second transformation, inspired by [<a href="#Warren82" name=CITEWarren82>27</a>],
+eliminates the metavariables by wrapping them in a <tt>call/1</tt> goal.
+E.g., the rule <tt>and(X,Y):-X, Y</tt> is transformed into <tt>
+and(X,Y) :- call(X), call(Y).</tt>
+
+<p>
+The transformation of [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>21</a>]
+(<em>binarization</em>) adds continuations
+as  extra   arguments  of   atoms  in a way that  preserves
+also first argument indexing.
+
+<p>
+
+   <b>Definition 2</b> <em>
+Let   P be  a definite  program  and Cont  a  new
+variable. Let  T and E = p(T<sub>1</sub>,...,T<sub>n</sub>) be  two 
+expressions.<a href="#tthFtNtAAF" name=tthFrefAAF><sup>5</sup></a> We  denote by
+<font face=symbol>y</font
+>(E,T) the expression p(T<sub>1</sub>,...,T<sub>n</sub>,T). Starting with the clause
+
+<p>
+<tt>(C)</tt>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A :- B<sub>1</sub>,B<sub>2</sub>,...,B<sub>n</sub>.
+
+<p>
+ we construct the clause
+
+<p>
+<tt>(C')</tt>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font face=symbol>y</font
+>(A,Cont) :- <font face=symbol>y</font
+>(B<sub>1</sub>,<font face=symbol>y</font
+>(B<sub>2</sub>,...,<font face=symbol>y</font
+>(B<sub>n</sub>,Cont))).
+                         
+<p>
+The set P<font face=symbol>¢</font
+> of all clauses <tt>C'</tt> obtained from the clauses of P is called
+the binarization of P. 
+</em>
+<p>
+
+   <b>Example 1</b> <em>
+The following example shows the result of this
+transformation on the well-known `naive reverse' program:
+
+<p>
+
+<pre>
+   app([],Ys,Ys,Cont):-true(Cont).
+   app([A|Xs],Ys,[A|Zs],Cont):-app(Xs,Ys,Zs,Cont).
+                                  
+   nrev([],[],Cont):-true(Cont).
+   nrev([X|Xs],Zs,Cont):-nrev(Xs,Ys,app(Ys,[X],Zs,Cont)).
+</pre>
+</em>
+<p>
+ These transformations preserve a strong operational equivalence with the
+original program with respect to the LD resolution rule which
+is <em>reified</em> in the syntactical structure of the resulting program.
+
+<p>
+
+   <b>Theorem 1</b> <em>([<a href="#pt93b" name=CITEpt93b>22</a>])
+Each resolution step of an LD derivation on a definite program P
+can be mapped to an SLD-resolution step of the binarized program P<font face=symbol>¢</font
+>.
+Let G be an atomic goal and G<font face=symbol>¢</font
+> = <font face=symbol>y</font
+>(G,true). Then, computed answers obtained
+querying P with G are the same as those obtained by querying P' with G'.
+</em>
+<p>
+Notice that the equivalence between the binary version and
+the original program
+can also be explained in terms of fold/unfold transformations
+as suggested by [<a href="#proietti:pers1" name=CITEproietti:pers1>15</a>].
+
+<p>
+Clearly, continuations become explicit in the binary version of the program.
+We will devise a technique to access and manipulate them in an intuitive
+way, by modifying BinProlog's binarization preprocessor.
+
+<p>
+        <H2><A NAME="tth_sEc3">
+3</A>&nbsp;&nbsp;Binarization based compilation</H2>
+
+<p>
+      <H3><A NAME="tth_sEc3.1">
+3.1</A>&nbsp;&nbsp;Virtualisation of meta-predicates</H3>
+
+<p>
+Note that the first step of the transformation simply wraps metavariables inside a new predicate <tt>call/1</tt>. The second step adds continuations as last arguments of each predicate and a new predicate <tt>true/1</tt> to deal with unit clauses. During this step the arity of all predicates
+increases by 1 so that for instance <tt>call/1</tt> becomes <tt>call/2</tt>.
+Although we can add clauses that describe how they work on the set of all the functors occurring in the program, in practice it is simpler and more efficient to treat them as built-ins [<a href="#Tarau91:JAP" name=CITETarau91:JAP>16</a>]. Our current implementation actually performs their execution inline but still has to look up in a hash-table to transform the term to which a meta-variable points, to its corresponding predicate-entry. As this happens only when we reach a `fact' in the original program, it has relatively little impact on performance. Note however that it can be done in part at compile time,
+by specializing the source program with respect to some known
+continuations.
+
+<p>
+      <H3><A NAME="tth_sEc3.2">
+3.2</A>&nbsp;&nbsp;Inline compilation of built-ins</H3>
+
+<p>
+Demoen and Mari&#235;n pointed out in [<a href="#Demoen91:RU" name=CITEDemoen91:RU>10</a>] that a more implementation oriented view of binary programs can be very useful: a binary program is simply one that does not need an environment in the WAM. This allows inline code generation for built-ins occurring immediately after the head. They also describes a clever implementation of cut and other built-ins in the case of binary programs, by modifying the Prolog-by-BIM engine.
+
+<p>
+They found useful the program transformation of [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>21</a>] primarily for better explaining and optimizing conventional WAM implementations. However, the authors have not considered practical a binary only engine.
+On the other hand, it was our
+belief that specializing the WAM to binary programs can give some new opportunities that are worthwhile to be investigated at least for <em>aesthetic</em> reasons. After implementing BinProlog it turned out to be also more efficient than expected.
+Inline expansion of builtins
+contributes signifcantly to BinProlog's speed and
+allows last call optimisation for frequently occurring
+linear recursive predicates exactly as it happens in
+conventional WAMs.
+
+<p>
+      <H3><A NAME="tth_sEc3.3">
+3.3</A>&nbsp;&nbsp;Early term construction vs. late term construction</H3>
+
+<p>
+In procedural and functional languages featuring only deterministic
+calls it makes sense to avoid eager early structure creation. The
+WAM [<a href="#WA83" name=CITEWA83>28</a>] 
+follows this trend based on the argument that most logic programs
+are deterministic and therefore calls and structure creation in logic
+programming languages should follow this model.
+A more careful analysis suggests that the choice between
+
+<UL>
+<p>
+  
+<li> late and repeated construction (standard WAMs with AND-stack)
+  
+<li> eager early construction (once) and reuse on demand as in BinWAM
+</UL>
+<p>
+will favor different programming styles.
+Let's note at this point that the WAM's (common sense) 
+assumptions are subject to the following paradox:
+
+<p>
+
+<UL>
+<li> If a program is mostly deterministic then it will tend
+to fail only in the guards (shallow backtracking). 
+In this case, when a predicate succeeds, all structures
+specified in the body of a selected
+clause will eventually get created.
+By postponing this, the WAM will be only as good as 
+doing it eagerly upon entering the clause (as in BinWAM).
+
+<li>
+<p>
+If the program is mostly nondeterministic
+then late and repeated construction (WAM) is not better than 
+eager early creation (BinWAM) which is done only once,
+because it implies more work on backtracking.
+</UL>
+<p>
+This explains in part why (against all obvious intuitions),
+a standard AND-stack based WAM
+is not necessarily faster than a properly implemented 
+BinWAM&nbsp;<a href="#tthFtNtAAG" name=tthFrefAAG><sup>6</sup></a>.
+
+<p>
+Note that in the case of early <em>failure</em> in the context of
+deep backtracking conventional WAMs have a clear advantage
+although this will again compete with the BinWAM's smaller
+and unlinked choicepoints to the point that, for instance, the
+CHAT80 parser will turn out to be faster in BinProlog than in
+a good C-emulated WAMs like Sicstus 2.1.
+
+<p>
+In practice, different programming styles will benefit differently from
+the various tradeoffs implied by one of these basic choices.  
+In any case, system-level knowledge on what's really
+happening inside the engine should be abstracted
+in higher-order constructs to the advantage of
+application-level users. BinProlog 3.30's new extensions
+(intuitionistic and linear implication, various higher order
+constructs, extended DCGs etc.) [<a href="#Tarau95:BinProlog" name=CITETarau95:BinProlog>20</a>,<a href="#Tarau93:GULP" name=CITETarau93:GULP>19</a>]
+are based on this motivation.
+
+<p>
+      <H3><A NAME="tth_sEc3.4">
+3.4</A>&nbsp;&nbsp;A simplified run-time system</H3>
+
+<p>
+A simplified OR-stack having the layout shown 
+in figure&nbsp;<A href="#stack">1</A> is used only for (1-level)
+choice point creation in nondeterministic predicates.
+
+<p>
+
+<p><A NAME="tth_fIg1">
+</A> 
+<center>
+<table border>
+<tr><td>P <font face=symbol>Þ</font
+> </td><td>next clause address </td>
+<tr><td>H <font face=symbol>Þ</font
+> </td><td>saved top of the heap </td>
+<tr><td>TR <font face=symbol>Þ</font
+> </td><td>saved top of the trail </td>
+<tr><td>A<sub>N+1</sub> <font face=symbol>Þ</font
+> </td><td>continuation argument register </td>
+<tr><td>A<sub>N</sub> <font face=symbol>Þ</font
+> </td><td>saved argument register N </td>
+<tr><td>... </td><td>... </td>
+<tr><td>A<sub>1</sub> <font face=symbol>Þ</font
+> </td><td>saved argument register 1 </td><tr><td></td></table>
+ <br>
+<p><br>
+<p>
+ <center>      Figure 1: BinProlog's OR-stack. <A NAME="stack">
+</A></center>
+</center>
+<p>
+<p>As a consequence, the heap consumption of the program goes up, although in some special cases, partial evaluation at source level can deal with the problem [<a href="#Demoen90:KUL" name=CITEDemoen90:KUL>9</a>,<a href="#Neum92" name=CITENeum92>14</a>], showing again that a heap-only approach is not necessarily worse. As automating these source-level transformations needs global compilation and possibly some help from programmer declared pragmas, we wanted to ensure good performance for our engine without counting on them.
+
+<p>
+      <H3><A NAME="tth_sEc3.5">
+3.5</A>&nbsp;&nbsp;A simplified clause selection mechanism</H3>
+As the compiler works on a clause-by-clause basis, it is the responsibility of the C-emulator to index clauses and link the code. It uses a global <font face=symbol> &lt; </font
+>key,key<font face=symbol> &gt; </font
+> <font face=symbol>®</font
+> value hash table seen as an abstract multipurpose <em>dictionary</em>. A one byte mark-field is used to distinguish between load-time use and run-time use and for fast clean-up. We found that sharing of the global dictionary, although somewhat slower than the small key <font face=symbol>®</font
+> value hashing tables injected into the code-space of the standard WAM, simplifies the implementation and makes it easier to switch to better indexing techniques in the future. The same table is used by the run-time system to get the addresses of meta-predicates, to perform first argument indexing and is offered to the user as entry point to a blackboard containing logically behaving global terms.
+This high level of code reuse contributes significantly to the small size and indirectly to the overall speed of BinProlog.
+
+<p>
+Predicates are classified as <em>single-clause</em>, <em>deterministic</em> and <em>nondeterministic</em>. At this time only predicates having all first-argument functors distinct are detected as deterministic. Although this is definitely a <em>RISCy</em> approach to indexing, we found that for predicates having a more general distribution of first-arguments, a source-to-source transformation can be used. In the future we plan to integrate typical uses of CUT and arithmetic tests in this indexing scheme and extended it with ML-style `pattern matching' compilation that generates decision trees.
+
+<p>
+Indexing of deterministic predicates is done by a unique SWITCH
+instruction. If the first argument dereferences to a non-variable, SWITCH either fails or finds the 1-word address of the unique matching clause in the global hash-table, using the <em>predicate</em> and the <em>functor of the first argument</em> as a 2-word key. A specialized JUMP-IF instruction deals with the frequent case of 2 clause deterministic predicates. To reduce the interpretation overhead SWITCH and JUMP_IF are combined with the preceding EXECUTE and the following GET_STRUCTURE<a href="#tthFtNtAAH" name=tthFrefAAH><sup>7</sup></a> instruction, giving EXEC_SWITCH and EXEC_JUMP_IF. This allows not only to avoid dereferencing the first argument twice, but also reduces branching that breaks the processor's pipeline. Note that the basic difference with the WAM is the absence of intensive tag analysis. This is related also to our different low-level data-representation.
+
+<p>
+        <H2><A NAME="tth_sEc4">
+4</A>&nbsp;&nbsp;Data representation</H2>
+
+<p>
+      <H3><A NAME="tth_sEc4.1">
+4.1</A>&nbsp;&nbsp;Tag-on-pointer versus tag-on-data</H3>
+When describing the data in a cell with a tag we have basically 2 possibilities. We can put a tag in the same cell as the address of the data or near the data itself. The first possibility, probably most popular among WAM implementors, allows one to check the tag before deciding <em>if</em> and <em>how</em> it has to be processed. We choose the second possibility initially on purely <em>aesthetic</em> grounds while our engine had only 6 instructions. As we became aware that with good indexing unifications are more often intended to succeed and move data around than as a clause selection mechanism, WAM's <em>preemptive</em> tag checking lost some of its potential value. This also justifies why we have not implemented traditional WAMs <tt>SWITCH_ON_TAG</tt> instruction.
+
+<p>
+We found it very convenient to precompute a functor in the code-space as a word of the form <tt>&lt;arity,symbol-number,tag&#62;</tt> and then simply compare it with objects on the heap or in registers at 1-cycle cost instead of comparing the tags, finding out that they are almost always the same, then compare the functor-name and find out that they are also the same and finally compare the arities with a costly if-logic. Therefore we kept our unusual <em>tag-on-data</em> representation, that also has the advantage of consuming less tag bits. Up to now, we have only 3 different tags, implemented on 2 bits and still there's a 4-th tag available for future use.
+
+<p>
+A seemingly not so important (but potentially costly) point is related to the layout of the fields inside the word. We describe it as it helps to compare our implementation with WAMs having a less efficient low-level data representation. We choosed to put most frequently used data at the end of the word, the next frequently used one at the beginning of the word and finally the less frequently used in the middle. Even on byte addressable machines it is a good idea to fetch the whole data in a register and than get the lower bits with a <em>small</em> mask and the upper bits with a right shift in 1 cycle. It is less efficient to get the bits at left with a mask, as a huge mask needs two instructions on most RISCs to be loaded in a register.
+
+<p>
+With this representation a functor fits completely in one word:
+
+<p>
+<font size="-1">
+<center>
+<table border>
+<tr><td>arity </td><td>symbol-number </td><td>2-bit tag </td></td></table>
+ <br>
+<p><br>
+<p>
+</center></font>By choosing TAG=0 for variables and having only 2-bit tags, every memory address (C pointer) looks like a logical variable. This gives a very low overhead and less error-prone integration  of C code in the engine and it has, on architectures where indexed indirect addressing is not for free, a positive impact on performance.
+
+<p>
+      <H3><A NAME="tth_sEc4.2">
+4.2</A>&nbsp;&nbsp;Term compression</H3>
+If a term has a last argument containing a functor, with our tag-on-data representation we can avoid the extra pointer from the last argument to
+the functor cell and simply make them collapse. Obviously the unification algorithm must take care of this case, but the space savings are important, especially in the case of lists which become contiguous vectors with their N-th element directly addressable at offset <tt>2*sizeof(term)*N+1</tt> bytes from the beginning of the list, as shown in figure <A href="#list">1</A>.
+
+<p>
+
+<p><A NAME="tth_fIg2">
+</A> 
+<center>
+<table border>
+<tr><td>&#183; </td><td>a </td><td>&#183; </td><td>b </td><td>&#183; </td><td>c </td><td>&#183; </td><td>[] </td></td></table>
+ <br>
+<p><br>
+<p>
+ <center>      Figure 2: List compression. <A NAME="list">
+</A></center>
+</center>
+<p>
+<p>
+<p><A NAME="tth_fIg3">
+</A> 
+<center>
+<blockquote>
+<OL type="1">
+<li><font size="-2"> t/2 1 </i></b></tt><font face=symbol>®</font
+> t/2 2 </i></b></tt><font face=symbol>®</font
+> t/2 3 n/0
+</font>
+<p>
+
+<li><font size="-2"> t/2 1 <font face=symbol>¯</font
+>
+
+<p>
+ t/2 2 <font face=symbol>¯</font
+>
+
+<p>
+ t/2 3 n/0
+
+<p>
+ <br> t/2 1 t/2 2 t/2 3 n/0
+</font>
+<p>
+</OL></blockquote> <center>      Figure 3: Term compression. <A NAME="tc">
+</A></center>
+</center>
+<p>
+<p>The effect of this <em>last argument overlapping</em> on
+<tt>t(1,t(2,t(3,n)))</tt> is represented in figure&nbsp;<A href="#tc">2</A>.
+
+<p>
+In BinProlog 1.71 only built-ins like <tt>det_append, copy_term, findall</tt> take advantage of this improved term representation. A change to the emulator integrated in BinProlog
+starting from version 2.20 has shown very encouraging results and practically no overhead by extending this optimization to all the terms. It also reduces the space consumption for lists and other `chained functors' to values similar or better than in the case of conventional WAMs. We refer to [<a href="#Tarau93:comp" name=CITETarau93:comp>24</a>] for the details of the term-compression related optimizations of BinProlog.
+
+<p>
+        <H2><A NAME="tth_sEc5">
+5</A>&nbsp;&nbsp;Optimizing the run-time system</H2>
+
+<p>
+      <H3><A NAME="tth_sEc5.1">
+5.1</A>&nbsp;&nbsp;Reducing the interpretation overhead</H3>
+One can argue that the best way to reduce the interpretation overhead is by not doing it at all. However, most of the native code compilers we know of have a <em>compact-code</em> option that is actually C-emulated WAM. And being the most practical in term of compilation-time and code-size, this mode is used by the Prolog developer most of the time, except for the final product. On the other hand, some of the techniques that follow can be used to eliminate tests and jumps so they can be useful also in native code generation.
+
+<p>
+       <H4><A NAME="tth_sEc5.1.1">
+5.1.1</A>&nbsp;&nbsp;Instruction-compression and case-overlapping.</H4>
+It happens very often that a sequence of consecutive instructions share some WAM state information. For example two consecutive unify instructions have the same mode as they correspond to arguments of the same structure. Moreover, due to our very simple instruction set, some instructions have only a few possible other instructions that can follow them. For example, after an EXECUTE instruction, we can have a single, a deterministic or a nondeterministic clause. It makes sense to specialize the EXECUTE instruction with respect to what has to be done in each case. This gives, in the case of calls to deterministic predicates the instructions EXEC_SWITCH and EXEC_JUMP_IF as mentioned in the section on indexing. On the other hand, some instructions are simply so small that just dispatching them can cost more than actually performing the associated WAM-step. 
+This in itself is a reason to compress two or more instructions taking less than a word in one. Again, having a small initial instruction set avoids combinatorial explosion in this case. For example, by compressing our UNIFY instructions and their WRITE-mode specializations, we get the following 8 new instructions:
+ 
+<p>
+
+<pre>
+UNIFY_VARIABLE_VARIABLE
+WRITE_VARIABLE_VARIABLE
+UNIFY_VALUE_VALUE
+WRITE_VALUE_VALUE
+UNIFY_VARIABLE_VALUE
+WRITE_VARIABLE_VALUE
+UNIFY_VALUE_VARIABLE
+WRITE_VALUE_VARIABLE
+</pre>
+
+<p>
+This gives, in the case of the binarized version of the recursive clause of append/3 the following code:
+
+<p>
+
+<pre>
+append([A|Xs],Ys,[A|Zs],Cont):-append(Xs,Ys,Zs,Cont).
+
+TRUST_ME_ELSE */4,     % keeps also the arity = 4
+GET_STRUCTURE X1, ./2
+UNIFY_VAR_VAR X5, A1
+GET_STRUCTURE X3, ./2
+UNIFY_VAL_VAR X5, A3
+EXEC_JUMP_IF  append/4 % actually the address of append/4
+</pre>
+
+<p>
+The choice of candidates for instruction compression is based on
+low level profiling (instruction frequencies) and possibility of sharing of common work by two successive instructions and frequencies
+of functors with various arities. 
+This justifies the choice of instructions like
+UNIFY_VARIABLE_VARIABLE.
+
+<p>
+
+   <b>Example 2</b> <em>
+To emphasize some instruction compression possibilities
+not so obvious in the case of standard WAM let's show the BinProlog versus
+SICStus code for the clause:
+
+<p>
+<font size="-1">
+<pre>
+a(X,Z):-b(X,Y),c(Y,Z). =&#62;binary form=&#62; a(X,Z,C):-b(X,Y,c(Y,Z,C)).
+
+SICSTUS Prolog 2.1                BinProlog 1.43
+
+clause(a/2/1,                  a/3:
+   [ifshallow                  PUT_STRUCTURE    X4&lt;-c/3
+   ,neck(2)                    WRITE_VAR_VAL    X5,X2
+   ,else                       WRITE_VALUE      X3
+   ,endif                      MOVE_REG         X2&lt;-X5
+   ,allocate                   MOVE_REG         X3&lt;-X4
+   ,get_y_variable(1,1)        EXECUTE          b/3
+   ,put_y_variable(0,1)
+   ,init([])                      BinProlog 1.71
+   ,call(b/2,2)                        
+   ,put_y_unsafe_value(0,0)    PUT_WRITE_VAR_VAL  X4&lt;-c/3, X5,X2
+   ,put_y_value(1,1)           WRITE_VALUE        X3
+   ,deallocate                 MOVE_REGx2         X2&lt;-X5, X3&lt;-X4
+   ,execute(c/2)]).            EXECUTE            b/3
+</pre>
+</font>
+<p>
+</em>
+Clearly, combinatorial explosion due to the elaborate case analysis (safe vs. unsafe, x-variable vs. y-variable) makes the job of advanced instruction
+compression tedious in the case of standard WAM&nbsp;<a href="#tthFtNtAAI" name=tthFrefAAI><sup>8</sup></a>. 
+Moreover, in
+the case of an emulated engine just decoding the
+<tt>init</tt>, <tt>allocate</tt>, <tt>deallocate</tt> and
+<tt>call</tt> instructions costs more than BinProlog's simple <tt>PUT_STRUCTURE</tt> and
+<tt>WRITE_VAR_VAL</tt> and their straightforward IF-less work on
+copying 3 heap cells from the registers. 
+
+<p>
+BinProlog  also integrates the preceding GET_STRUCTURE instruction into the double UNIFY instructions and the preceding PUT_STRUCTURE into the double WRITE instructions (starting from version 1.71).
+This gives another 16 instructions but it covers a large majority of uses of GET_STRUCTURE and PUT_STRUCTURE. Reducing interpretation overhead on those critical, high frequency instructions definitely contributes to the speed of our emulator. As a consequence, in the frequent case of structures of arity=2 (lists included), 
+mode-related IF-logic is completely eliminated.
+The impact of this optimization can be seen clearly
+on the <b>NREV</b> benchmark (we refer to the section on
+performance evaluation).
+
+<p>
+Moreover, in the case of native code, reordering of BinProlog's
+<tt>PUT_STRUCTURE</tt> + <tt>WRITE</tt> groups can be very useful in slot-filling and more intricate super-scalar processing related instruction scheduling. On the other hand, the presence of environments in conventional WAM limits those reordering optimizations to one chunk. 
+A very straightforward
+compilation to C [<a href="#tdb95" name=CITEtdb95>23</a>] and the possibility of
+optimized `burst-mode' structure creation
+in PUT instructions are
+a direct consequence of binarization
+and would be harder to
+apply to AND-stack based traditional WAMs,
+which exhibit much less uniform instruction patterns.
+
+<p>
+Other Prologs also do instruction compression, and it is not unusual to hear about engines having 1000 instructions or more. Therefore this optimization is quite common. However, we found out that simplifying the unification instructions of the BinWAM allows for very `general-purpose' instruction compression. Conventional WAMs often limit this kind of optimization to lists. We changed the list-constructor of the NREV benchmark and found out that performance of Quintus Prolog 3.1.1 has dropped from 479 KLIPS to 130 KLIPS while BinProlog achieved a constant 216 KLIPS in both cases. In engines counting less on instruction compression like C-emulated SICStus 2.1 or SB-Prolog 3.1 the drop in performance was however less dramatic (from 139 to 120 KLIPS) and (from 103 to 89 KLIPS) respectively.
+
+<p>
+
+<blockquote><em>We claim that in a simplified engine instruction compression can be made more `abstract' and therefore with fewer compressed instructions we can hit a statistically more relevant part of the code.</em>
+</blockquote>
+<p>
+It means that in BinProlog, for instance, arithmetic expressions or programs manipulating binary trees will benefit from our compression strategy while this may not be the case with conventional WAMs, unless they duplicate their (already) baroque list-instruction optimizations for arbitrary structures. 
+<p>
+An other point is that instruction compression is usually applied inside a procedure. As BinProlog has a unique primitive EXECUTE instruction instead of standard WAM's CALL, ALLOCATE, DEALLOCATE, EXECUTE, PROCEED we can afford to do instruction compression across procedure boundaries with very little increase in code size due to relatively few different ways to combine control instructions.
+Inter-procedural instruction compression can be seen as a kind of `hand-crafted' <em>partial evaluation</em> at C-level, intended to optimize the main loop of the WAM-emulator. This can be seen as a special case of the <em>call forwarding</em> technique used in the implementation of <tt>jc</tt>
+[<a href="#dg92a" name=CITEdg92a>12</a>,<a href="#kdb94a" name=CITEkdb94a>7</a>].
+It has the same effect as <em>partial evaluation</em> at source level which also eliminates procedure calls.
+At the global level, knowledge about possible continuations can also remove the run-time effort of address look-up for meta-predicates and useless trailing and dereferencing.
+
+<p>
+<em>Case-overlapping</em> is a well-known technique that saves code-size in the emulator. Note that we can share within the main <tt>switch</tt> statement of the emulator a <tt>case</tt> when an instruction is a specialization of its predecessor, based on the well known property of the <tt>case</tt> statement in C, that in the absence of a <tt>break;</tt> or <tt>continue;</tt> control flows from a <tt>case</tt> label to the next. It is a 0-cost operation. The following example, from our emulator, shows how we can share the code between EXEC_SWITCH and EXEC.
+
+<p>
+
+<pre>
+          case EXEC_SWITCH:
+            .........
+          case SWITCH:
+            .........
+          break;
+</pre>
+
+<p>
+Note that instructions like EXEC_SWITCH or EXEC_JUMP_IF have actually a global compilation flavor as they exploit knowledge about the procedure which is called. Due to the very simple initial instruction set of the BinProlog
+engine these WAM-level code transformations are performed in C at load-time
+with no visible penalty on compilation time.
+
+<p>
+Finally, we can often apply both instruction compression and case-overlapping to further reduce the space requirements. As compressed WRITE-instructions are still just special cases of corresponding compressed UNIFY-instructions we
+have:
+
+<p>
+
+<pre>
+          case UNIFY_VAR_VAL:
+            .........
+          case WRITE_VAR_VAL:
+            .........
+          break;
+</pre>
+ 
+<p>
+This explains why BinProlog's emulator is still only about 50K on most
+architectures with obviously positive effects on locality due to code reuse.
+
+<p>
+      <H3><A NAME="tth_sEc5.2">
+5.2</A>&nbsp;&nbsp;Offset based structure manipulation</H3>
+BinProlog 2.20 used a standard bottom-up structure creation method
+which is reasonable for an emulated implementation. However
+inside compressed instructions like <b>PUT_WRITE_VAL_VAL</b>
+it makes sense to do operations like 
+<b>H[0] = ...; H[1] = ...; H[2] = ...; H+ = 3;</b>
+as offset based indirect addressing is for free on most modern
+computers.
+This optimization allows to use the advantages
+of top-down structure creation in a high frequency subset of 
+the instructions while retaining the simplicity
+of the standard bottom-up creation scheme.
+Similar operations involving the S register are
+possible for the read-mode of <tt>GET</tt> instructions as for instance in
+<b>GET_UNIFY_VAL_VAL</b>. 
+With BinProlog 3.00's top-down representation motivated
+by term-compression and translation to C
+the heap offset of every <tt>PUT</tt> instruction is available at
+compile time and the C-translation module takes full
+advantage of this [<a href="#tdb95" name=CITEtdb95>23</a>].
+
+<p>
+       <H4><A NAME="tth_sEc5.2.1">
+5.2.1</A>&nbsp;&nbsp;The benefits of two-stream sequences for free.</H4>
+Notice that for GET instructions we have the benefits of
+separate READ and WRITE streams
+(for instance, avoidance of mode checking)
+on some high frequency
+instructions without actually incurring the compilation complexity
+and emulation overhead in generating them.
+As terms of depth 1 and functors of low arity
+dominate statistically Prolog programs,
+we can see that our instruction compression scheme actually
+behaves as if two separate instruction streams were
+present, most of the time!
+
+<p>
+Our experiments in Prolog-to-C translation using BinProlog's
+WAM model and data representation show that performance similar
+to native SICStus and Aquarius can be obtained on top of this
+very simple instruction set [<a href="#kdb93j" name=CITEkdb93j>8</a>].
+
+<p>
+        <H2><A NAME="tth_sEc6">
+6</A>&nbsp;&nbsp;Memory management</H2>
+
+<p>
+      <H3><A NAME="tth_sEc6.1">
+6.1</A>&nbsp;&nbsp;Towards an ecological Prolog engine</H3>
+
+<p>
+An ideal memory manager is <em>`ecological'</em>. It works as a <em>`self-purifying'</em> engine that recuperates space not as a deliberate <em>`garbage-collection'</em> operation but as a natural <em>`way of life'</em> i.e something done inside the normal, useful activities the engine performs.
+Let's start by describing first some `real-world' ecology which
+has served as a model for BinProlog's heap-based <tt>findall</tt> implementation.
+
+<p>
+       <H4><A NAME="tth_sEc6.1.1">
+6.1.1</A>&nbsp;&nbsp;The rain-forest metaphor.</H4>
+In a rain-forest, a natural garbage-collection process takes place.
+Evaporated water originating from the forest form clouds, and then condensed water falls back as rain.
+
+<p>
+In a Prolog engine terms are created on the heap. Although WAM's environment stack does some limited and well intentioned garbage <em>prevention</em> (i.e. environment trimming), often garbage <em>collection</em> is needed for large practical programs. The possibility of garbage prevention is reduced even more in BinProlog where continuations go also on the heap.
+
+<p>
+Following the rain-forest metaphor, our objective is to set up a natural and automatic memory recuperation cycle. Basically the heap is split in a small lower half (the <em>rain forest</em>) and a large upper half (the <em>clouds</em>). The key idea is to fool Prolog's execution mechanism to work temporarily in the upper half (<em>evaporation</em>) and then let useful data `fall back' in the lower half of the heap (<em>rain</em>) in a condensed form (compaction by copying). The trick is very simple: as structure creation on the heap is always
+done around the H pointer while everything else stays in BinProlog's registers,
+all we have to do is temporarily set H to a location at the beginning of the
+upper half of the heap and then let the engine work as usual.
+The figure&nbsp;<A href="#heap">1</A> shows this <em>heap lifting</em> technique and the position of the H pointer at various stages.
+
+<p>
+
+<p><A NAME="tth_fIg4">
+</A> 
+<center> <br><img src="pic1.gif" alt="Picture 1"><p>
+<br>Picture Not Created.<br></center> <center>      Figure 4: Heap-lifting. <A NAME="heap">
+</A></center>
+<p>
+<p>
+ The metaphor is stretched to its limits when applied to <em>recursive</em> uses of the mechanism, but the concrete implementation deals properly with this problem by saving the necessary information on a stack and by ensuring a reasonable number of embedded heap-splits.
+
+<p>
+        <H2><A NAME="tth_sEc7">
+7</A>&nbsp;&nbsp;Fast heap-based builtins</H2>
+Let us start with a detailed description of a heap-based implementation for two very useful Prolog primitives that will give an insight on how the principle can be used in practice. They also have the potential to significantly speed-up the overall performance of Prolog systems that decide to convert from classical assert-based implementations to a heap-based technique.
+
+<p>
+      <H3><A NAME="tth_sEc7.1">
+7.1</A>&nbsp;&nbsp;Findall</H3>
+
+<p>
+We implemented both <tt>findall/3</tt> and <tt>findall/4</tt>. The latter,
+(suggested by a public domain version of R.A. O'Keefe) 
+appends the answers to an existing list. We used our fast copy_term to do it. Basically we execute the goal in the upper half<a href="#tthFtNtAAJ" name=tthFrefAAJ><sup>9</sup></a>. Findall is written as a failure driven loop in Prolog, using 3 builtins implemented in C.
+
+<p>
+
+<pre>
+findall(X,G,Xs):-findall_workhorse(X,G,[[]|Xs]).
+
+findall(X,G,Xs,End):-findall_workhorse(X,G,[End|Xs]).
+
+findall_workhorse(X,G,_):-
+  lift_heap,
+  G,
+  findall_store_heap(X).
+findall_workhorse(_,_,Xs):-
+  findall_load_heap(Xs).	
+</pre>
+
+<p>
+The builtin <em>lift_heap</em> simply cuts the heap in half and temporarily assigns to H the value of the middle of the heap. The previous value of H and the previous HEAP_MARGIN used for overflow check are stacked. This allows for embedded calls to <em>findall</em> to work properly.
+
+<p>
+Then the goal G is executed in the upper half of the heap.
+
+<p>
+The builtin <em>findall_store_heap</em> pushes a copy of the answer X, made by <em>copy_term</em> to a an open ended list located in the lower half of the heap and starting from the initial position of H, that grows with each new answer. Then it forces backtracking.
+
+<p>
+The failure driven prolog-loop ensures that in the case of a finite generation of answers, they can all be collected by the builtin <em>findall_load_heap</em> starting from the initial position of H and forming an open ended list. The space used is exactly the sum of the sizes of the answers plus the size of the list cells used as glue. The builtin <em>findall_load_heap</em> puts on the heap and returns a cons-cell containing the end of the list and the list itself. It also removes from the stack H and HEAP_MARGIN, used inside copy_term to check heap overflow.
+For findall/4 we return also the end of the open ended list of answers, while for for findall/3 we close it with an empty list. The total size of the Prolog and  C code is about half of the usual assert based (correct) implementation of findall.
+
+<p>
+The C-code of the 3 builtins is part
+of the main switch of our WAM-loop.
+
+<p>
+The implementation can be further accelerated by moving it completely to C, but we have left it in Prolog to allow tracing and to be able to use the same builtins for other primitives.
+
+<p>
+Note that at the end, all the upper half of the heap is freed. This means that an amount of space proportional to the size of the computation is freed within time proportional to the size of the answer.
+
+<p>
+      <H3><A NAME="tth_sEc7.2">
+7.2</A>&nbsp;&nbsp;Cheney-style compressing </i></b></tt>copy_term</H3>
+
+<p>
+We have used inside findall a very fast
+Cheney-style term copying algorithm [<a href="#TN94:PLILP" name=CITETN94:PLILP>25</a>]
+also available through Prolog's <tt>copy_term/2</tt>, which 
+enforces term compression, preserves sharing in most practical cases
+and deals correctly with infinite terms.
+
+<p>
+Cheney's classical algorithm [<a href="#Cheney70" name=CITECheney70>6</a>] copies a term in a
+breadth-first manner using forwarding pointers for already moved
+cells. This algorithm can be directly taken to implement
+</i></b></tt>copy_term. The single difference is that the forwarding
+pointers that destroy the original term, have to be trailed on a
+value trail. As long as no sharing of identical terms is present, the
+algorithm produces only forward references, depicted 
+`\nearrow'.
+We modified this algorithm to enforce last argument overlapping as
+follows. When a structure is copied, its last argument and all its
+subterms that are again found as a last argument are copied first. In
+this manner, most possibilities for last argument overlapping are
+discovered. While the classical method is a pure breadth-first
+algorithm, our adaptation introduces a depth-first component.
+In the frequent case of a list of atomic cells our algorithm
+creates a fully contiguous <em>vector-like</em> object.
+
+<p>
+We illustrate BinProlog's algorithm with the term t([a,b,c],[d,e,f]).
+Breadth-first copying leads to the first memory layout,
+while the second layout is the result of our algorithm in BinProlog.
+Note that the first algorithm slices up all linear chains so that no
+last argument overlapping is possible.
+
+<p>
+
+<blockquote>
+<blockquote>
+<OL type="1">
+<li><font size="-3"> t/2 \nearrow \nearrow ./2 a \nearrow ./2 d \nearrow ./2 b \nearrow ./2 e \nearrow ./2 c [] ./2 f []
+</font>
+<p>
+
+<li><font size="-3"> t/2 \nearrow ./2 d ./2 e ./2 f [] ./2 a ./2 b ./2 c []
+</font>
+<p>
+</OL></blockquote></blockquote>As long as there are no shared subterms, our algorithm is able to
+exploit all overlaps. We refer to [<a href="#TN94:PLILP" name=CITETN94:PLILP>25</a>] for
+a best-case worst-case analyzis of the algorithm and the tradeoffs
+of various choices.
+
+<p>
+        <H2><A NAME="tth_sEc8">
+8</A>&nbsp;&nbsp;Performance evaluation</H2>
+
+<p>
+The figure&nbsp;<A href="#perf">1</A> compares the performance of BinProlog 2.20 
+with various optimization switches on a Sparcstation 10-20.
+
+<p>
+The meaning of the switches is the following:
+
+<UL>
+<p>
+
+<li> I=instruction compression;
+
+<li> T=term compression;
+
+<li> O=offset based structure manipulation.
+</UL>
+<p>
+For reference, timings for
+SICStus Prolog (column <b>S2.1_8</b>) are given.
+Timing is without garbage collection, as returned by <tt>statistics(runtime,_)</tt>. The programs are available in the directory <tt>progs</tt> of the BinProlog distribution.
+NREV is the well-known naive reverse benchmark,
+CHAT-Parser is the unmodified version from the Berkeley Benchmark, 
+FIBO(16)x50 is the recursive Fibonacci predicate,
+PERMS(8) is a permutation generator,
+DET-P(8) is a `prolog killer' deterministic all permutation program,
+FINDALL-P(8) is a findall-based all-permutations program,
+BOOTSTRAP is our compiler compiling itself, its libraries
+reader, tokenizer, writer and DCG preprocessor.
+QSORT is a version of the well known sorting program,
+DIFFEREN is
+a symbolic differentiation program and CHOICE<a href="#tthFtNtABA" name=tthFrefABA><sup>10</sup></a> is a backtracking intensive program from the ECRC benchmark.
+User-time and real-time are obtained directly<a href="#tthFtNtABB" name=tthFrefABB><sup>11</sup></a> with Unix's <b>rusage</b>
+tool and give an idea about the overall burden on the system that
+executes Prolog.
+
+<p>
+The figure&nbsp;<A href="#csize">2</A> compares the code size of various
+program in BinProlog 3.30 with emulated and native SICStus Prolog 
+on a Sparcstation 10-20.
+
+<p>
+
+<p><A NAME="tth_fIg5">
+</A> 
+<center>
+<table border><tr><td>
+<tr><td colspan="1" align="center"><em>Bmark/Compiler</em> </td><td colspan="1" align="center">No </td><td colspan="1" align="center">T </td><td colspan="1" align="center">I2,T </td><td colspan="1" align="center">I3 </td><td colspan="1" align="center">I3,T </td><td colspan="1" align="center">I3,T,O </td><td colspan="1" align="center">S2.1_8 </td><tr><td>
+<tr><td>NREV        </td><td align="right">229kl </td><td align="right">238kl </td><td align="right">326kl </td><td align="right">408kl  </td><td align="right">436kl </td><td align="right">453kl </td><td align="right">271kl </td>
+<tr><td>BOOTSTRAP   </td><td align="right">13.90s </td><td align="right">13.90s </td><td align="right">12.47s </td><td align="right">11.87s </td><td align="right">11.95s </td><td align="right">11.74s </td><td align="right">11.08s </td>
+<tr><td>CHAT-Parser </td><td align="right">0.81s </td><td align="right">0.81s </td><td align="right">0.72s </td><td align="right">0.69s  </td><td align="right">0.70s  </td><td align="right">0.69s </td><td align="right">0.69s </td>
+<tr><td>FIBO(16)x50 </td><td align="right">2.16s </td><td align="right">2.21s </td><td align="right">1.83s </td><td align="right">1.78s  </td><td align="right">1.79s  </td><td align="right">1.79s </td><td align="right">2.41s </td>
+<tr><td>PERMS(8)    </td><td align="right">0.49s </td><td align="right">0.48s </td><td align="right">0.41s </td><td align="right">0.36s </td><td align="right">0.37s  </td><td align="right">0.36s </td><td align="right">0.49s </td>
+<tr><td>DET-P(8)    </td><td align="right">1.46s </td><td align="right">1.47s </td><td align="right">1.19s </td><td align="right">0.93s </td><td align="right">1.02s  </td><td align="right">0.99s </td><td align="right">1.05s </td>
+<tr><td>FINDALL-P(8)</td><td align="right">1.44s </td><td align="right">1.42s </td><td align="right">1.35s </td><td align="right">1.36s  </td><td align="right">1.30s  </td><td align="right">1.30s  </td><td align="right">4.66s  </td>
+<tr><td>DIFFEREN    </td><td align="right">0.61s </td><td align="right">0.61s </td><td align="right">0.54s </td><td align="right">0.52s </td><td align="right">0.53s  </td><td align="right">0.51s </td><td align="right">0.67s </td>
+<tr><td>CHOICE      </td><td align="right">2.06s </td><td align="right">2.06s </td><td align="right">1.98s </td><td align="right">1.92s  </td><td align="right">1.96s  </td><td align="right">1.92s </td><td align="right">2.94s </td>
+<tr><td>QSORT       </td><td align="right">0.72s </td><td align="right">0.67s </td><td align="right">0.61s </td><td align="right">0.61s  </td><td align="right">0.55s  </td><td align="right">0.58s </td><td align="right">0.42s </td><tr><td>
+<tr><td>total user-time </td><td align="right">55.00s </td><td align="right">54.00s </td><td align="right">45.00s </td><td align="right">42.00s </td><td align="right">42.00s </td><td align="right">40.00s </td><td align="right">52.00s </td>
+<tr><td>total real-time </td><td align="right">59.98s </td><td align="right">57.93s </td><td align="right">50.04s </td><td align="right">47.79s </td><td align="right">46.47s </td><td align="right">43.82s </td><td align="right">96.51s </td><tr><td></td></table>
+ <br>
+<p><br>
+<p>
+ <center>      Figure 5: Impact of instruction and term
+compression on execution speed. <A NAME="perf">
+</A></center>
+</center>
+<p>
+<p>
+<p><A NAME="tth_fIg6">
+</A> 
+<center>
+<table border><tr><td>
+<tr><td colspan="1" align="center"><em>File/Compiler</em> </td><td colspan="1" align="center">BinProlog 3.30 </td><td colspan="1" align="center">Emulated S2.1_9 </td><td colspan="1" align="center">Native S2.1_9 </td>
+<tr><td>NREV        </td><td align="right">3079  </td><td align="right">16048 </td><td align="right">19072 </td>
+<tr><td>QSORT       </td><td align="right">3155 </td><td align="right">13456 </td><td align="right">18880 </td>
+<tr><td>CHAT-Parser </td><td align="right">31732 </td><td align="right">123008 </td><td align="right">184080 </td><tr><td></td></table>
+ <br>
+<p><br>
+<p>
+ <center>      Figure 6: BinProlog vs. SICStus user code size. <A NAME="csize">
+</A></center>
+</center>
+<p>
+<p>
+<p><A NAME="tth_fIg7">
+</A> 
+<center>
+<table border>
+<tr><td colspan="1" align="center"><em>Compiler version</em> </td><td colspan="1" align="center">No </td><td colspan="1" align="center">T </td><td colspan="1" align="center">I2,T </td><td colspan="1" align="center">I3 </td><td colspan="1" align="center">I3,T </td><td colspan="1" align="center">I3,T,O </td>
+<tr><td><em>Emulator size in bytes</em> </td><td align="right">47460 </td><td align="right">47484 </td><td align="right">49356 </td><td align="right">51124  </td><td align="right">51244 </td><td align="right">51268
+</td><tr><td></td></table>
+ <br>
+<p>
+<p><br> <center>      Figure 7: Impact of optimizations on emulator code size. <A NAME="size">
+</A></center>
+</center>
+<p>
+<p>Note that we have used the same BinProlog run-time system in all the
+measurements so that the evaluation of the optimizations on a feature-by-feature basis is accurate. The various optimizations can
+be turned on and off independently with appropriate compile-time
+options for the C-emulator. Instruction and term-compression are
+subject to the general RISC-philosophy we have used in the design of
+BinProlog: the optimizations cover the most frequent idioms.
+Moreover, by careful case-overlapping redundant code is avoided
+when possible. Figure&nbsp;<A href="#size">3</A> shows the impact of the optimizations
+on code size.
+
+<p>
+Clearly the code-size increase from the basic <b>No</b> to
+the most optimized version <b>I3,T,O</b> that uses
+term compression,
+instruction compression up to length 3 
+(like <b>PUT_WRITE_VAR_VAL</b> ) and
+offset based structure manipulation inside the compressed instructions
+is still less then 4K.
+
+<p>
+        <H2><A NAME="tth_sEc9">
+9</A>&nbsp;&nbsp;Related work</H2>
+In the case of heap-intensive binary programs the ratio between the useful data and the size of the computation is rather small. This suggest to use some form of (generational) copying garbage collector (first proposed
+for logic programming languages by Bekkers and Ungaro [<a href="#Bekkers91:JAP" name=CITEBekkers91:JAP>3</a>],
+in the MALI memory manager and also used for the <font face=symbol>l</font
+>-prolog
+implementation by Brisset and Ridoux [<a href="#Brisset:ICLP93" name=CITEBrisset:ICLP93>4</a>])
+instead of the traditional mark-and-sweep collector of most Prologs. Our approach is based on <em>resource-driven failure</em> introduced in [<a href="#Tarau91:RU" name=CITETarau91:RU>18</a>] and described in details in [<a href="#Tarau92:ECO" name=CITETarau92:ECO>17</a>].
+
+<p>
+Binarization based compilation of logic programming languages is very similar to the Continuation Passing Style compilation for functional programs described in [<a href="#Appel92" name=CITEAppel92>2</a>] and [<a href="#Appel90" name=CITEAppel90>1</a>].
+The key idea of Appel as presented in [<a href="#Appel90" name=CITEAppel90>1</a>] is that heap-deallocation by copying (generational) garbage-collection has a better amortized cost than stack-allocation and deallocation. As far as there's no backtracking involved, this principle can be used to partially garbage-collect in a very efficient way a deterministic, deep branch of a WAM-implemented SLD-tree. Although things can get more complex in the presence of choice points and trailing, memory management can be combined with other useful activities of the engine and most importantly with OR-parallel execution as described in [<a href="#Tarau92:ECO" name=CITETarau92:ECO>17</a>].
+
+<p>
+        <H2><A NAME="tth_sEc10">
+10</A>&nbsp;&nbsp;Conclusion</H2>
+The simplicity BinProlog's basic instruction set due to its specialization to binary programs allowed us to apply low level optimizations not easily available on standard WAM. Based on our previously reported [<a href="#Tarau91:RU" name=CITETarau91:RU>18</a>] virtualization of demo-predicates at WAM-level that largely eliminate the overhead of metaprogramming introduced by binarization and the simplified memory management approach described in [<a href="#Tarau92:ECO" name=CITETarau92:ECO>17</a>], despite its still higher memory consumption, the BinProlog engine can now be considered a realistic alternative to standard WAM for full Prolog implementation. This is especially true in C-emulated WAM's where simplification of the instruction set has a very positive impact on limiting the interpretation overhead. Absolute performance evaluation compared to a well-engineered<a href="#tthFtNtABC" name=tthFrefABC><sup>12</sup></a> conventional WAM like SICStus Prolog 2.1 gives empirical evidence to our claim. Developments on source level transformations like U. Neumerkel's thesis [<a href="#Neum92" name=CITENeum92>14</a>] suggest that large classes of binary programs have `continuation-like' structures that all can benefit from some common optimizations.
+The Aquarius experience [<a href="#VanRoyPhD" name=CITEVanRoyPhD>26</a>] shows that a more explicit and low level refinement of the WAM can better take advantage of global optimization techniques. A BAM-like continuation passing engine would benefit from the simplicity of the BinWAM and the dereferencing and trail elimination opportunities of the BAM. Continuation-related optimizations can also be integrated naturally in a lower-level binary abstract machine.
+Encouraging results on Prolog to C-translation using BinProlog's
+engine design and data-representations [<a href="#kdb93j" name=CITEkdb93j>8</a>]
+show that performance similar to the best existing
+native code Prolog systems can be attained with a much smaller
+implementation effort.
+
+<p>
+
+<H2>Acknowledgements</H2>
+Fruitful discussions with Yves Bekkers, Patrice Boizumault, Michel Boyer, Mats Carlsson,
+Jacques Cohen, Veronica Dahl, Thomas Lindgren, Jean-Francois Pique, Olivier Ridoux, 
+Sten-&#197;ke T&#228;rnlund and comments from a large number of BinProlog users helped 
+improving the design of our logic engine and clarifying the content of this paper. 
+Special thanks go to Koen De Bosschere, Bart Demoen, Gert Engels and Ulrich Neumerkel 
+for their contribution to the implementation of BinProlog components.
+
+<p>
+<H2>References</H2>
+<DL compact>
+
+<p>
+<dt>[<a href="#CITEAppel90" name=Appel90>1</a>]</dt><dd>
+A.&nbsp;Appel.
+ A runtime system.
+ <em>Lisp and Symbolic Computation</em>, (3):343-380, 1990.
+
+<p>
+<dt>[<a href="#CITEAppel92" name=Appel92>2</a>]</dt><dd>
+A.&nbsp;Appel.
+ <em>Compiling with Continuations</em>.
+ Cambridge University Press, 1992.
+
+<p>
+<dt>[<a href="#CITEBekkers91:JAP" name=Bekkers91:JAP>3</a>]</dt><dd>
+Y.&nbsp;Bekkers and L.&nbsp;Ungaro.
+ Two real-time garbage collectors for a prolog system.
+ In <em>Proceedings of the Logic Programming Conference'91</em>, pages
+  137-149. ICOT, Tokyo, Sept. 1991.
+
+<p>
+<dt>[<a href="#CITEBrisset:ICLP93" name=Brisset:ICLP93>4</a>]</dt><dd>
+P.&nbsp;Brisset and O.&nbsp;Ridoux.
+ Continuations in <font face=symbol>l</font
+>Prolog.
+ In D.&nbsp;S. Warren, editor, <em>Proceedings of the Tenth International
+  Conference on Logic Programming</em>, pages 27-43, Budapest, Hungary, 1993. The
+  MIT Press.
+
+<p>
+<dt>[<a href="#CITECarlsson90" name=Carlsson90>5</a>]</dt><dd>
+M.&nbsp;Carlsson.
+ <em>Design and Implementation of an OR-Parallel Prolog Engine</em>.
+ Phd thesis, SICS, 1990.
+
+<p>
+<dt>[<a href="#CITECheney70" name=Cheney70>6</a>]</dt><dd>
+C.&nbsp;J. Cheney.
+ A nonrecursive list compacting algorithm.
+ <em>Communications of ACM</em>, 11(13):677-678, Nov. 1970.
+
+<p>
+<dt>[<a href="#CITEkdb94a" name=kdb94a>7</a>]</dt><dd>
+K.&nbsp;De&nbsp;Bosschere, S.&nbsp;Debray, D.&nbsp;Gudeman, and S.&nbsp;Kannan.
+ Call Forwarding: A Simple Interprocedural Optimization
+  Technique for Dynamically Typed Languages.
+ In <em>Proceedings of the 21st ACM SIGPLAN-SIGACT Symposium on
+  Principles of Programming Languages (POPL)</em>, pages 409-420, Portland/USA,
+  Jan. 1994. ACM.
+
+<p>
+<dt>[<a href="#CITEkdb93j" name=kdb93j>8</a>]</dt><dd>
+K.&nbsp;De&nbsp;Bosschere and P.&nbsp;Tarau.
+ High Performance Continuation Passing Style Prolog-to-C
+  Mapping.
+ In E.&nbsp;Deaton, D.&nbsp;Oppenheim, J.&nbsp;Urban, and H.&nbsp;Berghel, editors, <em>
+  Proceedings of the 1994 ACM Symposium on Applied Computing</em>, pages 383-387,
+  Phoenix/AZ, Mar. 1994. ACM Press.
+
+<p>
+<dt>[<a href="#CITEDemoen90:KUL" name=Demoen90:KUL>9</a>]</dt><dd>
+B.&nbsp;Demoen.
+ On the Transformation of a Prolog program to a more efficient
+  Binary program.
+ Technical Report 130, K.U.Leuven, Dec. 1990.
+
+<p>
+<dt>[<a href="#CITEDemoen91:RU" name=Demoen91:RU>10</a>]</dt><dd>
+B.&nbsp;Demoen and A.&nbsp;Mari&#235;n.
+ Implementation of Prolog as binary definite Programs.
+ In A.&nbsp;Voronkov, editor, <em>Logic Programming, RCLP Proceedings</em>,
+  number 592 in Lecture Notes in Artificial Intelligence, pages 165-176,
+  Berlin, Heidelberg, 1992. Springer-Verlag.
+
+<p>
+<dt>[<a href="#CITEDemoenMaris94:KUL" name=DemoenMaris94:KUL>11</a>]</dt><dd>
+B.&nbsp;Demoen and G.&nbsp;Maris.
+ A comparison of some schemes for translating logic to C.
+ Technical Report 188, K.U.Leuven, Mar. 1994.
+ presented at the Workshop on parallel and data parallel execution of
+  logic programs, ICLP94.
+
+<p>
+<dt>[<a href="#CITEdg92a" name=dg92a>12</a>]</dt><dd>
+D.&nbsp;Gudeman, K.&nbsp;De&nbsp;Bosschere, and S.&nbsp;Debray.
+ <tt>jc</tt>: An Efficient and Portable Sequential Implementation
+  of Janus.
+ In K.&nbsp;Apt, editor, <em>Joint International Conference and Symposium
+  on Logic Programming</em>, pages 399-413, Washington, Nov. 1992. MIT press.
+
+<p>
+<dt>[<a href="#CITELL87" name=LL87>13</a>]</dt><dd>
+J.&nbsp;Lloyd.
+ <em>Foundations of Logic Programming</em>.
+ Symbolic computation - Artificial Intelligence. Springer-Verlag,
+  Berlin, 1987.
+ Second edition.
+
+<p>
+<dt>[<a href="#CITENeum92" name=Neum92>14</a>]</dt><dd>
+U.&nbsp;Neumerkel.
+ <em>Specialization of Prolog Programs with Partially Static Goals
+  and Binarization</em>.
+ Phd thesis, Technische Universit&#228;t Wien, 1992.
+
+<p>
+<dt>[<a href="#CITEproietti:pers1" name=proietti:pers1>15</a>]</dt><dd>
+M.&nbsp;Proietti.
+ On the definition of binarization in terms of fold/unfold., June
+  1994.
+ Personal Communication.
+
+<p>
+<dt>[<a href="#CITETarau91:JAP" name=Tarau91:JAP>16</a>]</dt><dd>
+P.&nbsp;Tarau.
+ A Simplified Abstract Machine for the Execution of Binary
+  Metaprograms.
+ In <em>Proceedings of the Logic Programming Conference'91</em>, pages
+  119-128. ICOT, Tokyo, 7 1991.
+
+<p>
+<dt>[<a href="#CITETarau92:ECO" name=Tarau92:ECO>17</a>]</dt><dd>
+P.&nbsp;Tarau.
+ Ecological Memory Management in a Continuation Passing
+  Prolog Engine.
+ In Y.&nbsp;Bekkers and J.&nbsp;Cohen, editors, <em>Memory Management
+  International Workshop IWMM 92 Proceedings</em>, number 637 in Lecture Notes in
+  Computer Science, pages 344-356. Springer, Sept. 1992.
+
+<p>
+<dt>[<a href="#CITETarau91:RU" name=Tarau91:RU>18</a>]</dt><dd>
+P.&nbsp;Tarau.
+ Program Transformations and WAM-support for the Compilation
+  of Definite Metaprograms.
+ In A.&nbsp;Voronkov, editor, <em>Logic Programming, RCLP Proceedings</em>,
+  number 592 in Lecture Notes in Artificial Intelligence, pages 462-473,
+  Berlin, Heidelberg, 1992. Springer-Verlag.
+
+<p>
+<dt>[<a href="#CITETarau93:GULP" name=Tarau93:GULP>19</a>]</dt><dd>
+P.&nbsp;Tarau.
+ Language Issues and Programming Techniques in BinProlog.
+ In D.&nbsp;Sacca, editor, <em>Proceeding of the GULP'93 Conference</em>,
+  Gizzeria Lido, Italy, June 1993.
+
+<p>
+<dt>[<a href="#CITETarau95:BinProlog" name=Tarau95:BinProlog>20</a>]</dt><dd>
+P.&nbsp;Tarau.
+ BinProlog 4.00 User Guide.
+ Technical Report 95-1, D&#233;partement d'Informatique, Universit&#233;
+  de Moncton, Feb. 1995.
+ Available by ftp from <em>clement.info.umoncton.ca</em>.
+
+<p>
+<dt>[<a href="#CITETarau90:PLILP" name=Tarau90:PLILP>21</a>]</dt><dd>
+P.&nbsp;Tarau and M.&nbsp;Boyer.
+ Elementary Logic Programs.
+ In P.&nbsp;Deransart and J.&nbsp;Maluszy\'nski, editors, <em>Proceedings of
+  Programming Language Implementation and Logic Programming</em>, number 456 in
+  Lecture Notes in Computer Science, pages 159-173. Springer, Aug. 1990.
+
+<p>
+<dt>[<a href="#CITEpt93b" name=pt93b>22</a>]</dt><dd>
+P.&nbsp;Tarau and K.&nbsp;De&nbsp;Bosschere.
+ Memoing with Abstract Answers and Delphi Lemmas.
+ In Y.&nbsp;Deville, editor, <em>Logic Program Synthesis and
+  Transformation</em>, Springer-Verlag, pages 196-209, Louvain-la-Neuve, July
+  1993.
+
+<p>
+<dt>[<a href="#CITEtdb95" name=tdb95>23</a>]</dt><dd>
+P.&nbsp;Tarau, B.&nbsp;Demoen, and K.&nbsp;De&nbsp;Bosschere.
+ The Power of Partial Translation: an Experiment with the
+  C-ification of Binary Prolog.
+ In K.&nbsp;George, J.&nbsp;Carrol, E.&nbsp;Deaton, D.&nbsp;Oppenheim, and J.&nbsp;Hightower,
+  editors, <em>Proceedings of the 1995 ACM Symposium on Applied Computing</em>,
+  pages 152-176, Nashville, Feb. 1995. ACM Press.
+
+<p>
+<dt>[<a href="#CITETarau93:comp" name=Tarau93:comp>24</a>]</dt><dd>
+P.&nbsp;Tarau and U.&nbsp;Neumerkel.
+ Compact Representation of Terms and Instructions in the
+  BinWAM.
+ Technical Report 93-3, Dept. d'Informatique, Universit&#233; de
+  Moncton, Nov. 1993.
+ available by ftp from clement.info.umoncton.ca.
+
+<p>
+<dt>[<a href="#CITETN94:PLILP" name=TN94:PLILP>25</a>]</dt><dd>
+P.&nbsp;Tarau and U.&nbsp;Neumerkel.
+ A Novel Term Compression Scheme and Data Representation
+  in the BinWAM.
+ In M.&nbsp;Hermenegildo and J.&nbsp;Penjam, editors, <em>Proceedings of
+  Programming Language Implementation and Logic Programming</em>, Lecture Notes in
+  Computer Science 844, pages 73-87. "Springer", Sept. 1994.
+
+<p>
+<dt>[<a href="#CITEVanRoyPhD" name=VanRoyPhD>26</a>]</dt><dd>
+P.&nbsp;Van&nbsp;Roy.
+ <em>Can Logic programming Execute as Fast as Imperative
+  Programming</em>.
+ Phd thesis, University of California at Berkley, 1990.
+
+<p>
+<dt>[<a href="#CITEWarren82" name=Warren82>27</a>]</dt><dd>
+D.&nbsp;H.&nbsp;D. Warren.
+ Higher-order extensions to Prolog - are they needed?
+ In D.&nbsp;Michie, J.&nbsp;Hayes, and Y.&nbsp;H. Pao, editors, <em>Machine
+  Intelligence 10</em>. Ellis Horwood, 1981.
+
+<p>
+<dt>[<a href="#CITEWA83" name=WA83>28</a>]</dt><dd>
+D.&nbsp;H.&nbsp;D. Warren.
+ An Abstract Prolog Instruction Set.
+ Technical Note 309, SRI International, Oct. 1983.
+
+<p>
+</DL><hr><H3>Footnotes:</H3>
+
+<p><a name=tthFtNtAAB></a><a href="#tthFrefAAB"><sup>1</sup></a> 
+ Department of Computer Science,
+ University of North Texas,
+ Denton, Texas 76203
+ E-mail: tarau@cs.unt.edu
+<p><a name=tthFtNtAAC></a><a href="#tthFrefAAC"><sup>2</sup></a> available from http://www.binnetcorp.com/BinProlog
+<p><a name=tthFtNtAAD></a><a href="#tthFrefAAD"><sup>3</sup></a> Similar to the `goal-stacking' Warren  rejected in 1983 []. We refer to [] 
+for a thorough comparison of various goal-stacking implementations.
+<p><a name=tthFtNtAAE></a><a href="#tthFrefAAE"><sup>4</sup></a> Our initial 200-line compiler generating code for a 6 instruction subset of ALS-prolog's WAM was probably the world's smallest definite
+program compiler.
+<p><a name=tthFtNtAAF></a><a href="#tthFrefAAF"><sup>5</sup></a> Atom or term.
+<p><a name=tthFtNtAAG></a><a href="#tthFrefAAG"><sup>6</sup></a> As the section about
+performance will show.
+<p><a name=tthFtNtAAH></a><a href="#tthFrefAAH"><sup>7</sup></a> well, also GET_CONSTANT, although in this case it is not worth dealing with it separately
+<p><a name=tthFtNtAAI></a><a href="#tthFrefAAI"><sup>8</sup></a> Current implementations of SICStus also
+do extensive instruction folding. They do need however
+a much larger set of folded instructions - about 256.
+This makes emulated code in SICStus 2.1_9 almost as large as native
+code and about 3-times larger than emulated BinProlog code.
+<p><a name=tthFtNtAAJ></a><a href="#tthFrefAAJ"><sup>9</sup></a> Actually the ratio between the lower and the upper part is 1:4, 1:8 or even a higher power of 2. This must be in principle the statistically expected ratio between the size of the answer and the size of the computation that produces it.
+<p><a name=tthFtNtABA></a><a href="#tthFrefABA"><sup>10</sup></a> Although shallow-backtracking is faster in C-emulated SICStus due to the optimization described in [] the overall performance for this benchmark is better in BinProlog due to its smaller and unlinked choice-points.
+<p><a name=tthFtNtABB></a><a href="#tthFrefABB"><sup>11</sup></a> On a 1-user
+workstation with enough memory (32Mb) for in-core execution.
+<p><a name=tthFtNtABC></a><a href="#tthFrefABC"><sup>12</sup></a> see [] for the details of its design and optimizations
+<p><hr><small>File translated from T<sub><font size="-1">E</font></sub>X by <a href="http://hutchinson.belmont.ma.us/tth/">T<sub><font size="-1">T</font></sub>H</a>, version 2.00.<br>On  4 Mar 1999, 23:51.</small>
+</HTML>

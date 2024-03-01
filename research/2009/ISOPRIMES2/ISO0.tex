@@ -1,0 +1,195 @@
+\begin{comment}
+\pdfoutput=1
+\documentclass[]{INCLUDES/llncs}
+\usepackage{TOOLS/dcpic,pictexwd}
+\input TOOLS/jhheader.tex
+\title{
+    Appendix
+}
+\author{}
+\institute{}
+\end{comment}
+
+%\begin{document}
+%\maketitle
+%\date{}
+
+\begin{comment}
+In \cite{sac09fISO} an embedded
+data transformation language is introduced, specified as a set of operations
+on a groupoid of isomorphisms connecting various data types. To make the paper
+self-contained as a literate Haskell program, we will provide in the
+{\tt Appendix} the relevant subset of the commented code described in full
+detail in \cite{sac09fISO}.
+\end{comment}
+
+\begin{comment}
+\begin{code}
+module ISO0 where
+\end{code}
+\end{comment}
+
+\section*{Appendix}
+
+\subsection*{An Embedded Data Transformation Language}
+
+We will describe briefly the embedded data transformation language used in
+this paper as a set of operations on a groupoid of isomorphisms. We will
+then extended it with a set of higher order combinators mediating the
+composition of the encodings and the transfer of operations between 
+data types.
+
+\subsubsection*{The Groupoid of Isomorphisms}
+
+We implement an isomorphism between two objects X and Y as a 
+Haskell data type encapsulating a bijection $f$ and its inverse $g$. 
+We will call the {\em from} function the first component (a {\em
+section} in category theory parlance) and
+the {\em to} function the second component (a {\em retraction}) defining
+the isomorphism.
+We can organize isomorphisms as a {\em groupoid} as follows:
+
+\begindc{\commdiag}[5]
+\obj(14,11){$X$}
+\obj(39,11){$Y$}
+\mor(14,12)(39,12){$f=g^{-1}$}
+\mor(39,10)(14,10){$g=f^{-1}$}
+\enddc
+
+\begin{code}
+data Iso a b = Iso (a->b) (b->a)
+
+from (Iso f _) = f
+to (Iso _ g) = g
+
+compose :: Iso a b -> Iso b c -> Iso a c
+compose (Iso f g) (Iso f' g') = Iso (f' . f) (g . g')
+itself = Iso id id
+invert (Iso f g) = Iso g f
+\end{code}
+Assuming that for any pair of type {\tt Iso a b},  $f \circ g = id_a$ and $g
+\circ f=id_b$, we can now formulate {\em laws} about these isomorphisms.
+\begin{quote} 
+The data type {\tt Iso} has a groupoid structure, i.e. the {\em compose}
+operation, when defined, is associative, {\em itself} acts as an identity element
+and {\em invert} computes the inverse of an isomorphism.
+\end{quote}
+
+\subsubsection*{Choosing a Root: Finite Sequences of Natural Numbers}
+To avoid defining $n(n-1)/2$ isomorphisms between $n$ objects,
+we choose a {\em Root} object to/from which we will actually
+implement isomorphisms. We will extend our embedded
+combinator language using the groupoid structure of the isomorphisms
+to connect any two objects through isomorphisms to/from
+the {\em Root}.
+\begin{comment}
+\begindc{\commdiag}[20]
+\obj(10,10)[X]{$Root$}
+\obj(14,10)[Aa]{$A$}
+
+\obj(13,12)[Ac]{$B$}
+\obj(12,13)[Ad]{$C$}
+
+\obj(10,14)[Af]{$D$}
+
+\obj(8,13)[Ah]{$E$}
+\obj(7,12)[Ai]{$F$}
+
+\obj(6,10)[Ak]{$G$}
+
+\obj(7,8)[Am]{$H$}
+\obj(8,7)[An]{$I$}
+
+\obj(10,6)[Ap]{$J$}
+
+\obj(12,7)[Ar]{$K$}
+\obj(13,8)[As]{$L$}
+
+\mor{X}{Aa}{$a$}
+
+\mor{X}{Ac}{$b$}
+\mor{X}{Ad}{$c$}
+
+\mor{X}{Af}{$d$}
+
+\mor{X}{Ah}{$e$}
+\mor{X}{Ai}{$f$}
+
+\mor{X}{Ak}{$g$}
+
+\mor{X}{Am}{$h$}
+\mor{X}{An}{$i$}
+
+\mor{X}{Ap}{$j$}
+
+\mor{X}{Ar}{$k$}
+\mor{X}{As}{$l$}
+\enddc
+\end{comment}
+
+Choosing a {\em Root} object is somewhat arbitrary, but it makes sense to
+pick a representation that is relatively easy convertible to various
+others and scalable to
+accommodate large objects up to the runtime system's 
+actual memory limits.
+
+We will choose as our {\em Root} object {\em finite sequences of natural
+numbers}. They can be seen as {\tt finite functions} from an initial 
+segment of $Nat$, say $[0..n]$, to $Nat$.
+We will represent them as lists i.e. their Haskell type is $[Nat]$.
+\begin{code}
+type Nat = Integer
+type Root = [Nat]
+\end{code}
+We can now define an {\em Encoder} as an isomorphism
+connecting an object to {\em Root} 
+\begin{code}
+type Encoder a = Iso a Root
+\end{code}
+together with the combinators {\em with} and {\em as}
+providing an {\em embedded transformation language} for routing
+isomorphisms through two {\em Encoders}.
+\begin{code}  
+with :: Encoder a->Encoder b->Iso a b
+with this that = compose this (invert that)
+
+as :: Encoder a -> Encoder b -> b -> a
+as that this thing = to (with that this) thing
+\end{code}
+The combinator {\tt with} turns two Encoders
+into an arbitrary isomorphism, i.e. acts as a connection hub between
+their domains. The combinator {\tt as} adds a more convenient syntax
+such that converters between A and B can be designed as:
+\begin{codex}
+a2b x = as A B x
+b2a x = as B A x
+\end{codex}
+\vskip 0.30cm
+\begindc{\commdiag}[5]
+\obj(26,0){$Root$}
+\obj(14,11){$A$}
+\obj(39,11){$B$}
+
+\mor(26,0)(39,10){$b$}
+\mor(26,0)(14,10){$a^{-1}$}
+\mor(39,10)(26,0){$b^{-1}$}
+\mor(14,10)(26,0){$a$}
+\mor(14,12)(39,12){$a2b=as~B~A$}
+\mor(39,10)(14,10){$b2a=as~A~B$}
+\enddc
+\vskip 0.30cm
+A particularly useful combinator that
+transports binary operations from an Encoder to another, {\tt
+borrow\_from}, can be defined as follows:
+\begin{code}
+borrow_from :: Encoder a -> (a -> a -> a) -> Encoder b -> b -> b -> b
+borrow_from other op this x y = borrow2 (with other this) op x y
+\end{code}
+\noindent Given that $[Nat]$ has been chosen as the root, we will define our
+finite function data type {\em fun} simply as the identity isomorphism 
+on sequences in $[Nat]$.
+\begin{code}  
+fun :: Encoder [Nat]
+fun = itself
+\end{code}
+%\end{document}

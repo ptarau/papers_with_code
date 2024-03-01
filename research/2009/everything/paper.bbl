@@ -1,0 +1,206 @@
+\begin{thebibliography}{32}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Ackermann(1937)]{ackencoding}
+Wilhelm~Friedrich Ackermann.
+\newblock {Die Widerspruchsfreiheit der allgemeinen Mengenlhere}.
+\newblock \emph{Mathematische Annalen}, \penalty0 (114):\penalty0 305--315,
+  1937.
+
+\bibitem[Alimarine et~al.(2005)Alimarine, Smetsers, van Weelden, van Eekelen,
+  and Plasmeijer]{bijarrows}
+Artem Alimarine, Sjaak Smetsers, Arjen van Weelden, Marko van Eekelen, and
+  Rinus Plasmeijer.
+\newblock There and back again: arrows for invertible programming.
+\newblock In \emph{Haskell '05: Proceedings of the 2005 ACM SIGPLAN workshop on
+  Haskell}, pages 86--97, New York, NY, USA, 2005. ACM Press.
+
+\bibitem[C{\'e}gielski and Richard(2001)]{DBLP:journals/tcs/CegielskiR01}
+Patrick C{\'e}gielski and Denis Richard.
+\newblock Decidability of the theory of the natural integers with the cantor
+  pairing function and the successor.
+\newblock \emph{Theor. Comput. Sci.}, 257\penalty0 (1-2):\penalty0 51--77,
+  2001.
+
+\bibitem[Chaitin(1975)]{Chaitin75atheory}
+Gregory~J. Chaitin.
+\newblock A theory of program size formally identical to information theory.
+\newblock \emph{J. Assoc. Comput. Mach}, 22:\penalty0 329--340, 1975.
+
+\bibitem[Claessen and Hughes(2002)]{DBLP:journals/sigplan/ClaessenH02}
+Koen Claessen and John Hughes.
+\newblock Testing monadic code with quickcheck.
+\newblock \emph{SIGPLAN Notices}, 37\penalty0 (12):\penalty0 47--59, 2002.
+
+\bibitem[{Conal Elliott}()]{bijeliot}
+{Conal Elliott}.
+\newblock {Data.Bijections Haskell Module}.
+\newblock http://haskell.org/haskellwiki/TypeCompose.
+
+\bibitem[Cook(2004)]{Cook04theoriesfor}
+Stephen Cook.
+\newblock Theories for complexity classes and their propositional translations.
+\newblock In \emph{Complexity of computations and proofs}, pages 1--36, 2004.
+
+\bibitem[Elias(1975)]{elias75}
+P~Elias.
+\newblock Universal codeword sets and representations of the integers.
+\newblock \emph{IEEE Transactions on Information Theory}, 21\penalty0
+  (2):\penalty0 194--203, 1975.
+
+\bibitem[G\"{o}del(1931)]{Goedel:31}
+K.~G\"{o}del.
+\newblock \"{U}ber formal unentscheidbare {S\"{a}tze der Principia Mathematica
+  und verwandter Systeme I}.
+\newblock \emph{Monatshefte f\"{u}r Mathematik und Physik}, 38:\penalty0
+  173--198, 1931.
+
+\bibitem[Hartmanis and Baker(1974)]{conf/icalp/HartmanisB74}
+Juris Hartmanis and Theodore~P. Baker.
+\newblock On simple goedel numberings and translations.
+\newblock In Jacques Loeckx, editor, \emph{ICALP}, volume~14 of \emph{Lecture
+  Notes in Computer Science}, pages 301--316. Springer, 1974.
+\newblock ISBN 3-540-06841-4.
+\newblock URL
+  \url{http://dblp.uni-trier.de/db/conf/icalp/icalp74.html#HartmanisB74}.
+
+\bibitem[Hughes()]{hughes:arrows}
+John Hughes.
+\newblock {Generalizing Monads to Arrows}.
+\newblock Science of Computer Programming 37, pp. 67-111, May 2000.
+
+\bibitem[Hutton(1999)]{DBLP:journals/jfp/Hutton99}
+Graham Hutton.
+\newblock {A Tutorial on the Universality and Expressiveness of Fold}.
+\newblock \emph{J. Funct. Program.}, 9\penalty0 (4):\penalty0 355--372, 1999.
+
+\bibitem[Kalmar(1939)]{kalmar1}
+Laszlo Kalmar.
+\newblock On the reduction of the decision problem. first paper. ackermann
+  prefix, a single binary predicate.
+\newblock \emph{The Journal of Symbolic Logic}, 4\penalty0 (1):\penalty0 1--9,
+  mar 1939.
+\newblock ISSN 0022-4812.
+
+\bibitem[Kaye and Wong(2007)]{kaye07}
+Richard Kaye and Tin~Lock Wong.
+\newblock {On Interpretations of Arithmetic and Set Theory}.
+\newblock \emph{Notre Dame J. Formal Logic Volume}, 48\penalty0 (4):\penalty0
+  497--510, 2007.
+
+\bibitem[Kirby and Paris(1982)]{kirby82}
+L.~Kirby and J.~Paris.
+\newblock Accessible independence results for peano arithmetic.
+\newblock \emph{Bull. London. Math. Soc.}, \penalty0 (14):\penalty0 285--293,
+  1982.
+
+\bibitem[Kirby(2007)]{DBLP:journals/mlq/Kirby07}
+Laurence Kirby.
+\newblock {Addition and multiplication of sets}.
+\newblock \emph{Math. Log. Q.}, 53\penalty0 (1):\penalty0 52--65, 2007.
+
+\bibitem[Knuth(2006)]{knuth06draft}
+Donald Knuth.
+\newblock {The Art of Computer Programming, Volume 4, draft}, 2006.
+\newblock http://www-cs-faculty.stanford.edu/$\sim$knuth/taocp.html.
+
+\bibitem[Lakoff and Johnson(1980)]{lakoff}
+George Lakoff and Mark Johnson.
+\newblock \emph{Metaphors We Live By}.
+\newblock University of Chicago Press, Chicago, IL, USA, 1980.
+
+\bibitem[Leibniz()]{monadologie}
+Gottfried~Wilhelm Leibniz.
+\newblock {La Monadologie}.
+\newblock URL
+  \url{http://www.philosophy.leeds.ac.uk/GMR/hmp/texts/modern/leibniz/monadolo%
+gy/monadology.html}.
+\newblock English translation by George MacDonald Ross, 1999.
+
+\bibitem[Li and Vit\'{a}nyi(1993)]{vitanyi}
+Ming Li and Paul Vit\'{a}nyi.
+\newblock \emph{An introduction to Kolmogorov complexity and its applications}.
+\newblock Springer-Verlag New York, Inc., New York, NY, USA, 1993.
+\newblock ISBN 0-387-94053-7.
+
+\bibitem[Mac~Lane(1998)]{matcat}
+Saunders Mac~Lane.
+\newblock \emph{Categories for the Working Mathematician}.
+\newblock Springer-Verlag, New York, NY, USA, 1998.
+
+\bibitem[Martinez and Molinero(2003)]{conf/mfcs/MartinezM03}
+Conrado Martinez and Xavier Molinero.
+\newblock Generic algorithms for the generation of combinatorial objects.
+\newblock In Branislav Rovan and Peter Vojtas, editors, \emph{MFCS}, volume
+  2747 of \emph{Lecture Notes in Computer Science}, pages 572--581. Springer,
+  2003.
+
+\bibitem[McCarthy(1960)]{mccarthy60}
+John McCarthy.
+\newblock Recursive functions of symbolic expressions and their computation by
+  machine, part i.
+\newblock \emph{Commun. ACM}, 3\penalty0 (4):\penalty0 184--195, 1960.
+\newblock ISSN 0001-0782.
+\newblock \doi{http://doi.acm.org/10.1145/367177.367199}.
+
+\bibitem[Meijer and Hutton(1995)]{DBLP:conf/fpca/MeijerH95}
+Erik Meijer and Graham Hutton.
+\newblock {Bananas in Space: Extending Fold and Unfold to Exponential Types}.
+\newblock In \emph{FPCA}, pages 324--333, 1995.
+
+\bibitem[Pepis(1938)]{pepis}
+Jozef Pepis.
+\newblock Ein verfahren der mathematischen logik.
+\newblock \emph{The Journal of Symbolic Logic}, 3\penalty0 (2):\penalty0
+  61--76, jun 1938.
+\newblock ISSN 0022-4812.
+
+\bibitem[Pigeon(2001)]{pigeon}
+Stephen Pigeon.
+\newblock \emph{Contributions \`{a} la compression de donn\'{e}es.}
+\newblock Ph.d. thesis, Universit\'{e} de Montr\'{e}al, Montr\'{e}al, 2001.
+
+\bibitem[Robinson(1950)]{robinson50}
+Julia Robinson.
+\newblock General recursive functions.
+\newblock \emph{Proceedings of the American Mathematical Society}, 1\penalty0
+  (6):\penalty0 703--718, dec 1950.
+\newblock ISSN 0002-9939.
+
+\bibitem[Robinson(1968)]{robinsons68b}
+Julia Robinson.
+\newblock Finite generation of recursively enumerable sets.
+\newblock \emph{Proceedings of the American Mathematical Society}, 19\penalty0
+  (6):\penalty0 1480--1486, dec 1968.
+\newblock ISSN 0002-9939.
+
+\bibitem[Rosenberg(2003)]{DBLP:conf/ipps/Rosenberg02a}
+Arnold~L. Rosenberg.
+\newblock Efficient pairing functions - and why you should care.
+\newblock \emph{International Journal of Foundations of Computer Science},
+  14\penalty0 (1):\penalty0 3--17, 2003.
+
+\bibitem[Sloane(2006)]{A000695}
+N.~J.~A. Sloane.
+\newblock {A000695, The On-Line Encyclopedia of Integer Sequences}.
+\newblock 2006.
+\newblock published electronically at
+  www.research.att.com/$\sim$njas/sequences.
+
+\bibitem[Takahashi(1976)]{finitemath}
+Moto-o Takahashi.
+\newblock {A Foundation of Finite Mathematics}.
+\newblock \emph{Publ. Res. Inst. Math. Sci.}, 12\penalty0 (3):\penalty0
+  577--708, 1976.
+
+\bibitem[Tarau(2009)]{arxiv:fISO}
+Paul Tarau.
+\newblock {Declarative Combinatorics: Isomorphisms, Hylomorphisms and
+  Hereditarily Finite Data Types in Haskell}, January 2009.
+\newblock http://arXiv.org/abs/0808.2953, unpublished draft, 104 pages.
+
+\end{thebibliography}

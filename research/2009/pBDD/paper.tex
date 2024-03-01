@@ -1,0 +1,870 @@
+% ICLP'09 submission 58
+\pdfoutput=1
+\documentclass[]{INCLUDES/llncs}
+\input TOOLS/pheader09.tex
+
+\begin{document}
+
+\title{
+  Declarative Combinatorics: on Structural Isomorphisms between
+  Pairing/Unpairing Trees and Binary Decision Diagrams}
+
+\author{Paul Tarau}
+\institute{
+   Department of Computer Science and Engineering\\
+   University of North Texas\\
+   {\em E-mail: tarau@cs.unt.edu}
+}
+
+\maketitle
+
+\date{}
+
+\begin{abstract}
+
+A {\em pairing function} J associates a unique natural number z to any two 
+natural numbers x,y such that for two {\em unpairing functions}
+K and L, the equalities K(J(x,y))=x, L(J(x,y))=y and J(K(z),L(z))=z hold.
+Using pairing functions on natural
+number representations of truth tables, we derive 
+an encoding for Binary Decision Diagrams with the unique property 
+that its boolean evaluation faithfully mimics
+its structural conversion to a a natural number
+through recursive application of a matching pairing function.
+We then use this result to derive {\em ranking} and {\em unranking}
+functions for BDDs and reduced BDDs with application to uniform generation of
+random BDDs. The paper is organized as a self-contained literate Prolog
+program, available at \url{http://logic.csci.unt.edu/tarau/research/2009/pBDD.zip}.
+
+{\em Keywords:} 
+logic programming and computational mathematics,
+pairing/unpairing functions,
+encodings of boolean functions,
+binary decision diagrams,
+natural number representations of truth tables
+\end{abstract}
+
+\section{Introduction}
+
+This paper is an exploration with logic programming tools of {\em ranking} and
+{\em unranking} problems on Binary Decision Diagrams. The practical
+expressiveness of logic programming languages (in particular Prolog) 
+are put at test in the process. The paper is part
+of a larger effort to cover in a declarative programming 
+paradigm some fundamental combinatorial generation 
+algorithms.
+However, our main focus is by no means ``yet another implementation of BDDs in
+Prolog''. The paper is more about fundamental
+isomorphisms between logic functions
+and their natural number representations, in the tradition of \cite{Goedel:31},
+with the unusual twist that everything is expressed as a literate Prolog program,
+and therefore automatically testable by the reader.
+One could put such efforts under the generic umbrella of an emerging research
+field that we would like to call {\em executable theoretical computer
+science}. Nevertheless, we also hope that the more practically oriented reader 
+will be able to benefit from this approach by being able to experiment with,
+and reuse our Prolog code in applications.
+
+The paper is organized as follows:
+Sections \ref{bits} and \ref{bdds} overview efficient evaluation of boolean
+formulae in Prolog using bitvectors represented as arbitrary length integers
+and Binary Decision Diagrams (BDDs).
+ 
+Section \ref{pairings} discusses classic pairing and unpairing
+operations and introduces pairing/unpairing
+predicates acting directly on bitlists.
+
+Section \ref{encbdd} introduces a novel BDD encoding (based on our unpairing
+functions) and discusses the surprising equivalence between boolean evaluation of BDDs
+and the inverse of our encoding, the main result of the paper.
+
+Section \ref{rank} describes {\em ranking} and {\em unranking}
+functions for BDDs and reduced BDDs.
+
+Sections \ref{related} and \ref{concl} discuss related work, 
+future work and conclusions.
+
+The code in the paper, embedded in a literate programming LaTeX
+file, is entirely self contained and has been tested under {\em SWI-Prolog}.
+%Note also that a few utility predicates, not needed for following 
+%the main ideas of the paper, are left out from the narrative
+%and provided in the Appendix.
+
+\section{Parallel Evaluation of Boolean 
+Functions with Bitvector Operations}\label{bits}
+
+Evaluation of a boolean function can be performed one 
+value at a time as in the predicate {\tt if\_then\_else/4}
+\begin{code}
+if_then_else(X,Y,Z,R):-bit(X),bit(Y),bit(Z),
+  ( X==1->R=Y
+  ; R=Z
+  ).
+
+bit(0).
+bit(1).
+\end{code}
+\noindent resulting in a {\em truth table}\footnote{One can see that if the
+number of variables is fixed, we can ignore the bitstrings in the brackets.
+Thus, the truth table can be identified with the natural number represented in
+binary form by the last column.}
+\begin{codex}
+?- if_then_else(X,Y,Z,R),write([X,Y,Z]:R),nl,fail;nl.
+[0, 0, 0]:0
+[0, 0, 1]:1
+[0, 1, 0]:0
+[0, 1, 1]:1
+[1, 0, 0]:0
+[1, 0, 1]:0
+[1, 1, 0]:1
+[1, 1, 1]:1
+\end{codex}
+Clearly, this does not take advantage of the ability of modern hardware to
+perform such operations one word a time - with the instant benefit of a
+speed-up proportional to the word size.
+An alternate representation, adapted
+from \cite{knuth06draft} uses integer encodings 
+of $2^n$ bits for each boolean variable $X_0,\ldots,X_{n-1}$. 
+Bitvector operations evaluate all
+value combinations at once.
+
+\begin{prop}
+Let $x_k$ be a variable for $0 \leq k<n$
+where $n$ is the number of distinct variables in a 
+boolean expression. Then column $k$ in the matrix representation
+of the inputs in the the truth table
+represents, as a bitstring, the natural number:
+
+\begin{equation} \label{var}
+x_k={(2^{2^n}-1)}/{(2^{2^{n-k-1}}+1)} 
+\end{equation}
+\end{prop}
+
+\noindent For instance, if $n=2$, the formula computes 
+$x_0=3=[0,0,1,1]$ and $x_1=5=[0,1,0,1]$.
+
+The following predicates, working with arbitrary length bitstrings are
+used to evaluate 
+variables $x_k$ with $k \in [0..n-1]$ with formula \ref{var} 
+and map the
+constant boolean function {\tt 1} 
+to the bitstring of length $2^n$, {\tt 111..1},
+representing ${2^{2^n}}-1$
+\begin{code}
+% maps variable K in [0..NbOfBits-1] to Xk
+var_to_bitstring_int(NbOfBits,K,Xk):-
+  all_ones_mask(NbOfBits,Mask),
+  var_to_bitstring_int(NbOfBits,Mask,K,Xk).
+
+var_to_bitstring_int(NbOfBits,Mask,K,Xk):-
+  NK is NbOfBits-(K+1),
+  D is (1<<(1<<NK))+1,
+  Xk is Mask//D.
+  
+% represents constant 1 as 11...1 build with NbOfBits bits 
+all_ones_mask(NbOfBits,Mask):-Mask is (1<<(1<<NbOfBits))-1.   
+\end{code}
+
+We have used in {\tt var\_to\_bitstring\_int} an adaptation of the efficient 
+bitstring-integer encoding described in the Boolean Evaluation 
+section of \cite{knuth06draft}. Intuitively, it is based on the idea that one
+can look at $n$ variables as bitstring representations of the $n$ columns
+of the truth table.
+
+Variables representing such bitstring-truth tables 
+(seen as {\em projection functions}) 
+can be combined with the usual bitwise integer operators, 
+to obtain new bitstring truth tables, 
+encoding all possible value combinations of their arguments.
+Note that the constant $0$ is represented as $0$ while the constant $1$
+is represented as $2^{2^n}-1$, corresponding to a column in
+the truth table containing ones exclusively.
+ 
+\section{Binary Decision Diagrams} \label {bdds}
+
+We have seen that Natural Numbers in $[0..2^{2^n}-1]$ can be used as
+representations of truth tables defining $n$-variable boolean functions.
+A binary decision diagram (BDD)
+\cite{bryant86graphbased} is an ordered binary tree obtained from 
+a boolean function, by assigning its variables, one at a time, 
+to {\tt 0}  (left branch) and {\tt 1} (right branch).
+In virtually all practical applications BDDs are represented as DAGs after
+detecting shared nodes. We safely ignore this here
+as they represent the same logic
+function, which is all we care about at this point. 
+Typically in the early literature, the acronym
+ROBDD is used to denote reduced ordered BDDs. Because this
+optimization is now so prevalent, 
+the term BDD is frequently use to refer to
+ROBDDs. Strictly speaking, BDD in this paper will stand for {\em ordered BDD
+with reduction of identical branches but without node sharing}.
+
+The construction deriving a BDD of a boolean function $f$ is known as Shannon
+expansion \cite{shannon_all}, and is expressed as
+
+\begin{equation}
+f(x)= (\bar{x} \wedge f[x \leftarrow 0]) \vee (x \wedge f[x \leftarrow 1])
+\end{equation}
+
+\noindent where $f[x \leftarrow a]$ is computed 
+by uniformly substituting $a$ for $x$ in $f$. Note that by using the more
+familiar boolean if-the-else function Shannon expansion can also
+ be expressed as:
+
+\begin{equation}
+f(x) = if~x~then~f[x \leftarrow 1]~else~f[x \leftarrow 0]
+\end{equation}
+
+We represent a $BDD$ in Prolog as a binary tree with constants {\tt 0} and {\tt
+1} as leaves, marked with the function symbol {\tt c/1}. Internal
+{\em if-then-else} nodes marked with {\tt ite/3} are controlled by
+variables, ordered identically in each branch, as first arguments of {\tt
+ite/1}. The two other arguments are subtrees representing the {\tt Then} 
+and {\tt Else} branches. Note that, in practice, reduced, 
+canonical DAG representations are used instead of
+binary tree representations.
+
+Alternatively, we observe that the Shannon expansion
+can be directly derived from a $2^n$ size truth table, 
+using bitstring operations on encodings of its $n$ variables.
+Assuming that the first column of a truth table corresponds to 
+variable $x$, $x=0$ and $x=1$ mask out, respectively, 
+the upper and lower half of the truth table. The predicate {\tt
+shannon\_split/4} splits a truth table of {\tt NV} variables in 2 tables of
+{\tt NV-1} variables.
+\begin{code}
+shannon_split(NV,X, Hi,Lo):-
+  all_ones_mask(NV,M),NV1 is NV-1,
+  all_ones_mask(NV1,LM),
+  HM is xor(M,LM),
+  Lo is /\(LM,X),H is /\(HM,X),
+  Hi is H>>(1<<NV1).
+\end{code}
+Note that the operation {\tt shannon\_split} can be reversed by fusing 2 truth
+tables of {\tt NV-1} variables into one of {\tt NV} variables:
+\begin{code}
+shannon_fuse(NV,Hi,Lo, X):-
+  NV1 is NV-1,
+  H is Hi<<(1<<NV1),
+  X is \/(H,Lo).
+\end{code}
+\begin{codex}
+?- shannon_split(2, 7, X,Y),shannon_fuse(2, X,Y, Z).
+X = 1,
+Y = 3,
+Z = 7.
+
+?- shannon_split(3, 42, X,Y),shannon_fuse(3, X,Y, Z).
+X = 2,
+Y = 10,
+Z = 42.
+\end{codex}
+
+Another way to look at these two operations (for a fixed value of NV), is
+as bijections associating a pair of natural numbers to a 
+natural number, i.e. as {\em pairing} functions.
+\begin{comment}
+\begin{code}
+% NV=number of variables, TT=a truth table, BDD the result
+shannon_tree(NV,TT, st(NV,BDD)):-
+  Max is (1<<(1<<NV)),
+  TT<Max,
+  shannon_unfold(NV,NV,TT, BDD).
+
+% recurses to depth NV, splitting TT into pairs
+shannon_unfold(0,_,TT,c(TT)).
+shannon_unfold(N,NV,TT,mux(X,H,L)):-N>0,
+  N1 is N-1,
+  X is NV-N,
+  shannon_split(N,TT,Hi,Lo),
+  shannon_unfold(N1,NV,Hi,H),
+  shannon_unfold(N1,NV,Lo,L).
+\end{code}
+\end{comment}
+\section{Pairing and Unpairing Functions} \label{pairings}
+
+\begin{df}
+A {\em pairing function} is a bijection $f : Nat \times Nat \rightarrow
+Nat$. An {\em unpairing function} is a bijection $g : Nat \rightarrow
+Nat  \times Nat$.
+\end{df}
+
+Following Julia Robinson's notation \cite{robinson50}, 
+given a pairing function $J$, its left and right inverses $K$ and $L$ 
+are such that
+
+\begin{equation}
+J(K(z),L(z))=z
+\end{equation}
+
+\begin{equation}
+K(J(x,y))=x
+\end{equation}
+
+\begin{equation} 
+L(J(x,y))=y 
+\end{equation}
+We refer to  \cite{DBLP:journals/tcs/CegielskiR01} for a typical use 
+in the foundations of mathematics and to \cite{DBLP:conf/ipps/Rosenberg02a} 
+for an extensive study of various pairing functions and their computational properties. 
+
+\subsection{Cantor's Pairing Function}
+
+Starting from Cantor's pairing function
+\begin{code}
+cantor_pair(K1,K2,P):-P is (((K1+K2)*(K1+K2+1))//2)+K2.
+\end{code}
+bijections from $Nat \times Nat$ to $Nat$ have been used for various proofs 
+and constructions of mathematical objects 
+\cite{robinson50,DBLP:journals/tcs/CegielskiR01}.
+
+For $X,Y \in \{0,1,2,3\}$ the sequence of values of this pairing function is:
+\begin{codex}
+?- findall(R,(between(0,3,A),between(0,3,B),cantor_pair(A,B,R)),Rs).
+Rs = [0, 2, 4, 6, 1, 5, 9, 13, 3, 11, 19, 27, 7, 23, 39, 55]
+\end{codex}
+\noindent Note however, that the inverse of Cantor's pairing function involves
+floating point operations that require emulation in terms of arbitrary length
+integers to avoid loosing precision. %:
+\begin{comment}
+\begin{code}
+cantor_unpair(Z,K1,K2):-
+  I is floor((sqrt(8*Z+1)-1)/2),
+  K1 is ((I*(3+I))//2)-Z,
+  K2 is Z-((I*(I+1))//2).
+\end{code}
+\end{comment}
+\subsection{Pairing/Unpairing 
+operations acting directly on bitlists} \label{BitMerge}
+
+We will describe here pairing operations, 
+that are expressed exclusively as  bitlist transformations of
+{\tt bitunpair} and its inverse {\tt bitpair},
+and are therefore likely to be easily hardware implementable.
+As we have found out recently, they turn out to be the same as the functions
+defined in Steven Pigeon's PhD thesis on Data Compression \cite{pigeon}, page 114).
+
+The predicate {\tt bitpair} implements a bijection from $Nat \times
+Nat$ to $Nat$ that works by splitting a number's big endian bitstring
+representation into odd and even bits, while its inverse {\tt to\_pair} blends
+the odd and even bits back together. The helper predicates 
+{\tt to\_rbits} and {\tt from\_rbits}, 
+given in the Appendix, convert to/from integers to bitlists.
+\begin{code}
+bitpair(X,Y,P):-
+  to_rbits(X,Xs),
+  to_rbits(Y,Ys),
+  bitmix(Xs,Ys,Ps),!,
+  from_rbits(Ps,P).
+
+bitunpair(P,X,Y):-
+  to_rbits(P,Ps),
+  bitmix(Xs,Ys,Ps),!,
+  from_rbits(Xs,X),
+  from_rbits(Ys,Y).
+
+bitmix([X|Xs],Ys,[X|Ms]):-!,bitmix(Ys,Xs,Ms).
+bitmix([],[X|Xs],[0|Ms]):-!,bitmix([X|Xs],[],Ms).
+bitmix([],[],[]).
+\end{code}
+The transformation of the bitlists, done by the bidirectional predicate
+{\tt bitmix/2} is shown in the following example with bitstrings aligned:
+\begin{codex}
+?- bitunpair(2008,X,Y),bitpair(X,Y,Z).
+X = 60,
+Y = 26,
+Z = 2008
+
+% 2008:[0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1]
+%   60:[0,    0,    1,    1,    1,    1]
+%   26:[   0,    1,    0,    1,    1   ]
+\end{codex}
+Note that we represent numbers with bits in reverse order (least significant
+first). Like in the case of Cantor's pairing function, we can see similar growth
+in both arguments:
+\begin{codex}
+?- between(0,15,N),bitunpair(N,A,B),
+   write(N:(A,B)),write(' '),fail;nl.
+0: (0, 0) 1: (1, 0) 2: (0, 1) 3: (1, 1) 
+4: (2, 0) 5: (3, 0) 6: (2, 1) 7: (3, 1)
+8: (0, 2) 9: (1, 2) 10: (0, 3) 11: (1, 3) 
+12: (2, 2) 13: (3, 2) 14: (2, 3) 15: (3, 3)
+
+?- between(0,3,A),between(0,3,B),bitpair(A,B,N),
+   write(N:(A,B)),write(' '),fail;nl.
+0: (0, 0) 2: (0, 1) 8: (0, 2) 10: (0, 3) 
+1: (1, 0) 3: (1, 1) 9: (1, 2) 11: (1, 3) 
+4: (2, 0) 6: (2, 1) 12: (2, 2) 14: (2, 3) 
+5: (3, 0) 7: (3, 1) 13: (3, 2) 15: (3, 3)
+\end{codex}
+It is also convenient sometimes to see pairing/unpairing as one-to-one
+functions from/to the underlying language's ordered pairs, i.e. {\tt X-Y} in
+Prolog :
+\begin{code}
+bitpair(X-Y,Z):-bitpair(X,Y,Z).
+
+bitunpair(Z,X-Y):-bitunpair(Z,X,Y).
+\end{code}
+%This view as one-argument functions will allow using them
+%in operations like {\tt maplist}.
+
+\section{Encodings of Binary Decision Diagrams as Pairing/Unpairing Trees}
+\label{encbdd}
+
+We will build a {\em pairing/unpairing tree} by applying {\tt
+bitunpair} recursively to a Natural Number {\tt TT}, 
+seen as an $N$-variable $2^N$ bit truth table. 
+This results in a complete binary tree of depth $N$.
+As we will show later, this binary tree represents an unreduced
+$BDD$ that returns {\tt TT} when evaluated applying
+its boolean operations. The predicate {\tt unPairingTree/3} constructs
+the {\em pairing/unpairing tree}. Its input
+arguments are {\tt NV} counting the number of variables, 
+{\tt TT} an integer denoting a a truth table.
+In anticipation of the equivalence with BDDs shown in subsection \ref{equiv}
+we will use the functor {\tt bdd/2} to designate the output term built with 
+variables {\tt NV} and {\tt unPairingTree}.
+\begin{code}
+unPairingTree(NV,TT, bdd(NV,UnPairingTree)):-
+  Max is (1<<(1<<NV)), TT<Max,
+  isplit(NV,TT, UnPairingTree).
+
+isplit(0,TT,c(TT)).
+isplit(NV,TT,ite(NV1,H,L)):-NV>0,
+  NV1 is NV-1,
+  bitunpair(TT,Hi,Lo),
+  isplit(NV1,Hi,H),
+  isplit(NV1,Lo,L).
+\end{code}
+The actual work is accomplished by {\tt isplit/3} the recurses to depth {\tt
+NV}, splitting {\tt TT} into pairs. The following examples 
+show the results returned by {\tt unPairingTree/3} 
+for all $2^{2^k}$ truth tables associated to $k$ variables,  with $k=2$.
+
+\begin{codex}
+?- between(0,15,TT),unPairingTree(2,TT,BDD),write(TT:BDD),nl,fail;nl
+0:bdd(2, ite(1, ite(0, c(0), c(0)), ite(0, c(0), c(0))))
+1:bdd(2, ite(1, ite(0, c(1), c(0)), ite(0, c(0), c(0))))
+2:bdd(2, ite(1, ite(0, c(0), c(0)), ite(0, c(1), c(0))))
+...
+13:bdd(2, ite(1, ite(0, c(1), c(1)), ite(0, c(0), c(1))))
+14:bdd(2, ite(1, ite(0, c(0), c(1)), ite(0, c(1), c(1))))
+15:bdd(2, ite(1, ite(0, c(1), c(1)), ite(0, c(1), c(1))))
+\end{codex}
+Note that we have named the nodes {\tt ite/3} in anticipation of the result in
+subsection \ref{equiv} where they are shown to represent if-then-else nodes in a
+$BDD$.
+
+\subsection{Reducing the Pairing/Unpairing Trees}
+The predicate {\tt uTreeReduce} reduces a $BDD$ by trimming identical 
+left and right subtrees, and the predicate {\tt reducedUnpairingTree} 
+associates this reduced form to the truth table {\tt TT} represented as a
+natural number.
+\begin{code}
+uTreeReduce(BDD,bdd(NV,R)):-nonvar(BDD),BDD=bdd(NV,X),uTreeReduce1(X,R).
+
+uTreeReduce1(c(TT),c(TT)).
+uTreeReduce1(ite(_,A,B),R):-A==B,uTreeReduce1(A,R).
+uTreeReduce1(ite(X,A,B),ite(X,RA,RB)):-A\==B,
+  uTreeReduce1(A,RA),uTreeReduce1(B,RB).
+
+reducedUnpairingTree(NV,TT, ReducedBDD):-
+  unPairingTree(NV,TT, BDD),
+  uTreeReduce(BDD,ReducedBDD).
+\end{code}
+Note that we omit here the reduction step consisting in
+sharing common subtrees, as it is obtained easily by replacing
+trees with DAGs. The process is facilitated by the fact
+that our unique encoding provides a perfect hashing
+key for each subtree. The following examples 
+show the results returned by {\tt reducedUnpairingTree} for {\tt NV=2}.
+
+\begin{codex}
+?- between(0,15,TT),reducedUnpairingTree(2,TT,BDD),write(TT:BDD),nl,fail;nl.
+0:bdd(2, c(0))
+1:bdd(2, ite(1, ite(0, c(1), c(0)), c(0)))
+2:bdd(2, ite(1, c(0), ite(0, c(1), c(0))))
+3:bdd(2, ite(0, c(1), c(0)))
+...
+13:bdd(2, ite(1, c(1), ite(0, c(0), c(1))))
+14:bdd(2, ite(1, ite(0, c(0), c(1)), c(1)))
+15:bdd(2, c(1))
+\end{codex}
+
+\subsection{From BDDs to Natural Numbers}
+One can ``evaluate back'' the pairing/unpairing tree representing the BDD,
+by using the pairing function {\tt bitpair}.  
+The inverse of {\tt unPairingTree} is implemented as follows:
+\begin{code}
+pairingTree(bdd(_,X),TT):-pairingTree1(X,TT).
+
+pairingTree1(c(TT),TT).
+pairingTree1(ite(_,L,R),TT):-
+  pairingTree1(L,X),
+  pairingTree1(R,Y),
+  bitpair(X,Y,TT).
+\end{code}
+
+\begin{codex}
+?- unPairingTree(3,42, BDD),pairingTree(BDD,N).
+BDD = bdd(3, 
+          ite(2, 
+              ite(1, 
+                  ite(0, c(0), c(0)), 
+                  ite(0, c(0), c(0))), 
+              ite(1, 
+                  ite(0, c(1), c(1)), 
+                  ite(0, c(1), c(0))))),
+N = 42
+\end{codex}
+\noindent Note however that {\tt pairingTree/2} does not act as an
+inverse of {\tt reducedUnpairingTree/3}, given that the {\em structure} of the $BDD$ tree 
+is changed by reduction.
+
+\subsection{Boolean Evaluation of BDDs}
+This raises the obvious question: how can we recover the original truth
+table from a reduced BDD? The obvious answer is: by evaluating it as a
+boolean function! The predicate {\tt ev/2} describes the $BDD$ evaluator:
+\begin{code}
+ev(bdd(NV,B),TT):-
+  all_ones_mask(NV,M),
+  eval_with_mask(NV,M,B,TT).
+
+evc(0,_,0).
+evc(1,M,M).
+
+eval_with_mask(_,M,c(X),R):-evc(X,M,R).
+eval_with_mask(NV,M,ite(X,T,E),R):-
+  eval_with_mask(NV,M,T,A),
+  eval_with_mask(NV,M,E,B),
+  var_to_bitstring_int(NV,M,X,V),
+  ite(V,A,B,R).
+\end{code}
+The predicate {\tt ite/4} used in {\tt eval\_with\_mask} 
+implements the boolean function  {\tt if X then T else E}
+using arbitrary length bitvector operations:
+\begin{code}
+ite(X,T,E, R):-R is xor(/\(X,xor(T,E)),E).
+\end{code}
+Note that this equivalent formula for {\tt ite} is slightly more
+efficient than the obvious one with $\wedge$ and $\vee$ as it
+requires only $3$ boolean operations. We will use {\tt ite/4} as the
+basic building block for implementing a boolean evaluator for BDDs.
+
+\subsection{The Equivalence} \label{equiv}
+A surprising result
+is that boolean evaluation and structural transformation with
+repeated application of
+{\em pairing}
+produce the same result, i.e. 
+the predicate {\tt ev/2} also acts as an inverse 
+of {\tt reducedUnpairingTree/3} and {\tt unPairingTree/2}.
+
+\noindent {\em 
+As the following example shows, boolean evaluation {\tt ev/2}
+faithfully emulates {\tt pairingTree/2}, 
+on both plain and reduced BDDs.
+}
+
+\begin{codex}
+?- unPairingTree(3,42,BDD),ev(BDD,N).
+BDD = bdd(3, 
+        ite(2, 
+            ite(1, 
+                ite(0, c(0), c(0)), 
+                ite(0, c(0), c(0))), 
+            ite(1, 
+                ite(0, c(1), c(1)), 
+                ite(0, c(1), c(0))))),
+N = 42
+
+?- reducedUnpairingTree(3,42,BDD),ev(BDD,N).
+BDD = bdd(3, 
+         ite(2, 
+            c(0), 
+            ite(1, 
+                c(1), 
+                ite(0, c(1), c(0))))),
+N = 42
+\end{codex}
+
+The main result of this subsection can now be summarized as follows:
+\begin{prop} \label{tt}
+Let $B$ be the pairing/unpairing tree of depth $N$, obtained by recursive 
+applications of {\tt bitunpair} on a truth table $T$, as described
+by the predicate {\tt unPairingTree(N,T,B)}.
+
+Then for any {\tt N} and any {\tt T}, when {\tt B} is interpreted as an
+(unreduced) BDD, the result {\tt V} of its boolean evaluation using the
+predicate {\tt ev(N,B,V)} and
+the result {\tt R} obtained by applying {\tt pairingTree(N,B,R)}
+are both identical to {\tt T}. Moreover, the operation {\tt ev(N,B,V)}
+reverses the effects of both {\tt unPairingTree} and {\tt reducedUnpairingTree} with an 
+identical result.
+\end{prop}
+\noindent {\em Proof sketch:} The predicate {\tt unPairingTree} builds a binary 
+tree by splitting the bitstring $tt \in [0..2^N-1]$ up to depth {\tt N}. 
+Observe that this corresponds to the Shannon expansion \cite{shannon_all} of the
+formula associated to the truth table, using variable order $[n-1,...,0]$.
+Observe that the effect of {\tt bitstring\_unpair} is the same as
+\begin{itemize}
+  \item the effect of {\tt var\_to\_bitstring\_int(N,M,(N-1),R)} 
+     acting as a mask selecting the left branch
+\item 
+     and the effect of its complement, acting as a mask selecting the right
+     branch.
+\end{itemize}
+Given that $2^N$ is the double of $2^{N-1}$, the same invariant holds at each step, 
+as the bitstring length of the truth table reduces to half. On the other hand,
+it is clear that {\tt $ev$} reverses the action of both {\tt unPairingTree} and
+{\tt reducedUnpairingTree} as BDDs and reduced BDDs represent 
+the same boolean function \cite{bryant86graphbased}.
+
+This result can be seen as an intriguing isomorphism between
+boolean, arithmetic and symbolic computations.
+
+\section{Ranking and Unranking of BDDs} \label{rank}
+
+% given the emulation by unpairing - we simply rank the trees
+% we know it exist a unique BDD in canonical form for each
+% we also know that no boolean function is missed if we
+% enumerate them all
+% use the same technique as with hereditarily finite permutations
+% shift by 2,4,16,16^2 ..
+
+One more step is needed to extend the mapping between $BDDs$ with $N$
+variables to a bijective mapping from/to $Nat$: 
+we will have to ``shift toward infinity'' 
+the starting point of each new block of 
+BDDs in $Nat$ as BDDs of larger and larger sizes are enumerated.
+
+First, we need to know by how much - so we compute the sum of the
+counts of boolean functions with up to $N$ variables.
+\begin{code}
+bsum(0,0).
+bsum(N,S):-N>0,N1 is N-1,bsum1(N1,S).
+
+bsum1(0,2).
+bsum1(N,S):-N>0,N1 is N-1,bsum1(N1,S1),S is S1+(1<<(1<<N)).
+\end{code}
+
+The stream of all such sums can now be generated as usual:
+\begin{code}
+bsum(S):-nat(N),bsum(N,S).
+
+nat(0).
+nat(N):-nat(N1),N is N1+1.
+\end{code}
+What we are really interested in, is decomposing {\tt N} into
+the distance to the
+last {\tt bsum} smaller than N, {\tt N\_M}
+and the index of that generates the sum, {\tt K}.
+\begin{code}
+to_bsum(N, X,N_M):-
+  nat(X),bsum(X,S),S>N,!,
+  K is X-1,
+  bsum(K,M),
+  N_M is N-M.
+\end{code}
+{\em Unranking} of an arbitrary BDD is now easy - the index {\tt K}
+determines the number of variables and {\tt N\_M} determines
+the rank. Together they select the right BDD
+with {\tt unPairingTree} and {\tt reducedUnpairingTree/3}.
+\begin{code}
+nat2unPairingTree(N,BDD):-to_bsum(N, K,N_M),unPairingTree(K,N_M,BDD).
+
+nat2bdd(N,BDD):-to_bsum(N, K,N_M),reducedUnpairingTree(K,N_M,BDD).
+\end{code}
+The {\em Ranking} of a BDD is obtained as follows: we first compute
+its {\tt NumberOfVars} and its rank {\tt Nth}, then we shift the rank by 
+the {\tt bsums} up to {\tt NumberOfVars}, enumerating the
+ranks previously assigned.
+\begin{code}
+unPairingTree2nat(bdd(NumberOfVars,BDD),N) :-
+  B=bdd(NumberOfVars,BDD),
+  pairingTree(B,Nth),
+  K is NumberOfVars-1,
+  bsum(K,S),N is S+Nth.
+
+bdd2nat(bdd(NumberOfVars,BDD),N) :-
+  B=bdd(NumberOfVars,BDD),
+  ev(B,Nth),
+  K is NumberOfVars-1,
+  bsum(K,S),N is S+Nth.  
+\end{code}
+As the following example shows, {\tt nat2unPairingTree/2}
+and {\tt unPairingTree2nat/2} implement inverse functions.
+\begin{codex}
+?- nat2unPairingTree(42,BDD),unPairingTree2nat(BDD,N).
+BDD = bdd(4, 
+          ite(3, 
+              ite(2, 
+                  ite(1, 
+                      ite(0, c(0), c(0)), 
+                      ite(0, c(1), c(0))), 
+                  ite(1, 
+                      ite(0, c(1), c(0)), 
+                      ite(0, c(0), c(0)))), 
+              ite(2, 
+                  ite(1, 
+                      ite(0, c(0), c(0)), 
+                      ite(0, c(0), c(0))), 
+                  ite(1, ite(0, c(0), c(0)), 
+                         ite(0, c(0), c(0)))))),
+N = 42
+\end{codex}
+\noindent The same applies to {\tt nat2bdd/2} and its 
+inverse {\tt bdd2nat/2}.
+\begin{codex}
+?- nat2bdd(42,BDD),bdd2nat(BDD,N).
+BDD = bdd(4, 
+          ite(3, 
+              ite(2, 
+              ite(1, c(0), 
+                     ite(0, c(1), c(0))), 
+                     ite(1, 
+                         ite(0, c(1),c(0)), c(0))), 
+                         c(0))),
+N = 42
+\end{codex}
+
+\section{An application: BDD generators}
+BDD generators are useful for testing boolean circuits, boolean constraint
+solvers and learning algorithms involving BDDs.
+
+\subsection{Generating an infinite stream of BDDs}
+\noindent We can now generate infinite streams of BDDs as follows:
+\begin{code}
+unPairingTree(BDD):-nat(N),nat2unPairingTree(N,BDD).
+
+bdd(BDD):-nat(N),nat2bdd(N,BDD).
+\end{code}
+\begin{codex}
+?- unPairingTree(BDD).
+BDD = bdd(1, ite(0, c(0), c(0))) ;
+BDD = bdd(1, ite(0, c(1), c(0))) ;
+BDD = bdd(2, ite(1, ite(0, c(0), c(0)), ite(0, c(0), c(0)))) ;
+BDD = bdd(2, ite(1, ite(0, c(1), c(0)), ite(0, c(0), c(0)))) ;
+...
+?- bdd(BDD).
+BDD = bdd(1, c(0)) ;
+BDD = bdd(1, ite(0, c(1), c(0))) ;
+BDD = bdd(2, c(0)) ;
+BDD = bdd(2, ite(1, ite(0, c(1), c(0)), c(0))) ;
+BDD = bdd(2, ite(1, c(0), ite(0, c(1), c(0)))) ;
+BDD = bdd(2, ite(0, c(1), c(0))) ;
+...
+\end{codex}
+\subsection{Generating random BDDs}
+After defining:
+\begin{code}
+ranbdd(NumberOfVars,BDD):-ranbdd(NumberOfVars,NumberOfVars,BDD).
+
+ranbdd(MinVars,MaxVars,BDD):-
+  MinVars1 is MinVars-1,
+  bsum(MinVars1,Lower),
+  bsum(MaxVars,Upper),
+  Dif is Upper-Lower,
+  ranint(Dif,Ran),
+  N is Lower+Ran,
+  nat2bdd(N,BDD).
+  
+ranint(Max,N):-random(X),N is floor(Max*X).
+\end{code}
+one can generate a uniform distribution of random BDDs with a given number of
+variables or a given range as follows:
+\begin{codex}
+?- repeat,ranbdd(1,2,BDD).
+?- repeat,ranbdd(2,3,BDD).
+BDD = bdd(2, ite(0, c(1), c(0))) ;
+BDD = bdd(3, ite(2, ite(0, c(1), c(0)), c(0))) ;
+BDD = bdd(3, ite(1, ite(0, c(1), c(0)), c(0))) ;
+BDD = bdd(3, ite(2, ite(1, c(0), ite(0, c(1), c(0))), ite(0, c(1), c(0)))) .
+\end{codex}
+
+
+\section{Related work} \label{related}
+A preliminary version of this paper is part of the CICLOPS'08 informal
+proceedings \cite{ciclops08:pBDD}. 
+
+Pairing functions have been used in work on decision
+problems as early as \cite{pepis,kalmar1,robinson50}.
+{\em Ranking} functions can be traced back to G\"{o}del numberings
+\cite{Goedel:31,conf/icalp/HartmanisB74} associated to formulae. 
+Together with their inverse {\em unranking} functions they are also 
+used in combinatorial generation
+algorithms \cite{conf/mfcs/MartinezM03,knuth06draft}. 
+
+Binary Decision Diagrams are the dominant boolean function representation in
+the field of circuit design automation
+\cite{DBLP:journals/tcad/DrechslerSF04}.
+BDDs have been used in a Genetic Programming context
+\cite{DBLP:conf/ices/SakanashiHIK96,DBLP:journals/heuristics/ChenLHW04}
+as a representation of evolving individuals subject to crossovers and mutations expressed as
+structural transformations and recently in a machine learning context for
+compressing probabilistic Prolog programs \cite{DBLP:journals/ml/RaedtKKRT08}
+representing candidate theories. 
+
+Other interesting uses of BDDs in a 
+logic and constraint programming context are 
+related to representations of
+finite domains. In \cite{DBLP:conf/padl/HawkinsS06} an algorithm for
+finding minimal reasons for inferences is given.
+
+\section{Conclusion and Future Work} \label{concl}
+The surprising connection of pairing/unpairing functions and BDDs, 
+is the indirect result of implementation
+work on a number of practical applications.
+Our initial interest has been triggered by applications of the 
+encodings to combinational circuit synthesis in a logic 
+programming framework \cite{cf08,iclp07}.
+We have found them also interesting as uniform 
+blocks for Genetic Programming applications of Logic Programming.
+In a Genetic Programming context \cite{koza92}, 
+the bijections between bitvectors/natural numbers 
+on one side, and trees/graphs representing BDDs on the other side, 
+suggest exploring the mapping and its action on various
+transformations as a phenotype-genotype connection. 
+Given the connection between BDDs to
+boolean and finite domain constraint solvers
+it would be interesting to explore in that context,
+efficient succinct data representations
+derived from our BDD encodings.
+
+%\bibliographystyle{plain}
+\bibliographystyle{INCLUDES/splncs}
+\bibliography{INCLUDES/theory,tarau,INCLUDES/proglang,INCLUDES/biblio,INCLUDES/syn}
+
+\newpage
+\subsection*{Appendix}
+To make the code in the paper fully self contained, 
+we list here some auxiliary functions.
+
+\paragraph{Bit crunching operations}
+\begin{code}
+% converts an int to a list of bits, least significant first
+to_rbits(0,[]).
+to_rbits(N,[B|Bs]):-N>0,B is N mod 2, N1 is N//2,
+  to_rbits(N1,Bs).
+
+% converts a list of bits (least significant first) into an int
+from_rbits(Rs,N):-nonvar(Rs),from_rbits(Rs,0,0,N).
+
+from_rbits([],_,N,N).
+from_rbits([X|Xs],E,N1,N3):-NewE is E+1,N2 is X<<E+N1,
+  from_rbits(Xs,NewE,N2,N3).
+\end{code}
+The following figures visualize properties of our pairing/unpairing functions.
+\FIG{iso2008b}{Graph obtained by recursive application of {\tt bitunpair}
+for 2008}{0.40}{iso2008b.pdf}
+Given that unpairing functions are bijections from $Nat$ to $Nat \times Nat$
+they will progressively cover all points having natural number coordinates in
+their range in the plane. Figure \ref{isounpair1} 
+show the curve generated by {\tt bitunpair}.
+\FIG{isounpair1}
+{2D curve connecting values of {\tt bitunpair n} for $n \in [0..2^{10}-1]$}
+{0.40}{isounpair1.pdf}
+Fig. \ref{f6} shows the action of the pairing function {\tt bitpair}
+on its {\em two} arguments x,y in [0..63].
+\FIG{f6}{Values of bitpair x y with x,y in [0..63]}{0.40}{isof6.pdf}
+\end{document}

@@ -1,0 +1,194 @@
+FILE: LPwithContinuations_PreLOPSTR94.ps.gz
+
+
+\title{
+Logic Programming and Logic Grammars with First-order Continuations
+}
+
+\author{
+Paul Tarau\inst{1} and Veronica Dahl\inst{2}}
+\institute{
+        Universit\'e de Moncton\\
+	{D\'epartement d'Informatique} \\
+	 Moncton, N.B.  Canada E1A 3E9, \\
+	 {tarau@info.umoncton.ca}\\
+\and
+	 {Logic Programming Group}\\
+     {Department of Computing Sciences}\\
+     {Simon Fraser University} \\
+     {Burnaby, B.C. Canada V5A 1S6} \\
+     {veronica@cs.sfu.ca}\\
+}
+
+\pagestyle{plain}
+
+% page numbering off
+\pagestyle{empty}
+
+\maketitle
+
+\begin{abstract}
+Continuation passing binarization and specialization of the WAM
+to binary logic programs have been proven practical implementation
+techniques in the BinProlog system.
+In this paper
+we investigate the additional
+benefits of having first order continuations at source level.
+We devise a convenient
+way to manipulate them by introducing
+multiple-headed clauses which give direct
+access to continuations at source-level.
+We discuss the connections with
+various logic grammars,
+give examples of typical problem solving tasks
+and show how looking at the future of computation can improve
+expressiveness and describe complex
+control mechanisms without leaving
+the framework of binary definite programs.
+
+{\em Keywords:}
+continuation passing binary logic programs,
+logic grammars,
+program transformation based compilation,
+continuations as first order objects,
+logic programming with continuations.
+\end{abstract}
+
+
+
+-------------------------------------------------------
+
+FILE: TermCompression_PLILP94.ps.gz
+
+
+\title{
+A Novel Term Compression Scheme and Data Representation in the BinWAM
+}
+
+\author{
+Paul Tarau\inst{1} and Ulrich Neumerkel\inst{2}}
+\institute{
+        Universit\'e de Moncton\\
+	\fremd{D\'epartement d'Informatique} \\
+	 Moncton, N.B.  Canada, E1A 3E9, \\
+	 \fremd{tarau@cs.sfu.ca}\
+\and
+	 \fremd{Technische Universit\"at Wien}\\
+     \fremd{Institut f\"ur Computersprachen}\\
+     \fremd{A-1040 Wien, Austria} \\
+     \fremd{ulrich@mips.complang.tuwien.ac.at}\
+}
+
+\maketitle
+
+\begin{abstract}
+In this paper we present the novel term representation of the BinWAM
+(a simplified WAM engine for executing
+{\em binary logic programs})
+and evaluate its impact in BinProlog, a C-emulated
+system\footnote{Available by anonymous
+\fremd{ftp from clement.info.umoncton.ca.}}
+based on the BinWAM and on the mapping of logic programs to
+binary Prolog introduced in \cite{Tarau90:PLILP}.
+Terms in the BinWAM are compressed with a new technique called last
+argument overlapping which takes advantage of an unconventional
+untagged pointer representation, called {\em tag-on-data}.
+A Cheney-style \K{copy\_term}  algorithm
+using these term representations is described for BinProlog's fast
+{\em copy once} implementation of \K{findall}.
+While BinProlog's performance is competitive
+with the best commercial
+Prolog systems, its implementation is significantly simpler.
+Our analysis shows that this term representation and a limited amount
+of instruction folding on top of a reduced basic instruction set make
+the BinWAM a realistic alternative to its more complex forerunner.
+
+{\em {\bf Keywords:} implementation of Prolog, WAM, term
+representation, last argument overlapping, continuation passing
+style}
+\end{abstract}
+
+-------------------------------------------------------
+
+FILE: TclTk_ICLP94_EnvWshop.ps.gz
+
+
+
+\begin{document}
+ \title{Language Embedding by Dual Compilation and State Mirroring}
+ \author{
+   Paul Tarau\\\
+   D\'ept. d'Informatique \\ 
+  Universit\'e de Moncton\\
+  tarau@info.umoncton.ca\\\
+\and
+   Bart Demoen\\\
+   Dept. of Computer Science\\ 
+   Katholieke Universiteit Leuven\\
+   bimbart@cs.kuleuven.ac.be\\\
+}
+\date{}
+
+\maketitle
+
+
+% page numbering
+\pagestyle{plain}
+
+% page numbering off
+%\pagestyle{empty}
+
+\begin{abstract}
+We give an abstract scheme for the embedding of two languages with
+strong meta-programming, parsing and structure manipulation
+capabilities.  We provide a call-back mechanism requiring each language
+to {\em compile} its service requests to the other's syntax for processing
+through the other's {\em meta-programming}
+capabilities. {\em State mirroring} ensures
+that only differential information needs to be transmitted.  We
+describe a practical implementation of these principles and our
+experience with the {\bf BinProlog Tcl/Tk} interface. 
+Compilation by each side, that targets
+the other's syntax and dynamic object manipulation capabilities,
+achieves in {\em less than two hundred} 
+lines of code, a fully functional integration
+of the two systems. The environment
+is portable to any Prolog system to which it
+adds powerful graphic and transparent distributed
+network programming facilities.
+Our approach suggest that logic programming language-processors
+can be made to fit easily in a multi-paradigm programming environment
+with little programming effort by using their
+strong {\em language translation} and {\em meta-programming}
+capabilities.
+
+
+{\em Keywords:}
+multi-paradigm programming, visual environments for logic programming
+languages, meta-programming, Prolog graphic interface.
+\end{abstract}
+
+---------------------------------------------
+FILE: LowLevelIssues_JFPL94.ps.gz
+
+\title{
+	Low-level Issues in Implementing \\ 
+	a High-Performance Continuation Passing \\
+        Binary Prolog Engine \\
+}
+
+\author{
+   Paul Tarau\\\
+   D\'ept. d'Informatique \\ 
+  Universit\'e de Moncton\\
+  tarau@info.umoncton.ca\\\
+}
+\date{}
+\maketitle
+
+\begin{abstract}
+BinProlog\footnote{available by anonymous ftp from clement.info.umoncton.ca, in /pub/BinProlog.} is a compact C-emulated Prolog engine based on the continuation passing program transformation introduced in \cite{Tarau90:PLILP}. By transformation to binary programs (consisting of clauses having only one atom in the head and the body) a slow-down is expected as conventional WAM's highly optimized environments are replaced by a heap-only run-time system. However, empirically this is not confirmed: BinProlog is at this point among the fastest C-emulated Prolog engines (450 KLIPS on a 25MHz Sparcstation 10-20). This paper gives the necessary implementation and benchmarking information that explains why our approach is a competitive alternative to the conventional WAM. We go into the details of data representation and compare the optimization opportunities offered by the BinWAM with conventional WAM optimizations. We also discuss related work on continuation passing implementations of functional languages and on program transformations that can further optimize our system.
+
+{\em {\bf Keywords:} implementation of Prolog, WAM optimizations, program transformation, binary logic programs, continuation passing style compilation}.
+\end{abstract}
+

@@ -1,0 +1,1786 @@
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<META NAME="GENERATOR" CONTENT="TtHgold 2.24">
+                                                                       
+<title>3cm</title>
+3cm
+
+<p>
+
+<H2> Abstract</H2>
+LogiMOO is a BinProlog-based
+Virtual World running under Netscape and Internet Explorer
+for distributed group-work
+over the INTERNET and user-crafted virtual
+places, virtual objects and agents.
+LogiMOO is implemented on top of a 
+multi-threaded blackboard-based logic programming
+system (BinProlog) featuring
+Linda-style coordination. Remote and local
+blackboards support transparent distribution of data
+and processing over TCP/IP links,
+while threads ensure high-performance
+local client-server dynamics.
+Embedding in Netscape provides advanced VRML and
+HTML frame-based navigation and
+multi-media support, while LogiMOO handles
+virtual presence and acts as a
+very high-level multi-media object broker. 
+User-friendliness is achieved through a 
+controlled English interface written in
+terms of Assumption Grammars. Its language
+coverage is extensible in that the user can 
+incorporate new nouns, verbs and adjectives 
+as needed by changes in the world. Immediate evaluation 
+of world knowledge by the parser yields
+representations which minimize the unknowns
+allowing us to deal with advanced Natural Language
+constructs like anaphora and relativization efficiently. 
+We take advantage of the simplicity of our
+controlled language to provide as well an
+easy adaptation to other natural languages
+than English, with English-like representations
+as a universal interlingua. 
+
+<p>
+<em>Keywords:
+  Virtual Worlds,
+  high-level HTML,VRML,CGI programming
+  distributed object brokerage,
+  blackboard-based logic programming, Linda coordination,
+  linear/intuitionistic assumptions,
+  client-server applications in Prolog,
+  embedded logic engines, natural language analysis,
+  control through speech, multilingual interface 
+</em>
+<p>
+<p>        <H2><A NAME="tth_sEc1">
+1</A>&nbsp;&nbsp;Introduction</H2>
+
+<p>
+MUDs and MOOs (Multi User Domains - Object Oriented) first introduced
+virtual presence and interaction in the context of networked games [<a href="#Lud92" name=CITELud92>23</a>,<a href="#MBH95" name=CITEMBH95>25</a>].  
+Traditional MOOs use places called <em>rooms</em> and chat facilities to
+put in touch users represented by <em>avatars</em> for entertainment
+or information exchange purposes. The architecture is usually client/server,
+with users connecting to the server either through conventional telnet
+sessions or through more special purpose MOO shells.
+
+<p>
+Their direct descendents, Virtual
+Worlds, provide a strong unifying metaphor for various forms of net-walk,
+net-chat, and Internet-based virtual presence in general. They start
+where usual HTML shows its limitations: they do have state and require
+some form of virtual presence. <em>Being there</em> is the first step
+towards full virtualization of concrete ontologies, from entertainment
+and games to schools and businesses.
+  
+<p>
+Some fairly large-scale projects (Intel's Moondo, Sony's Cyber
+Passage, Black Sun's CyberGate, Worlds Inc.'s WorldChat, Microsoft's VChat)  converge  
+towards a common interaction metaphor: an avatar represents each
+participant in a multi-user virtual world. Information exchange reuses
+our basic intuitions, with almost instant <em>learnability</em> for free.
+
+<p>
+The sophistication of their interaction metaphor, with VRML landscapes
+and realistic <em>avatars</em> moving in shared multi-user virtual spaces,
+will soon require  high-level agent programming tools, once the initial
+fascination with looking human is not enough, and the automization of
+complex behavior becomes the next step.  Towards this end, high-level coordination and
+deductive reasoning abilities are among the most important additions
+to various virtual world modeling languages.  
+
+<p>
+Presently, despite their graphical sophistication, virtual worlds do
+not allow <em>controlling</em> behavior and object creation
+i.e., <em>programming with words</em>.  Yet their characteristics favor the
+use of natural language: each virtual world represents a particular
+domain of interest, so that its associated relevant subset of language
+is naturally restricted; and the command language into which natural
+language sentences would have to be parsed is formal and
+straightforward enough while being already relatively close to natural
+language.
+
+<p>
+Our Virtual World implementation, LogiMOO is based on a
+set of embeddable logic programming components which inter-operate
+with standard Web tools.
+
+<p>
+Section&nbsp;<A href="#logimoo">2</A>
+describes LogiMOO, a virtual world with natural language capabilities
+that makes use of linear and intuitionistic assumption
+techniques. Section&nbsp;<A href="#coord">2.1</A> describes the coordination aspect;
+section&nbsp;<A href="#kernel">2.2</A>, the LogiMOO kernel; section&nbsp;<A href="#agent">2.3</A>
+describes our agent model; section&nbsp;<A href="#netscape">2.4</A> presents LogiMOO as
+a Netscape application; section&nbsp;<A href="#beyond">2.5</A> proposes a web of MOOs
+allowing LogiMOO access to Netscape based users with no access to
+BinProlog.  Section <A href="#natint">3</A> describes the main features of
+LogiMOO's natural language interface: coverage, dynamic knowledge
+handling, multisentential anaphoric reference, extensibility within
+the same language and to other languages, immediate evaluation, and
+our positional treatment of nouns. The last three sections
+respectively discuss related work, future work, and our conclusions.
+
+<p>
+        <H2><A NAME="tth_sEc2">
+2</A>&nbsp;&nbsp;The architecture of LogiMOO</H2><A NAME="logimoo">
+</A>
+
+<p>
+LogiMOO&nbsp;[<a href="#DPT96:PAP" name=CITEDPT96:PAP>14</a>,<a href="#lpnet96:virtual" name=CITElpnet96:virtual>38</a>,<a href="#inap96" name=CITEinap96>32</a>] is a BinProlog-based
+Virtual World running under Web browsers for distributed group-work
+over the Internet and user-crafted virtual places, virtual objects and
+agents.  
+
+<p>
+The main layers of the LogiMOO architecture are:
+
+<UL>
+<p>
+
+<li> <em>the underlying BinProlog system</em> which also provides client/server and
+CGI programming
+
+<li> <em>LogiMOO's builtin operations</em> providing a set of MOO-like operations
+implemented as compiled Prolog predicates
+
+<li> <em>the Natural Language compiler</em> which translates sentences to built-in
+LogiMOO predicates
+
+<li>
+<p>
+ <em>the extensible user interface layer</em>, providing dynamic creation of server-side
+persistent objects, as result of Natural Language or built-in LogiMOO commands
+</UL>
+<p>
+A CGI-based BinProlog script
+<em>remote top-level</em> interacts with a remote LogiMOO server
+(Fig.&nbsp;<A href="#net">1</A>).  Objects in LogiMOO are represented as hyper-links
+(URLs) towards their owners' home pages where their native
+representation actually resides in various formats (HTML, VRML, GIF, 
+JPEG, etc.).  Embedding in
+Netscape allows advanced VRML or HTML frame-based navigation and
+multi-media support, while LogiMOO handles virtual presence and acts
+as a very high-level universal object broker.
+
+<p>
+The LogiMOO kernel behaves as any other MOO while offering a choice
+between interactive Prolog syntax and a Controlled English parser
+allowing people unfamiliar with Prolog to get along with the basic
+activities of the MOO: place and object creation, moving from one
+place to the other, giving/selling virtual objects, talking (<em>whisper</em>
+and <em>say</em>).
+
+<p>
+
+<p><A NAME="tth_fIg1">
+</A> 
+<center></center> <center>      Figure 1: LogiMOO on the Web</center><A NAME="net">
+</A>
+<p>
+<p>
+In order to achieve this, we have incorporated natural language
+consultation capabilities into LogiMOO (see section <A href="#natint">3</A>).  Our natural language
+front-end is extensible in the sense that it is easy for the user to
+tailor it to a particular virtual world through defining the verbs
+specific to that world and establishing links between lexical objects
+and their WWW representations. These definitions are done in
+user-friendly terms, with the system being responsible for their
+integration into the rest of the grammar and for their correspondence
+with actual LogiMOO objects and actions.
+
+<p>
+      <H3><A NAME="tth_sEc2.1">
+2.1</A>&nbsp;&nbsp;Linda style coordination</H3> <A NAME="coord">
+</A>
+
+<p>
+LogiMOO is built upon a portable socket-level
+Re-implementation of Multi-BinProlog&nbsp;[<a href="#kdb93d" name=CITEkdb93d>11</a>,<a href="#dbt95a" name=CITEdbt95a>12</a>,<a href="#kdb93c" name=CITEkdb93c>13</a>], i.e.,
+BinProlog enriched with a Linda-like tuple space. 
+Solaris 2.x threads ensure high-performance
+local client-server dynamics.
+
+<p>
+A blackboard's basic characteristics are (i) it is persistent,
+(ii) the data are manipulated associatively (i.e., based on their
+content, rather than on their address), (iii) all accesses are
+automatically synchronized. These are precisely the requirements for a
+MOO: the state of the MOO should be stored somewhere, and it should
+not be volatile; if we are looking for a particular object in a MOO,
+we will always refer to it with a name, never with its address
+location; a MOO is multi-user, so it should be synchronized at any
+time.
+
+<p>
+The basic operations on the blackboard are: blackboard creation and
+deletion, the creation of processes (independently running Prolog
+goals), putting Prolog terms on the blackboard, removing terms from
+the blackboard and checking the presence of terms. Both the get and
+the read primitives can be blocking or non-blocking. Furthermore,
+there are some more advanced primitives like blackboard operations
+working on lists of terms instead of one term, operations to collect
+the complete contents of a blackboard, and so on.
+
+<p>
+LogiMOO's primitive operations are implemented on top of
+Multi-BinProlog's Linda-style operations&nbsp;[<a href="#Tarau97:BinProlog" name=CITETarau97:BinProlog>33</a>].  We
+refer to&nbsp;[<a href="#DPT96:PAP" name=CITEDPT96:PAP>14</a>,<a href="#lpnet96:virtual" name=CITElpnet96:virtual>38</a>] for a description of the
+wide variety of <em>blocking</em> and <em>non-blocking</em> as well as <em>
+non-deterministic</em> blackboard operations (backtracking through
+alternative answers). For reasons of embeddability in multi-paradigm
+environments and semantic simplicity we have decided to drop
+non-determinism and return to a subset close to the original Linda 
+[<a href="#linda89" name=CITElinda89>7</a>,<a href="#Cia93a" name=CITECia93a>8</a>,<a href="#Cia94b" name=CITECia94b>9</a>]
+operators (combined with unification), and a simple client-server
+architecture (although LogiMOO's design is now rapidly evolving
+towards a web of interconnected worlds).  This turned out to be
+enough for simple (one-thread) agent programming.
+
+<p>
+<font size="-1">This is a stupid little&#175; line to set up tabs.  &nbsp;Puts X on the server<br>
+<tt>in(X)</tt> &nbsp;Waits until it can take an object matching X from the server<br>
+<tt>all(X,Xs)</tt> &nbsp;Reads the list Xs matching X currently on the server<br>
+<tt>run(Goal)</tt> &nbsp;Starts a thread executing Goal<br>
+<tt>local_out(X)</tt> &nbsp;Puts private information X on the local default blackboard. <br>
+<tt>local_rd(X)</tt> &nbsp;Checks whether an object matching X is on the local blackboard.<br>
+<tt>halt</tt> &nbsp;Stops current thread
+</font>
+<p>
+The presence of the <tt>all/2</tt> collector compensates for the lack of
+non-deterministic operations.  Note that the only blocking operation
+is <font size="-1"><tt>in/1</tt></font>, and that that blocking <tt>rd/1</tt> is easily emulated in terms
+of <tt>in/1</tt> and <tt>out/1</tt>. Non-blocking <tt>rd/1</tt> is
+emulated with <tt>all/2</tt> (see also Figure&nbsp;<A href="#linda">2</A>).
+ 
+<p>
+
+<p><A NAME="tth_fIg2">
+</A> 
+<center></center> <center>      Figure 2: Basic Linda operations</center><A NAME="linda">
+</A>
+<p>
+<p>
+A number of derived operations are built on top of the primitive LogiMOO
+operations.
+
+<p>
+<font size="-1">This is a stupid little&#175; line to set up tabs.  &nbsp;Checks whether an object matching X is on the server's blackboard. <br>
+<tt>cout(X)</tt> &nbsp;Conditional out: Puts X on the server unless an object <br>
+              &nbsp;matching X is found on the server. <br>
+
+<p>
+<tt>cin(X)</tt> &nbsp;Conditional in: Takes an object matching X from the server<br>
+             &nbsp;and fails if no such object is found. <br>
+
+<p>
+<tt>forall(X,G)</tt> &nbsp;Executes goal G for all objects on the server matching X.
+</font>
+<p>
+      <H3><A NAME="tth_sEc2.2">
+2.2</A>&nbsp;&nbsp;The LogiMOO kernel</H3> <A NAME="kernel">
+</A>
+ 
+<p>
+<em>Verbs</em> available in LogiMOO are defined through a set of Prolog
+predicates hiding the complexities of the distributed communication
+model through the usual metaphors: places (starting from a default
+lobby), ports, ability to <em>move</em> or <em>teleport</em> from one place to
+another, a <em>wizard</em> resident on the server, <em>ownership</em> of objects, the
+ability to <em>transfer</em> ownership and a built-in notifier agent watching
+for messages as a background thread.
+
+<p>
+Non-shared information is kept on the default local blackboard.  The
+login procedure simply puts the name of the current user on the local
+blackboard, after enforcing unique identity on the server by sending a
+password to the server together with the name.
+
+<p>
+<tt>Whereami(P)</tt> unifies
+<tt>P</tt> with the location of the user's avatar.  
+
+<p>
+ Locally the name chosen by the user
+is accessible as:
+
+<p>
+ 
+<pre>
+whoami(X):-local_rd(i_am(X)).
+</pre>
+
+<p>
+ The use of local
+blackboards (on which <tt>local_rd</tt> operates) allows high-speed access to private state information
+and allows for the implementation of security protocols. 
+
+<p>
+To conditionally
+create a place (unless it exists) we use: <tt>dig(Place)</tt>.  To
+create a port (only when the links are already existing places), we
+use: <tt>port(P1,Dir,P2)</tt>.  To teleport <tt>O</tt> from
+<tt>P1</tt> to <tt>P2</tt>, we use: <tt>move(O,P1,P2)</tt>.
+
+<p>
+ 
+<pre>
+move(O,P1,P2):-cin(contains(P1,O)),out(contains(P2,O)).
+</pre>
+
+<p>
+On top of teleporting, we implement <tt>go(Dir)</tt>, <tt>
+craft(O)</tt> (which creates virtual objects with ownership), and
+<tt>give(Who, What)</tt>.
+
+<p>
+ 
+<pre>
+go(Dir):-
+  whereami(Place),
+  rd(port(Place,Dir,NewPlace)),
+  whoami(Me),
+  move(Me,Place,NewPlace),
+  forall(has(Me,O),move(O,Place,NewPlace)).
+</pre>
+
+<p>
+<tt>go/1</tt> verifies accessibility of the target place through a port
+and updates the avatar's location.
+ Note that <tt>forall/2</tt> can be used to make someone's
+belongings follow him. As in the real world,
+this is usually done selectively on a subset of a
+user's belongings.
+
+<p>
+Creating things with <tt>craft/1</tt> marks them with ownership:
+
+<p>
+ 
+<pre>
+craft(O):-whoami(Me),
+  rd(contains(Place,Me)),
+  out(contains(Place,O)),
+  out(has(Me,O)).
+</pre>
+
+<p>
+ <tt>Craft/1</tt> gets the place where the user's avatar is located,
+then puts the object there and asserts ownership of the object by the
+user's avatar.
+
+<p>
+Property transfer (useful for online sales and banking)
+is prototyped as follows: 
+
+<p>
+ 
+<pre>
+gives(From,To,O):-
+  cin(has(From,O)),
+  out(has(To,O)).
+
+give(Who,What):-
+   whoami(Me),
+   cin(has(Me,What)),
+   out(has(Who,What)).
+</pre>
+
+<p>
+<tt>Give/2</tt> simply changes ownership of the object by
+updating the <tt>has/2</tt> fact referring to it on the blackboard.
+
+<p>
+Although expressing a <tt>sale</tt> predicate in terms
+of <tt>give/2</tt> is easy, realistic transactions need a
+sound security system, not yet implemented in LogiMOO.
+
+<p>
+As usual, PGP-based public-key cryptography can ensure
+secure transactions on top of an insecure carrier.
+Although it is possible to implement electronic money
+and authentication within LogiMOO on top of standard Solaris
+tools like <tt>des_crypt</tt>, the embedding of LogiMOO in Netscape
+(described in section <A href="#netscape">2.4</A>),
+allows use of high quality third-party
+encryption and E-cash technology. As technology matures,
+security becomes largely an orthogonal issue - especially
+when standard tools can be used
+to implement mechanisms that ensure interoperability
+with other secure software components.
+
+<p>
+<tt>Look/0</tt> recognizes specific 
+objects and shows them in the
+most useful form. For instance, under the Netscape interface, users
+are shown as hyper-links to their home pages and objects created by a
+given user are shown as links relative to the user's home page.
+
+<p>
+Note that the unusual expressiveness of the blackboard for an important
+number of roles (messages, synchronization, etc.) shows that
+some of the traditional programming patterns are
+just implementation related intellectual artifacts.
+The existence of a unique construct covering them all
+(Linda+unification) helps towards building more
+programmer friendly, higher level abstractions.
+
+<p>
+      <H3><A NAME="tth_sEc2.3">
+2.3</A>&nbsp;&nbsp;The agent model</H3> <A NAME="agent">
+</A>
+We define an <em>agent</em> as being a set of <em>behaviors</em>, as well as
+the usual code for logical inferences and arithmetic.  Each behavior
+is usually attached to its own thread, although thread sharing
+mechanisms can be used on some machines for actual implementations.
+An agent <em>located</em> in a container is called an <em>avatar</em>.
+
+<p>
+Agents performing actions on objects can either <em>fail</em>, <em>
+succeed</em>, <em>wait</em> (to succeed) or <em>warn</em> about an <em>error</em>
+or <em>exception</em>.
+
+<p>
+The notifier is one of the simplest possible <em>agents</em>.  It is
+automatically started from the login predicate as a background thread
+with <tt>run(notifier(Name))</tt>. The notifier's thread blocks until
+<tt>in(mes_to(Name,Mes,From))</tt> succeeds and the notifier simply
+outputs the message.
+
+<p>
+<font size="-1">
+<pre>
+  notifier(Name) :-
+    in(mes_to(Name,Mes,From)),
+    notify(Mes,From),
+    notifier(Name).
+</pre></font>
+
+<p>
+ The evaluation of <tt>whisper/2</tt>, defined as
+
+<p>
+<font size="-1">
+<pre>
+whisper(To,Mes) :- whoami(Me),out(mes_to(To,Mes,Me)).
+</pre></font>
+
+<p>
+ unblocks the matching <tt>in(mes_to(Name,Mes,From))</tt>,
+and consequently the notifier outputs the message with <tt>
+notify(Mes,From)</tt>.  More generally, distributed event processing is
+implemented by creating an agent watching for a given pattern.
+
+<p>
+ <em>Remote processing</em> [<a href="#Stam90" name=CITEStam90>30</a>] as well as security
+mechanisms are expressed modularly, by creating a <em>command server</em> thread:
+
+<p>
+<font size="-1">
+<pre>
+  % remote processing request
+  please(Who,What) :-
+    whoami(Requester),
+    out(please(Who,Requester,What)),
+    whisper(Who,'Please'(What)).
+
+  % a remote command processor with intruder detection
+  command_server :-
+    whoami(Me),
+    repeat,
+      in(please(Me,Requester,What)),
+      ( friend_of(Me,Requester)-&#62;call(What),fail
+      ; errmes(intruder(remote_action_attempted),Requester)
+      ),
+    fail.
+</pre></font>
+
+<p>
+Such security modules can be added, tailored, or left out, as needed, without requiring additional concepts.
+
+<p>
+ Clearly, <tt>command_server</tt> and <tt>
+notifier</tt> threads can be seen as <em>behavior components</em> of a unique
+agent.  Moreover, they actually might cooperate in a synchronized way
+as each <tt>please/2</tt> command triggers a <tt>whisper/2</tt>
+action to be served by a notifier later.
+
+<p>
+      <H3><A NAME="tth_sEc2.4">
+2.4</A>&nbsp;&nbsp;LogiMOO as a client/server Web application</H3><A NAME="netscape">
+</A>
+
+<p>
+Objects in LogiMOO<a href="#tthFtNtAAB" name=tthFrefAAB><sup>1</sup></a>  
+are
+represented as hyper-links (URLs) towards their owners' home pages
+where their native representation actually resides in various
+formats (HTML, VRML, GIF, JPEG, etc.).
+
+<p>
+LogiMOO redefines the Prolog toplevel for interacting with
+Multi-BinProlog either through telnet/rlogin<a href="#tthFtNtAAC" name=tthFrefAAC><sup>2</sup></a>
+BinProlog's pipe-based lightweight Tcl/Tk interface, or through the
+Web with Netscape .  The Web interface extensively uses advanced
+browser features:
+
+<p>
+
+<UL>
+<li> Netscape/Internet Explorer  frames and forms
+
+<li> Cosmo Player or WorldView plug-in for VRML navigation
+
+<li> JavaScript to help BinProlog control Netscape frames from within
+
+<li> BinProlog-based lightweight CGI-scripts
+</UL>
+<p>
+Netscape-based users are recognized as special as they do not keep
+local state (except for their name, password, and home page kept in the
+form itself). The stateless CGI Multi-BinProlog client spawn by a
+<em>submit</em> Netscape action connects to a local persistent LogiMOO
+server.  Compilation to C and shared dynamically linked libraries make
+BinProlog competitive with Perl scripting.
+
+<p>
+The server periodically saves its state to a file, through a separate
+background thread while staying responsive to users. A
+telnet/rlogin-based console helps to monitor LogiMOO from a
+remote computer.
+
+<p>
+Figure&nbsp;<A href="#virtualbb">3</A> shows the embedding of LogiMOO as a
+frame-based Netscape application.
+
+<p>
+
+<p><A NAME="tth_fIg3">
+</A> 
+<center><a href="world.eps">Figure</a></center> <center>      Figure 3: LogiMOO as a frame-based Netscape application<A NAME="virtualbb">
+</A></center>
+<p>
+<p>
+Queries are submitted through the CGI POST method. BinProlog reads the
+standard input using the <tt>CONTENT_LENGTH</tt> environment variable
+and after a small filter cleans up hexadecimal escapes, it extracts
+the actual query and its variables through a
+list-of-characters-to-term conversion.  Finally, using a simple trick,
+we map HTML query syntax to Prolog without any application specific
+parsing:
+
+<p>
+<font size="-1">
+<pre>
+  :-op(1199,xfy,(&amp;)).
+
+  (login=L &amp; passwd=P &amp; home=H &amp; query=Query) :-
+    login(L,P,H),
+    metacall(Query).
+</pre></font>
+
+<p>
+Objects crafted by users are shown as URL's, relative to their
+homes. This allows users to <em>put</em> into LogiMOO objects of various
+formats (VRML, JPEG, WAV, AU) and gives multi-media capabilities for
+free.  LogiMOO keeps the link while the actual object resides on the
+user's computer accessible by clicking on a link so that the user is free to update the actual object without
+having to notify LogiMOO.
+Note also that we do not need to provide navigation in VRML worlds or
+user defined HTML links - this is better to be left to the browser itself.
+What we provide is the ability to create those persistent links dynamically,
+as the result of a controlled natural language interaction with the user
+or her decision to trigger the action of a building agent.
+
+<p>
+We can however give the illusion that BinProlog commands from within
+LogiMOO actually allow arbitrary Web navigation through use of a
+one line JavaScript, dynamically generated as an answer to a query:
+
+<p>
+<font size="-1">
+<pre>
+  auto_show(URL,File) :-
+    make_cmd(['&lt;body
+       onLoad="window.open(''',URL,'/',File,''',''_self'')"&#62;'],Cmd),
+    writeln([Cmd]).
+</pre></font>
+
+<p>
+ For instance, typing:
+
+<p>
+<font size="-1">
+<pre>
+  auto_show('http://eve.info.umoncton.ca:8080/~logimoo','lobby.wrl')
+</pre></font>
+
+<p>
+ in the LogiMOO Prolog query text area, will instantly
+show LogiMOO's VRML lobby in the Netscape  output frame, from where
+the user can further explore links independently. Return to LogiMOO is
+achieved simply by clicking on the VRML floor of the room.  By
+using the <tt>_parent</tt> Netscape pseudo-target instead of <tt>
+_self</tt> the full window is replaced.  With <tt>_blank</tt> or a named
+new target, an additional Netscape browser is spawned, allowing
+independent navigation, while keeping LogiMOO on-screen.
+
+<p>
+Clearly, achieving exclusively in Prolog or any other existing LP or
+CLP the equivalent of what we have developed in about 1-man/month
+total programming time would require a significant effort.  We are
+more and more convinced that embedding logic programming tools in a
+multi-paradigm environment can compensate for their lack of advanced
+visual and Internet programming abilities and, ultimately, make them
+competitive for commercial development despite their small market
+share.
+
+<p>
+As an embedded application, LogiMOO acts as a broker between various
+multi-paradigm, multi-media Netscape components. It therefore keeps (a
+minimum amount of) state and user information.  Its full Prolog
+command language gives arbitrary extensibility through objects and
+agents.  Although file transfers and various protocols are
+implementable with the underlying Multi-BinProlog system, we have
+chosen to represent non-symbolic objects as hyper-links towards their
+owner's WWW home.  Our design philosophy was to duplicate as little
+existing components as possible while achieving as much functionality
+as possible.  At some point, we expect that LogiMOO will grow by
+itself through user extensions, much more than our own development
+effort, as a truly open virtual world, together with its present and
+future VRML and Java-centric cousins.
+
+<p>
+      <H3><A NAME="tth_sEc2.5">
+2.5</A>&nbsp;&nbsp;Beyond Linda: a Web of MOOs</H3><A NAME="beyond">
+</A>
+
+<p>
+Clearly, representing places with separate blackboards and
+avatars/objects with processes/terms on local and remote blackboards
+is the most natural representation, especially when thinking in terms
+of a distributed <em>Web of MOOs</em>. We will describe the basic ideas
+behind LogiMOO in terms of a simpler mapping reminiscent from
+client/server architectures, which also allows users
+not having BinProlog on their own computers to access LogiMOO.  The
+<em>world</em> is represented by a blackboard on a server. 
+Connectionless
+Netscape <em>hits</em> from the user's computer create short-lived CGI
+clients on the computer hosting the server<a href="#tthFtNtAAD" name=tthFrefAAD><sup>3</sup></a>.
+
+<p>
+Multi-BinProlog blackboards come in two flavors&nbsp;[<a href="#dbt95a" name=CITEdbt95a>12</a>]:
+there are local blackboards, primarily used for efficient
+communication and synchronization between processes running on the
+same (multi-)processor, and there are virtual blackboards that are
+primarily used for communication with processes running on other
+machines. A virtual blackboard is a kind of alias, or link to another
+(remote) blackboard. Logically, it cannot be distinguished from the
+remote blackboard itself. At the implementation level, a virtual
+blackboard does not contain data, but is just a local representation
+of the remote blackboard. All operations issued on a virtual
+blackboard are automatically forwarded to the remote
+blackboard. Furthermore, the remote blackboard can in turn be a
+virtual blackboard pointing to yet another remote blackboard. The last
+blackboard in a chain must always be a physical blackboard containing
+real data (see Figure&nbsp;<A href="#virtual">4</A>).
+
+<p>
+
+<p><A NAME="tth_fIg4">
+</A> 
+<center><a href="logimoo.eps">Figure</a></center> <center>      Figure 4: Virtual and remote blackboards<A NAME="virtual">
+</A></center>
+<p>
+<p>
+A pure Linda-based language is not immediately suitable to support a
+MOO because a Linda-application consists of a number of processes that
+are created by one application in order to solve a given
+problem. Here, client processes must be able to connect and disconnect
+at any time. This requirement can be completely fulfilled by the
+concept of virtual blackboard. A client wanting to connect with a MOO,
+creates a local virtual blackboard, hooks it up to the MOO, and from
+then on, it can interact with the MOO in an unconstrained way by
+communicating with the local virtual blackboard.
+
+<p>
+The first version of LogiMOO has been built upon
+Multi-BinProlog&nbsp;[<a href="#kdb93d" name=CITEkdb93d>11</a>,<a href="#kdb93c" name=CITEkdb93c>13</a>], i.e., BinProlog enriched with a
+Linda-like tuple space and virtual blackboards. 
+The following version (which also interconnects
+with a new Java based multi-threaded Linda server) uses BinProlog's
+new built-in Linda subsystem. 
+
+<p>
+To ensure interoperability between Windows 95 PCs and Unix machines we
+have implemented a generic socket package with
+operations specialized towards support for Linda operations, remote
+execution and mobile code [<a href="#TD98:mobile" name=CITETD98:mobile>35</a>]. 
+A master server on a <em>well-known</em> host/port is used to
+exchange identification information among peers composed of a client
+and a multiplexing server. We refer
+to [<a href="#TDBwetice:97" name=CITETDBwetice:97>36</a>] for more details on the underlying BinProlog based 
+Internet infrastructure used in this re-implementation of LogiMOO.
+
+<p>
+        <H2><A NAME="tth_sEc3">
+3</A>&nbsp;&nbsp;The natural language based user interface</H2> <A NAME="natint">
+</A>
+
+<p>
+There is a very strong move towards the use of natural language as
+a command language today, with General Magic, Microsoft, IBM and
+telecommunication companies pioneering its use for major industrial applications
+which routinely use spoken language to communicate
+with the user both for input and output.
+
+<p>
+We expect that as the domain of intelligent software
+agents matures, the current emphasis on the interaction
+will be balanced towards more sophisticated reasoning abilities,
+with LP in a very good position to provide them.
+
+<p>
+One of the key design ideas behind LogiMOO was that natural language  
+has a serious potential as an effective programming language, 
+at least as far as end user interaction (scripting) is concerned. 
+Our views are confirmed by programs like
+the recently released Microsoft Agent [<a href="#msagent" name=CITEmsagent>26</a>] or General Magic's
+upcoming Portico [<a href="#portico" name=CITEportico>17</a>], a voice-only intelligent assistant
+able to learn and remember the state its interaction with
+the user.
+
+<p>
+LogiMOO is one of the very few existing virtual worlds that can be
+controlled with natural language. The reasons why we wanted to provide 
+LogiMOO with a NL interface are:
+
+<OL type="1">
+<p>
+
+<li> natural language is the most convenient way for us
+to communicate;
+
+<li> a natural language interface is the first step towards
+ voice-controlled interaction with the virtual 
+world<a href="#tthFtNtAAE" name=tthFrefAAE><sup>4</sup></a>;
+
+<li> a virtual world is a perfect environment to experiment
+with natural language because the domain of discourse is
+limited;
+
+<li> natural language is needed for the upcoming speech recognition/generation
+based human/computer interaction tools
+</OL>
+<p>
+The peculiar features of the world to be consulted- a virtual world-
+induced novel parsing features which are interesting in themselves:
+flexible handling of dynamic knowledge, immediate evaluation of noun phrase
+representations, allowing us to be economic with representation itself, 
+inference of some basic syntactic categories from the context, a treatment
+of nouns as proper nouns, easy extensibility within the same language
+as well as into other natural languages. We shall examine each of these 
+features in turn, after describing our natural language coverage. 
+
+<p>
+It is interesting that the use of these features results in a 
+completely deterministic parser (no backtrack).
+
+<p>
+      <H3><A NAME="tth_sEc3.1">
+3.1</A>&nbsp;&nbsp;Language coverage</H3>
+
+<p>
+Since LogiMOO handles mostly commands, outermost sentences will be
+imperative sentences. In these, the subject (the avatar that the user
+is controlling) is usually left implicit (notice however that embedded
+sentences, such as relative clauses, are descriptive rather than
+imperative, and therefore do include a subject). The user first enters
+a set of imperative subjectless sentences, and this input is sent
+through the parser to be converted into LogiMOO kernel predicates
+which are then executed to complete the actions.  Verbs in the LogiMOO
+environment represent actions that can take place in the virtual
+world.
+
+<p>
+Because they are in imperative form, with their
+subject left implicit, LogiMOO sentences reduce to verb phrases, which can be
+of the following forms:
+
+<p>
+<em>
+<blockquote>        An intransitive verb. <br>
+        A transitive verb followed by a noun. <br>
+        A transitive verb followed by a noun phrase. <br>
+        A transitive verb followed by a prepositional phrase. <br>
+        A bitransitive verb followed by two noun phrases. <br>
+        A bitransitive verb followed by a noun phrase and a prepositional phrase.
+</blockquote>
+<p>
+</em> A prepositional phrase is defined as 
+ 
+<p>
+<em>
+<blockquote>        A preposition followed by a noun phrase.
+</blockquote>
+<p>
+</em> The noun phrase forms allowed are
+ 
+<p>
+<em>
+<blockquote>        A proper name. <br>
+        A pronoun (anaphora). <br>
+        A determiner followed by a noun.
+</blockquote>
+<p>
+</em> In addition, we identify communication inputs which occur when a user
+wants his/her avatar to say, whisper or yell some message, e.g.,
+ 
+<p>
+<em>
+<blockquote>        say hi how are you.
+</blockquote>
+<p>
+</em>This form of input is introduced by either:
+ 
+<p>
+<em>
+<blockquote>        The word <em>whisper</em> followed by a prepositional phrase followed by a message. <br>
+        The word <em>say</em> followed by a message. <br>
+        The word <em>yell</em> followed by a message.
+</blockquote>
+<p>
+</em> Table&nbsp;<A href="#sampleparses">1</A> shows some sample parses. 
+
+<p>
+
+<p><A NAME="tth_tAb1">
+</A> 
+<TaBle border>
+<tr><td><b>NL Input</b> </td><td><b>Translation</b> </td><td><b>LogiMOO action</b> </td><tr><td>
+<tr><td>look. </td><td><tt>look.</tt> </td><td>Provides a description of the room the</td>
+<tr><td></td><td></td><td>users avatar currently occupies. </td>
+<tr><td>craft a car. </td><td><tt>craft(car).</tt> </td><td>Creates a virtual object, car, owned </td>
+<tr><td></td><td></td><td>by the avatar. </td>
+<tr><td>craft a car. </td><td><tt>craft(car),</tt> </td><td>Creates a virtual object, car, and gives it to</td>
+<tr><td>give it to john. </td><td><tt>give(john, car).</tt> </td><td>john. </td>
+<tr><td>take the car      </td><td><tt>take(car).</tt>      </td><td>Puts a car object crafted by john into </td>
+<tr><td>that john crafted. </td><td></td><td>the avatar's possession. </td>
+<tr><td></td><td></td><td></td></TaBle>
+ <br>
+
+<p>
+ <center>      Table 1: Sample Parses<A NAME="sampleparses">
+</A></center>
+<p>
+<p>
+Notice that the last command in the table produces the name (i.e., <em>car</em>) which designates
+the object referred to by the noun
+phrase. This name is obtained by consulting the world knowledge to
+get the name of the
+car that John crafted. Ambiguity regarding which car is meant among
+several in the world is avoided because the same name invoked by a different
+user, or by the same user in a different room,  has a different  
+representation internally. If, however, the user wants to craft more than one
+car in the same room, each should be differently designated in the
+command list (e.g., craft car1, give it to wizard, craft car2,
+give it to Stephen).
+
+<p>
+      <H3><A NAME="tth_sEc3.2">
+3.2</A>&nbsp;&nbsp;Handling Dynamic Knowledge</H3>
+
+<p>
+Because virtual worlds are eminently constructive, their dynamic 
+changes must be accommodated in a flexible yet discriminatory
+manner. For instance, we must distinguish between <em>static knowledge</em>,
+i.e. world knowledge
+that exists before a user's sequence of world-changing commands, and 
+<em>dynamic knowledge</em>, i.e. the new knowledge that results from 
+those commands, since these may in some cases be tentative and subject
+to revision.
+
+<p>
+Static knowledge is obtained previous to the parsing of a sequence of
+natural language commands, through a small Prolog program which stores
+the current state of the world in predicates such as <tt>is_avatar(X),
+is_crafted(X)</tt>, etc.
+
+<p>
+Dynamic knowledge is created by execution of a natural language command,
+and described with the aid of the same predicates as static knowledge,
+but these are put on a blackboard instead of simply extending the
+static world knowledge. Once the complete series of a user's commands
+has been executed, with later commands possibly having revised the 
+results of previous commands in the same interaction, the resulting 
+blackboard information is made available to be used in the next iteration,
+for gathering the state of the world before the next sequence of natural
+language commands.
+
+<p>
+      <H3><A NAME="tth_sEc3.3">
+3.3</A>&nbsp;&nbsp;Multisentential Anaphoric Reference</H3>
+
+<p>
+Our system maintains yet another type of knowledge- <em>hypothetical
+knowledge</em>, accessible only
+by the parser, which helps it decide what parts of speech
+should be related. In particular, the knowledge that noun phrases are potential referents
+of an anaphora is kept through linear assumptions which
+are consumed upon encountering, for instance, a pronoun which might 
+refer to the noun phrase hypothesized as a referent. For
+example,  while analyzing the sequence of commands: ``Craft a flower,
+ give it to John'', the parser hypothesizes that ``flower'' might turn out
+to be the
+referent of some pronoun appearing somewhere in the rest of the discourse, and upon
+ encountering
+``it'', the right object (namely, ``flower'') is associated with this
+pronoun. 
+Although not shown above, gender and number information is also useful to check compatibility 
+between a potential referent and an anaphora. A more complete analysis of
+anaphoric resolution through Assumption Grammars can be found in
+[<a href="#DT97:AGNL" name=CITEDT97:AGNL>10</a>]. 
+
+<p>
+      <H3><A NAME="tth_sEc3.4">
+3.4</A>&nbsp;&nbsp;Language Extensibility</H3>
+
+<p>
+
+<b>Within the same language&nbsp;&nbsp;</b>
+
+<p>
+Our goal of language extensibility comes from the need to dynamically
+introduce new concepts into the world, and with them, new vocabulary in
+the analyzer. For instance, ``craft a gnu'' must be accepted even if
+no gnus exist in the virtual world yet, and no corresponding entry
+exists in the lexicon.
+
+<p>
+For this reason, our parser recognizes a noun from its context in
+the sentence rather than from any lexical definition. Adjectives can be 
+treated similarly, by requiring them to be used in controlled fashion, 
+e.g. within relative clauses, as in ``a car that is red'', so that
+the parser can infer adjectival function unequivocally from the 
+word's position as an attribute. Note that since the world is described
+in terms of physical metaphors, adjectives will refer to such properties
+as color, shape, position, etc., and statements about them will in general
+be conditionless clauses (facts).
+
+<p>
+Allowing verbs to be inferred from context is more difficult. The
+syntactic definition part of defining new verbs can be done by
+example, i.e. by gleaning from the user information re. number of
+arguments from similarity with other proposed sample verbs, on which
+the user would have to just click (e.g., ``smile'' as a sample
+intransitive verb, ``look'' as a sample transitive verb, ``give'' as a
+sample bitransitive verb, etc.). This allows user-friendliness by not
+requiring the user to handle syntactic notions such as ``transitive''
+or ``intransitive'', but instead leaving it to our interface to
+invisibly replicate a similar lexical definition from the analogy with
+existing sample words. But the predicates obtained from verbs as a
+result of parsing cannot simply translate into a constant (as for most
+nouns) or a unary predicate (as for most adjectives), since in
+general, they must translate into n-ary predicates corresponding to
+actions, and the verb being a new one, these actions can in general
+require description through full Prolog clauses. Our present solution
+is to require the user to provide a Prolog definition of the new
+command that the new verb refers to. Future work will investigate
+higher level solutions to this problem.
+
+<p>
+Of course, we can think of extending a grammar with
+other types of words than nouns, verbs and adjectives. However, we
+have chosen to focus on just these categories because they are the
+most likely to be application-dependent, and because in the case of
+verbs, they are the ones
+that will induce corresponding new LogiMOO commands.
+
+<p>
+
+<b>Extensibility to other natural languages&nbsp;&nbsp;</b>
+
+<p>
+Given that we  accept  only controlled language, and that some 
+words, such as nouns and adjectives, do not need to be explicitly
+defined in a lexicon, but are inferred by the system from their first use
+in a command, we have a simple
+way of adapting our English analyzer into other languages.
+
+<p>
+In order to parameterize the language, we record which language we are using
+in the call, by means of an intuitionistic implication, e.g.:
+
+<p>
+<font size="-1">
+<pre>
+?- language(spanish)=&#62;parse([susurra,al,brujo]).
+</pre></font>
+
+<p>
+Lexical items will then be specialized according to the language, and will
+still induce an English-based semantic representation. 
+ 
+<p>
+In order to explain how our rules do this, let us first observe that
+ there are two types of rules in the English grammar which are
+ language dependent:
+
+<p>
+
+<UL> 
+<li> rules that create a predicate name which is reminiscent of the noun, verb
+ or adjective from which they are derived,
+ 
+<p>
+
+<li> rules containing a lexical item (i.e., a symbol preceded by <tt>'#'</tt>).
+</UL>
+<p>
+ For rules of the first type, we shall maintain the English predicate name
+regardless of the language of origin, as a kind of interlingua allowing
+us to go from one language to another.
+ 
+<p>
+ For rules of the second type, we replace <tt>'#native_word'</tt> by 
+<tt>'@english_word'</tt>), as in:
+
+<p>
+<font size="-1">
+<pre>
+  
+ verb(give(X,Y)):- @give.
+ 
+</pre></font>
+
+<p>
+and then we define an English and alternative lexicons as follows: 
+<font size="-1">
+<pre>
+  
+ %English lexicon:     		   % Spanish lexicon:
+
+ @give:- #give, -english.	   @give:-  #de, -spanish.
+ 
+</pre></font>
+
+<p>
+Notice that the language we're at is checked <em>after</em> the corresponding
+word is found. This is to ensure speed, since in this way, the word to be parsed
+will be recognized right away. In generation mode, we might want to switch
+the order around.
+
+<p>
+ Of course, more realistically, we will need features such as gender and number
+ in order to produce the right words in each language. For instance, whereas
+ in English we have only one lexical form for the definite article, whether it
+ is singular, plural, feminine or masculine, in Spanish we have four
+ different lexical items covering all these forms.
+
+<p>
+      <H3><A NAME="tth_sEc3.5">
+3.5</A>&nbsp;&nbsp;Immediate Evaluation</H3>
+
+<p>
+Commands get processed, as we saw, after their translation into
+formulas from their natural language expression. These formulas are
+conjunctions of actions expressed as predicates, whose arguments are
+constants representing objects, people, places, etc. These constants
+are produced by evaluating noun phrases on the fly during the
+parse. In other words, instead of generating a formula to represent a
+noun phrase, its components will be evaluated right away to generate a
+constant satisfying the noun phrase's description. For instance, if
+the command sequence is that of the two last sentences shown in table
+1, parsing of ``the car that john crafted'' will directly produce
+``car'' (the constant representing the entity that john crafted)
+rather than a descriptive formula such as ``<tt>crafted(john,X),
+is_a(X,car)</tt>''.
+
+<p>
+      <H3><A NAME="tth_sEc3.6">
+3.6</A>&nbsp;&nbsp;Treatment of nouns</H3>
+
+<p>
+Because our system translates a noun into a constant
+with same name, our treatment of nouns can be viewed as similar
+to that of proper names.  As
+mentioned earlier, internally a distinction will be made between cars
+crafted by different users or by the same user in different rooms, but
+when the same user wants to refer to two distinct noun referents in the
+same room, a different noun name must be used for each, e.g. ``car1''
+and ``car2''. Thus ambiguity is dealt with automatically without needing
+to resort to the explicit construction of internal unique identifiers
+for each object as is the case in many other systems. This makes object
+referencing very direct and allows us to proceed to the immediate evaluation
+of noun phrases described in the previous section. The resulting formulas are therefore
+simpler.
+
+<p>
+Adjectives can also be recognized by context, as explained earlier, 
+but will generate a predicate (e.g., red(X) from the adjective ``red'')
+rather than a constant. This predicate, as we have seen, will evaluate
+immediately rather than being inserted into the formula being constructed.
+
+<p>
+        <H2><A NAME="tth_sEc4">
+4</A>&nbsp;&nbsp;Related work</H2>
+
+<p>
+ Recent logic-based web applications have been presented at 
+[<a href="#sclara97" name=CITEsclara97>15</a>,<a href="#lpnet96" name=CITElpnet96>37</a>,<a href="#lpnet97" name=CITElpnet97>39</a>].
+
+<p>
+A survey of  logic programming approaches to web applications in terms
+of the usual classification into client-based systems, 
+server-side systems, and peer-to-peer systems has 
+been provided in  [<a href="#loke98" name=CITEloke98>22</a>]. 
+Client-side systems [<a href="#loke98" name=CITEloke98>22</a>,<a href="#lpnet96:cabeza" name=CITElpnet96:cabeza>6</a>,<a href="#lpnet96:eclipse" name=CITElpnet96:eclipse>4</a>] offer more sophisticated user interfaces than server-side ones, and avoid networking programs
+that can affect server-side applications. They include HTML extensions
+to incorporate Prolog code, support libraries for web applications, 
+Java integration with Prolog, logic-based web querying languages 
+(Weblog [<a href="#laks96" name=CITElaks96>19</a>]) W-ACE [<a href="#pontelli97" name=CITEpontelli97>27</a>]). 
+Some server-side systems use libraries which enable Prolog programs to process information from CGI
+input and generate suitable replies.Others use sockets for communication between the invoked
+CGI interface scripts and the task process or a higher-level communication layer based on active modules
+(PiLLoW/CIAO [<a href="#lpnet96:cabeza" name=CITElpnet96:cabeza>6</a>]). 
+The main problems include the possibility of network load
+failures and of server overload, how to support multiple
+queries on a shared resource, and how to deal with lengthy browser
+interactions. A logic-programming related difficulty is how to deal
+with backtracking to a previous stage in the user interaction.
+Still other server-side systems completely replace the traditional
+web server by software which combines the functionality of a server with
+the particular task (e.g. the ECLiPse HTTP server library [<a href="#lpnet96:eclipse" name=CITElpnet96:eclipse>4</a>]).
+
+<p>
+Peer-to-peer systems (e.g. [<a href="#april95" name=CITEapril95>24</a>] 
+LogicWeb [<a href="#loke98" name=CITEloke98>22</a>]) use
+other abstractions (message passing or blackboards) but retain the
+Internet as their underlying communication layer. This allows them
+to implement multi-agent systems, where all participants must 
+communicate on equal terms, bypassing the intrinsic inequality of
+the client/server model. Our present work fits within this category.
+
+<p>
+We are not aware of other systems using logic programming for virtual
+world simulation, although a large number of sophisticated Web-based
+applications and tools have been implemented in LP/CLP
+languages, for
+instance&nbsp;[<a href="#ch_html" name=CITEch_html>5</a>,<a href="#ld_www" name=CITEld_www>21</a>,<a href="#lpnet96:cabeza" name=CITElpnet96:cabeza>6</a>,<a href="#lpnet96:eclipse" name=CITElpnet96:eclipse>4</a>,<a href="#lpnet96:multiple" name=CITElpnet96:multiple>31</a>,<a href="#lpnet96:light" name=CITElpnet96:light>20</a>].
+The closest application with a clear virtual world flavor is the
+Ubique Doors (tm) server&nbsp;[<a href="#shapiro94:WWW" name=CITEshapiro94:WWW>28</a>] which shows (Flat
+Concurrent) Prolog lists in log files although we do not know
+ exactly how closely it is based on LP
+technology.  This server, combined with the Sesame (tm) client
+emulates co-presence and cooperative work at virtual places
+implemented on top of existing Web pages and ftp directories.  On the
+other hand applications of MOO technology usually combined with VRML
+navigation are spreading quite fast. Among them, some of the most
+impressive are:
+
+<p>
+
+<UL>
+<li> Sony's Cyber Passage, <tt>http://vs.sony.co.jp/VS-E/vstop.html</tt>, 
+
+<li> Black Sun's
+CyberGate, <tt>http://www2.blacksun.com/beta/c-gate</tt>,
+
+<li> Netscape's CoolTalk+Live3D/CosmoPlayer, <tt>http://home.netscape.com</tt>, 
+
+<li> Worlds Inc.'s WorldChat, <tt>http://www.worlds.net</tt>,
+
+<li> Intel's Moondo, <tt>http://www.intel.com/iaweb/moondo</tt>, 
+
+<li> SenseMedia's
+The Sprawl, <tt>http://sensemedia.net/sprawl</tt>.
+</UL>
+<p>
+ Moreover, other declarative languages are starting to be
+used for WWW applications.  The Carnegie Mellon FoxNET
+project&nbsp;[<a href="#fox" name=CITEfox>16</a>] implements a full featured Web server. 
+Microsoft's Active
+VRML proposal promises a declarative (purely functional) description
+of 3D movement and behavior.
+
+<p>
+We have not yet found any MUD/MOO environments that handle NL
+processing.  Other MUD/MOO environments fall into two general
+categories.  Environments such as <em>Moondo</em> by Intel&nbsp;[<a href="#moondo" name=CITEmoondo>18</a>],
+<em>CyberGate</em> by BlackSun&nbsp;[<a href="#cybergate" name=CITEcybergate>3</a>], and <em>Cyber Passage</em> by
+Sony&nbsp;[<a href="#cyberpassage" name=CITEcyberpassage>29</a>], fall into the category of point and click
+graphical environments.  These completely avoid the need for NL
+processing as the only text involved seems to be that for chatting
+with other avatars.  All movement and actions are completed with mouse
+point and click actions.  The second category, in which environments
+such as MediaMOO&nbsp;[<a href="#mediamoo" name=CITEmediamoo>2</a>] and the Avalon MUD&nbsp;[<a href="#avalon" name=CITEavalon>1</a>] fall
+into, are text-based systems.  These systems lack NL processing and
+focus on the use of pattern matching techniques to gather information.
+ 
+<p>
+Further, there is little work being done that is specific to the
+advantages gained by connecting MUDs/MOOs to the World Wide Web using
+logic programming such as the use of Prolog.  As such, objects in
+LogiMOO are represented as hyper-links (URLs) towards their owners'
+home pages where their native representation actually resides in
+various formats (HTML, VRML, GIF, JPEG, etc.).  At the same time,
+logic programming adds deductive database facilities in a uniform
+framework, hypothetical reasoning tools (through Assumption Grammars),
+and logic programming data and code use the same representation which
+makes meta-programming easy.
+
+<p>
+Virtual Worlds technologies pioneered
+by&nbsp;[<a href="#cybergate" name=CITEcybergate>3</a>,<a href="#moondo" name=CITEmoondo>18</a>,<a href="#cyberpassage" name=CITEcyberpassage>29</a>,<a href="#alphaworld" name=CITEalphaworld>40</a>] are becoming part
+of standard setting applications like Netscape Communicator or
+Internet Explorer. Most of them concentrate on the interaction
+metaphor and/or visualization without a principled approach to the
+underlying coordination logic.  
+
+<p>
+Compared to other currently known MUD/MOO environments, this interface
+bridges the gap between those that are graphical based and those that
+are pattern matching based.  By filling the gap, we are able to
+provide the users with a natural form of textual interaction on which
+graphical environments can still be built.
+
+<p>
+Although the current interaction is controlled completely through the
+natural language interface, this does restrict efficiency of
+maneuvering an avatar through the virtual worlds.  
+
+<p>
+Multi-user blackboard systems have been described in [<a href="#Cia93a" name=CITECia93a>8</a>,<a href="#dbt95a" name=CITEdbt95a>12</a>].
+Among the original features of LogiMOO's multi-user blackboards are
+multi-threading and interoperation with Web protocols (httpd).
+BinProlog is not the only Prolog featuring blackboard processing.
+Commercial systems like SICStus Prolog also contain Linda subsystems.
+This makes the LogiMOO architecture fairly portable.
+
+<p>
+        <H2><A NAME="tth_sEc5">
+5</A>&nbsp;&nbsp;Future work</H2>
+
+<p>
+A Java based implementation, using a minimal set of logic programming
+components (unification, associative search) is on its way. It will be
+integrated in the existing LogiMOO framework on the server side. It
+holds promise for smooth cooperation with existing Java class
+hierarchies as well as various BinProlog based LogiMOO components.
+
+<p>
+This reimplementation of LogiMOO uses Jinni [<a href="#T98:Jinni" name=CITET98:Jinni>34</a>],
+a new, lightweight, pure logic programming language, intended to be used as a flexible scripting tool for gluing together knowledge processing components and Java objects in networked client/server applications and thin client environments. 
+By supporting multiple threads, control mobility and inference processing, Jinni is well suited for quick prototyping of intelligent mobile agent programs. 
+
+<p>
+It allows bidirectional communication with the existing LogiMOO framework, allowing creation
+of combined Java/Prolog mobile-agent programs. In particular, Java
+applets can be used as front-end in browsers instead of the more
+resource consuming CGIs LogiMOO is currently based on.  It holds
+promise for smooth cooperation with existing Java class hierarchies as
+well as various BinProlog based LogiMOO components.
+
+<p>
+Intelligence and flexible metaprogramming on the logic programming
+side combined with visualization and WWW programming abilities on the
+Java side will allow easy component integration in various concrete
+containers.
+
+<p>
+The LogiMOO system is currently being used in teaching
+to introduce basic concepts of distributed programming and as a testbed
+for LogiMOO based virtual communities.  
+Future directions are to include LogiMOO as a tool for
+virtual tele-education where distance education students and
+instructors may use LogiMOO as a teaching/learning environment.
+
+<p>
+With respect to the natural language processing component, the next
+logical step is the use speech recognition in order to interact
+with LogiMOO and other interoperable components
+running under Netscape as, for instance, VRML plugins.
+As we proceed with Jinni's interfacing with Microsoft Agent,
+LogiMOO will benefit from spoken input/output via the underlying
+implementation layer. 
+
+<p>
+There is presently a growing interest in enhancing the web's role as a 
+universal repository of information by adding computational content to it. 
+A common example of <em>active pages</em> have form based
+submission mechanisms (the user invokes programs on remote hosts by 
+submitting information via a form document). 
+
+<p>
+The web itself is evolving into a stateful new model consisting of a set of connected MOOs.  Under this model, our present methodologies
+for Prolog-based natural language interaction within a LogiMOO world can be 
+extended for controlling the web itself through natural language.
+
+<p>
+        <H2><A NAME="tth_sEc6">
+6</A>&nbsp;&nbsp;Conclusion</H2>
+
+<p>
+We have shown that Prolog with appropriate coordination language
+extensions is a practical tool for virtual world simulation.
+A synergy between MOOs, Linda-style coordination
+and Prolog's powerful associative search and dynamic object
+creation facilities could be expected.
+Multi-BinProlog's threads and virtual blackboards
+make this synergy possible.
+A logic programming approach to MOO programming has the advantage
+of having all the right tools within a unified environment.
+Embedding in Netscape ensures implicit platform independence
+of our server and seamless cooperation with present
+and future third party Netscape tools.
+
+<p>
+We have also presented a natural language interface to LogiMOO which takes a controlled
+form of English and translates it into LogiMOO kernel predicates which
+are executed as actions in the virtual environment.  Pronominal
+references in multisentential input are allowed. Extensibility within
+the same language is achieved by inferring new nouns and adjectives from
+their context in the sentences, and by a dialogue with the user that
+allows new verbs and their corresponding LogiMOO actions to be described
+in a user-friendly way. Extensibility into different natural 
+languages is obtained
+not through the usual machine translation approach, but by abstracting a 
+core set of language independent rules from our English parser and then 
+adding a language specific lexicon 
+(currently available for English, French, Spanish) to complete the
+grammar definition. A simple change of one lexicon module into another effects
+the language change invisibly, so that users across the world can type in
+their interactions in their own language, these are recorded in a neutral
+but invisible form, from which any retrieval continues to respect the language
+of the caller.
+
+<p>
+ 
+<H2>Acknowledgments</H2>
+
+<p>
+We thank the anonymous referees for their suggestions and constructive
+criticism.
+Special thanks go to Daniel Perron
+for long discussions that helped to come up with the initial idea of
+LogiMOO and useful comments during the development of the project.
+
+<p>
+<H2>References</H2>
+<DL compact>
+
+<p>
+<dt>[<a href="#CITEavalon" name=avalon>1</a>]</dt><dd>
+The Avalon MUD.
+ http://www.avalon-rpg.com/.
+
+<p>
+<dt>[<a href="#CITEmediamoo" name=mediamoo>2</a>]</dt><dd>
+MediaMOO.
+ telnet://guest@purple-crayon.media.mit.edu:8888/.
+
+<p>
+<dt>[<a href="#CITEcybergate" name=cybergate>3</a>]</dt><dd>
+BlackSun.
+ CyberGate.
+ http://www.blaxxsun.com/.
+
+<p>
+<dt>[<a href="#CITElpnet96:eclipse" name=lpnet96:eclipse>4</a>]</dt><dd>
+Ph. Bonnet, L.&nbsp;Bressnan&nbsp;S., Leth, and B.&nbsp;Thomsen.
+ Towards ECLIPSE Agents on the Internet.
+ In Tarau et&nbsp;al. [<a href="#lpnet96" name=CITElpnet96>37</a>].
+ http://clement.info.umoncton.ca/&nbsp;lpnet.
+
+<p>
+<dt>[<a href="#CITEch_html" name=ch_html>5</a>]</dt><dd>
+D.&nbsp;Cabeza and M.&nbsp;Hermenegildo.
+ html.pl: A HTML Package for (C)LP systems.
+ Technical report, 1996.
+ Available from http://www.clip.dia.fi.upm.es.
+
+<p>
+<dt>[<a href="#CITElpnet96:cabeza" name=lpnet96:cabeza>6</a>]</dt><dd>
+D.&nbsp;Cabeza and M.&nbsp;Hermenegildo.
+ The Pillow/CIAO Library for Internet/WWW Programming
+  using Computational Logic Systems.
+ In Tarau et&nbsp;al. [<a href="#lpnet96" name=CITElpnet96>37</a>].
+ http://clement.info.umoncton.ca/&nbsp;lpnet.
+
+<p>
+<dt>[<a href="#CITElinda89" name=linda89>7</a>]</dt><dd>
+N.&nbsp;Carriero and D.&nbsp;Gelernter.
+ Linda in context.
+ <em>CACM</em>, 32(4):444-458, 1989.
+
+<p>
+<dt>[<a href="#CITECia93a" name=Cia93a>8</a>]</dt><dd>
+P.&nbsp;Ciancarini.
+ Coordinating Rule-Based Software Processes with ESP.
+ <em>ACM Transactions on Software Engineering and Methodology</em>,
+  2(3):203-227, 1993.
+
+<p>
+<dt>[<a href="#CITECia94b" name=Cia94b>9</a>]</dt><dd>
+P.&nbsp;Ciancarini.
+ Distributed Programming with Logic Tuple Spaces.
+ <em>New Generation Computing</em>, 12(3):251-284, May 1994.
+
+<p>
+<dt>[<a href="#CITEDT97:AGNL" name=DT97:AGNL>10</a>]</dt><dd>
+Veronica Dahl, Paul Tarau, and Renwei Li.
+ Assumption Grammars for Processing Natural Language.
+ In Lee Naish, editor, <em>Proceedings of the Fourteenth
+  International Conference on Logic Programming</em>, pages 256-270, MIT press,
+  1997.
+
+<p>
+<dt>[<a href="#CITEkdb93d" name=kdb93d>11</a>]</dt><dd>
+K.&nbsp;De&nbsp;Bosschere and P.&nbsp;Tarau.
+ Blackboard Communication in Logic Programming.
+ In <em>Proceedings of the PARCO'93 Conference</em>, pages 257-264,
+  Grenoble, France, September 1993.
+
+<p>
+<dt>[<a href="#CITEdbt95a" name=dbt95a>12</a>]</dt><dd>
+K.&nbsp;De&nbsp;Bosschere and P.&nbsp;Tarau.
+ Blackboard-based Extensions in Prolog.
+ <em>Software - Practice and Experience</em>, 26(1):49-69, January
+  1996.
+
+<p>
+<dt>[<a href="#CITEkdb93c" name=kdb93c>13</a>]</dt><dd>
+Koen De&nbsp;Bosschere and J.-M. Jacquet.
+ Multi-Prolog: Definition, Operational Semantics and
+  Implementation.
+ In <em>Proceedings of the ICLP'93 conference</em>, Budapest, Hungary,
+  1993.
+
+<p>
+<dt>[<a href="#CITEDPT96:PAP" name=DPT96:PAP>14</a>]</dt><dd>
+Koen De&nbsp;Bosschere, Daniel Perron, and Paul Tarau.
+ LogiMOO: Prolog Technology for Virtual Worlds.
+ In <em>Proceedings of PAP'96</em>, pages 51-64, London, April 1996.
+
+<p>
+<dt>[<a href="#CITEsclara97" name=sclara97>15</a>]</dt><dd>
+A.&nbsp;Eliens, editor.
+ <em>Proceedings of the Workshop on logic programming and the Web</em>,
+  Santa Clara, California, April 1997.
+
+<p>
+<dt>[<a href="#CITEfox" name=fox>16</a>]</dt><dd>
+Robert Harper and Peter Lee.
+ Advanced Languages for Systems Software.
+ Technical report, 1994.
+ CMU-CS-FOX-94-01.
+
+<p>
+<dt>[<a href="#CITEportico" name=portico>17</a>]</dt><dd>
+General&nbsp;Magic Inc.
+ Portico.
+ 1998.
+ http://www.genmagic.com/portico/portico.html.
+
+<p>
+<dt>[<a href="#CITEmoondo" name=moondo>18</a>]</dt><dd>
+Intel.
+ Moondo.
+ http://www.intel.com/iaweb/moondo/index.htm.
+
+<p>
+<dt>[<a href="#CITElaks96" name=laks96>19</a>]</dt><dd>
+Lakshmanan, L. V. S. and Sadri, F. and Subramanian, I.N.
+ A Declarative Language for Querying and Restructuring the WWW.
+ In <em>Proc. of the Post-ICDE IEEEWorkshop on Research Issues in
+  Data Engineering</em>, feb 1996.
+
+<p>
+<dt>[<a href="#CITElpnet96:light" name=lpnet96:light>20</a>]</dt><dd>
+S.&nbsp;W. Locke, A.&nbsp;Davison, and Sterling L.
+ Lightweight Deductive Databases for the World-Wide Web.
+ In Tarau et&nbsp;al. [<a href="#lpnet96" name=CITElpnet96>37</a>].
+ http://clement.info.umoncton.ca/&nbsp;lpnet.
+
+<p>
+<dt>[<a href="#CITEld_www" name=ld_www>21</a>]</dt><dd>
+S.&nbsp;W. Loke and A.&nbsp;Davison.
+ Logic programming with the world-wide web.
+ In <em>Proceedings of the 7th ACM Conference on Hypertext</em>, pages
+  235-245. ACM Press, 1996.
+
+<p>
+<dt>[<a href="#CITEloke98" name=loke98>22</a>]</dt><dd>
+Seng&nbsp;Wai Loke.
+ <em>Adding Logic Programming Behaviour to the World Wide Web</em>.
+ Phd thesis, University of Melbourne, Australia, 1998.
+
+<p>
+<dt>[<a href="#CITELud92" name=Lud92>23</a>]</dt><dd>
+J.&nbsp;Ludewig.
+ Problems in Modeling the Software Development Process as an
+  Adventure Game.
+ In H.&nbsp;Rombach, V.&nbsp;Basili, and R.&nbsp;Selby, editors, <em>Int. Workshop
+  on Experimental Sw Engineering Issues</em>, volume 706, pages 23-26, Dagsthul,
+  Germany, Sept 1992. Springer.
+
+<p>
+<dt>[<a href="#CITEapril95" name=april95>24</a>]</dt><dd>
+McCabe, F.G. and Clark, K.L.
+ April- Agent Process Interaction Language.
+ In <em>Intelligent Agents, (LNAI 890)</em>. Springer-Verlag, 1995.
+
+<p>
+<dt>[<a href="#CITEMBH95" name=MBH95>25</a>]</dt><dd>
+T.&nbsp;Meyer, D.&nbsp;Blair, and S.&nbsp;Hader.
+ WAXweb: a MOO-based collaborative hypermedia system for WWW.
+ <em>Computer Networks and ISDN Systems</em>, 28(1/2):77-84, 1995.
+
+<p>
+<dt>[<a href="#CITEmsagent" name=msagent>26</a>]</dt><dd>
+MicrosoftCorp.
+ Microsoft Agent.
+ 1998.
+ http://www.microsoft.com/msagent/agentdl.asp/.
+
+<p>
+<dt>[<a href="#CITEpontelli97" name=pontelli97>27</a>]</dt><dd>
+Pontelli, E. and Gupta, G.
+ W-ACE: A Logic Language for Intelligent Internet Programming.
+ In <em>Proc. of IEEE 9th ICTAI'97</em>, pages 2-10, 1997.
+
+<p>
+<dt>[<a href="#CITEshapiro94:WWW" name=shapiro94:WWW>28</a>]</dt><dd>
+Ehud Shapiro.
+ Enhancing the WWW with Co-Presence.
+ In <em>Proceedings of the 2nd International Conference on the WWW</em>,
+  1994.
+
+<p>
+<dt>[<a href="#CITEcyberpassage" name=cyberpassage>29</a>]</dt><dd>
+Sony.
+ Cyber Passage.
+ http://vs.sony.co.jp/VS-E/vstop.html.
+
+<p>
+<dt>[<a href="#CITEStam90" name=Stam90>30</a>]</dt><dd>
+J.&nbsp;W. Stamos and D.&nbsp;K. Gifford.
+ Remote Evaluation.
+ <em>ACM Transaction on Programming Languages and Systems</em>,
+  12(4):537-565, October 1990.
+
+<p>
+<dt>[<a href="#CITElpnet96:multiple" name=lpnet96:multiple>31</a>]</dt><dd>
+Peter Szeredi, Katalin Moln&#225;r, and Rob Scott.
+ Serving Multiple HTML Clients from a Prolog Application.
+ In Tarau et&nbsp;al. [<a href="#lpnet96" name=CITElpnet96>37</a>].
+ http://clement.info.umoncton.ca/&nbsp;lpnet.
+
+<p>
+<dt>[<a href="#CITEinap96" name=inap96>32</a>]</dt><dd>
+Paul Tarau.
+ Logic Programming and Virtual Worlds.
+ In <em>Proceedings of INAP96</em>, Tokyo, November 1996.
+ keynote address.
+
+<p>
+<dt>[<a href="#CITETarau97:BinProlog" name=Tarau97:BinProlog>33</a>]</dt><dd>
+Paul Tarau.
+ BinProlog 5.75 User Guide.
+ Technical Report 97-1, D&#233;partement d'Informatique, Universit&#233;
+  de Moncton, April 1997.
+ Available from <em>http://clement.info.umoncton.ca/BinProlog</em>.
+
+<p>
+<dt>[<a href="#CITET98:Jinni" name=T98:Jinni>34</a>]</dt><dd>
+Paul Tarau.
+ Jinni: a Lightweight Java-based Logic Engine for Internet
+  Programming.
+ In Kostis Sagonas, editor, <em>Proceedings of JICSLP'98
+  Implementation of LP languages Workshop</em>, Manchester, U.K., June 1998.
+ invited talk.
+
+<p>
+<dt>[<a href="#CITETD98:mobile" name=TD98:mobile>35</a>]</dt><dd>
+Paul Tarau and Veronica Dahl.
+ Mobile Threads through First Order Continuations.
+ In <em>Proceedings of APPAI-GULP-PRODE'98</em>, Coruna, Spain, July
+  1998.
+
+<p>
+<dt>[<a href="#CITETDBwetice:97" name=TDBwetice:97>36</a>]</dt><dd>
+Paul Tarau, Veronica Dahl, and Koen De&nbsp;Bosschere.
+ A Logic Programming Infrastructure for Remote Execution,
+  Mobile Code and Agents.
+ In <em>Proceedings of WETICE'97</em>, pages 106-112, IEEE Computer
+  Society Press, June 1997.
+
+<p>
+<dt>[<a href="#CITElpnet96" name=lpnet96>37</a>]</dt><dd>
+Paul Tarau, Andrew Davison, Koen De&nbsp;Bosschere, and Manuel Hermenegildo,
+  editors.
+ <em>Proceedings of the 1st Workshop on Logic Programming Tools for
+  INTERNET Applications</em>, JICSLP'96, Bonn, September 1996.
+ http://clement.info.umoncton.ca/&nbsp;lpnet.
+
+<p>
+<dt>[<a href="#CITElpnet96:virtual" name=lpnet96:virtual>38</a>]</dt><dd>
+Paul Tarau and Koen De&nbsp;Bosschere.
+ Virtual World Brokerage with BinProlog and Netscape.
+ In Tarau et&nbsp;al. [<a href="#lpnet96" name=CITElpnet96>37</a>].
+ http://clement.info.umoncton.ca/&nbsp;lpnet.
+
+<p>
+<dt>[<a href="#CITElpnet97" name=lpnet97>39</a>]</dt><dd>
+Paul Tarau, Koen De&nbsp;Bosschere, and Manuel Hermenegildo, editors.
+ <em>Proceedings of the 2nd International Workshop on Logic
+  Programming Tools for INTERNET Applications</em>, ICLP'97, Leuven, July 1997.
+ http://clement.info.umoncton.ca/&nbsp;lpnet.
+
+<p>
+<dt>[<a href="#CITEalphaworld" name=alphaworld>40</a>]</dt><dd>
+Worlds.
+ AlphaWorld.
+ http://www.worlds.net/products/alphaworld.
+
+<p>
+</DL>
+<H2>Appendix</H2>
+
+<p>
+
+<H2>CGIs by example</H2>
+
+<p>
+CGI (common Gate Interface) allows HTTP servers to call an external program
+and display its output as a Web page.
+BinProlog has some built-in facilities which make CGI-programming
+easy. The following shows a simple Web page access counter.
+
+<p>
+<font size="-1">
+<pre>
+main:-header,inc(X),show_counter(X).
+
+header:-
+  write('220 ok'),nl,
+  write('content-type: text/html'),nl,nl.
+
+show_counter(X):-write(counter(X)),write('.'),nl.
+
+inc(X):-F='/tmp/counter_state.pro',
+  ( see_or_fail(F)-&#62; see(F),read(counter(X)),seen
+  ; X=0
+  ),X1 is X+1,
+  tell(F),show_counter(X1),told.
+</pre></font>
+
+<p>
+To install a similar CGI script at your site, put the <b>bp</b> executable
+in directory <b>cgi-bin</b>, together with the program and call it from
+a HTML page as follows:
+
+<p>
+<font size="-1">
+<pre>
+&lt;A HREF=
+  "/cgi-bin/bp?$/&lt;MY ABSOLUTE PATH&#62;/counter.pro"&#62;
+  Click here! 
+&lt;/A&#62;
+</pre>
+</font>
+<p>
+You can try it out by clicking on it at:
+
+<p>
+<font size="-1">
+<pre>
+   http://clement.info.umoncton.ca/~tarau
+</pre>
+</font>
+<p>
+
+<H3>Example of NL interaction in LogiMOO</H3>
+
+<p>
+Here is a trace based on the single-user version
+of LogiMOO we have used during the development of
+the NL interface. The single user version emulate
+multiple avatars through the command <tt>I am &lt;avatar&#62;</tt>
+allowing to impersonate multiple users.
+As the latest version of BinProlog blackboards scales transparently from
+single to multi-user mode, the same code is used for
+both single user and networked configurations.
+This is especially useful during debugging of
+non network related code like the NL parser.
+
+<p>
+
+<pre>
+TEST: I am Joe. Craft a cat. Where is the cat?
+WORDS: [i,am,joe,.,craft,a,cat,.,where,is,the,cat,?]
+SENTENCES: [i,am,joe] [craft,a,cat] [where,is,the,cat]
+
+==BEGIN COMMAND RESULTS==
+login as: joe with password: none
+your home is at http://142.58.28.116/~guest
+
+SUCCEEDING(iam(joe))
+SUCCEEDING(craft(cat))
+cat is in kitchen
+SUCCEEDING(where(cat))
+
+==END COMMAND RESULTS==
+
+TEST: Craft a Gnu. Who has it? Where is it? Where am I?
+WORDS: [craft,a,gnu,.,who,has,it,?,where,is,it,?,where,am,i,?]
+SENTENCES: [craft,a,gnu] [who,has,it] [where,is,it] [where,am,i]
+
+==BEGIN COMMAND RESULTS==
+SUCCEEDING(craft(gnu))
+joe has gnu
+SUCCEEDING(who(has,gnu))
+gnu is in kitchen
+SUCCEEDING(where(gnu))
+you are in the kitchen
+SUCCEEDING(whereami)
+
+==END COMMAND RESULTS==
+
+TEST: Give to the Wizard the Gnu that I crafted. Who has it?
+WORDS: [give,to,the,wizard,the,gnu,that,i,crafted,.,who,has,it,?]
+SENTENCES: 
+  [give,to,the,wizard,the,gnu,that,i,crafted] 
+  [who,has,it]
+
+==BEGIN COMMAND RESULTS==
+logimoo:&lt;joe&#62;# 'wizard:I give you gnu'
+SUCCEEDING(give(wizard,gnu))
+wizard has gnu
+SUCCEEDING(who(has,gnu))
+</pre>
+<hr><H3>Footnotes:</H3>
+
+<p><a name=tthFtNtAAB></a><a href="#tthFrefAAB"><sup>1</sup></a> 
+Electronically available&nbsp; and&nbsp; remotely executable from URL
+<tt>http://clement.info.umoncton.ca/\~{}tarau/logimoo</tt>.
+with a Netscape or compatible browser.
+We use Netscape throughout this section for exemplifying purposes, but our discussion extends to all browsers providing similar functionality.
+
+<p><a name=tthFtNtAAC></a><a href="#tthFrefAAC"><sup>2</sup></a> Users without
+their own browser can access LogiMOO through a Prolog shell hosted
+on our computers with a Unix-level guest account. Setting this up is
+quite easy by replacing /bin/sh in /etc/passwd with a Multi-BinProlog
+C-ified executable /opt/bin/mbp, customized to support LogiMOO.
+<p><a name=tthFtNtAAD></a><a href="#tthFrefAAD"><sup>3</sup></a> This has been
+found very useful for teaching applications with low-end PCs.
+<p><a name=tthFtNtAAE></a><a href="#tthFrefAAE"><sup>4</sup></a> With operating systems as OS/2 Warp integrating 
+basic voice recognition and products like Dragon Systems' continuous
+unrestricted speech recognizer widely available, controlling software
+as well as programming in a speech-friendly environment becomes
+increasingly realistic.
+<p><hr><small>File translated from T<sub><font size="-1">E</font></sub>X by <a href="http://hutchinson.belmont.ma.us/tth/">T<sub><font size="-1">T</font></sub>Hgold</a>, version 2.24.<br>On 26 Jul 1999, 18:15.</small>
+</HTML>

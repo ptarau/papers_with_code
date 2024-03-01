@@ -1,0 +1,1119 @@
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<META NAME="GENERATOR" CONTENT="TtHgold 2.24">
+                                                                      
+<title> Object Oriented Logic Programming as an Agent Building Infrastructure</title>
+ 
+<H1 align=center>Object Oriented Logic Programming as an Agent Building Infrastructure </H1>
+
+<p>
+
+<H3 align=center>Paul Tarau<a href="#tthFtNtAAB" name=tthFrefAAB><sup>1</sup></a> </H3>
+
+
+<p>
+
+<H2> Abstract</H2>
+We show that agent programming patterns are well
+expressed in terms of an object oriented layer extended with
+a generalized inheritance mechanism and independent logic
+programming based inference engines. 
+Instead of proposing yet another agent programming <em>``model''</em>
+we simply derive key agent programming patterns 
+as the natural result of a set of programming language constructs.
+
+<p>
+The suggested equation:
+ <em>
+<p>
+Agents = Objects + Logic + Inference Engines + Coordination + Remote Action
+</em>
+<p>
+provides orthogonal agent composition mechanisms which are
+expressive and highly reusable.
+
+<p>
+The approach described in this paper has emerged in the process
+of building Agent classes as extensions to our industrial 
+strength Object Oriented Prolog system, Jinni 2002, available for
+online evaluation at:
+<font size="-1">
+<pre> 
+  http://www.binnetcorp.com/Jinni
+</pre></font>
+<em>Keywords:
+  Agent Programming Languages,
+  Remote Execution, 
+  Blackboard-based Agent Coordination,
+  Multi-threaded Logic Programming Engines,
+  Distributed AI
+</em>
+<p>
+<p>        <H2><A NAME="tth_sEc1">
+1</A>&nbsp;&nbsp;Introduction</H2>
+
+<p>
+The paradigm shift towards networked, mobile, ubiquitous computing
+has brought a number of challenges which require new ways to deal
+with increasingly complex patterns of interaction: autonomous, reactive 
+and mobile computational entities are needed to take care of unforeseen
+problems, to optimize the flow of communication, to offer a simplified
+and personalized view to end users. These requirements naturally lead
+towards the emergence of <em>agent programs</em> with increasingly
+sophisticated inference capabilities, as well as autonomy and self-reliance.
+
+<p>
+Jinni (Java INference engine and Networked Interactor) [<a href="#tarau:shaker" name=CITEtarau:shaker>1</a>,<a href="#j2k_ug" name=CITEj2k_ug>2</a>],
+is a lightweight,
+multi-threaded compiled Prolog system with powerful Object and Agent Oriented extensions, 
+intended to be used as a flexible scripting tool for gluing together knowledge processors 
+with Java and .NET components in distributed  applications. Jinni's high level, 
+portable, secure networking layer provides intelligent interoperation between 
+Java and .NET components on Windows on Linux/Unix and Pocket PC platforms.
+
+<p>
+Jinni threads are coordinated through blackboards, local to each process.
+Associative search based on term unification (a variant of Linda  [<a href="#linda89" name=CITElinda89>3</a>,<a href="#dbt95a" name=CITEdbt95a>4</a>]) is used 
+as the basic synchronization mechanism. Threads, blackboard and networking 
+operations are controlled with lightweight, fast bytecode Prolog interpreters. 
+The synergy of these features makes Jinni a convenient development platform
+for distributed AI, and in particular, for building intelligent autonomous
+agent applications. 
+
+<p>
+        <H2><A NAME="tth_sEc2">
+2</A>&nbsp;&nbsp;The Jinni Ontology: Orthogonal Language Constructs for Agent Programming</H2>
+
+<p>
+As technology matures and design patterns emerge and consolidate,
+Agent Programming is getting closer and closer to
+a <em>programming paradigm</em> status [<a href="#shoham:93a" name=CITEshoham:93a>5</a>]. 
+This implies a high degree of 
+compositionality - ability
+to put together general purpose programs from simple, 
+reusable building blocks.  With this in mind, we will overview
+here the set of orthogonal components which make up
+Jinni's <em>Ontology</em>.
+
+<p>
+<b>Objects:</b> provide proven program composition and code reuse mechanisms
+and allow extension of a libraries of behaviors and knowledge processing
+components.
+
+<p>
+<b>Logic:</b> Logic programming provides well understood, resolution based
+inference mechanisms. Beyond clause selection in the resolution 
+process and generalized parameter passing, unification provides flexible
+search in message queues and databases. 
+
+<p>
+<b>Inference Engines:</b> execution of multiple independent goals is needed for implementing
+complex reactive patterns in agent programs. Engines are lightweight and highly
+autonomous instances of language interpreters - running through various
+scheduling models - in particular through blackboard coordinated
+multi-threading.
+
+<p>
+<b>Coordination:</b> agent coordination can (and should) be separated from the details
+of agent communication and the agent's computational mechanisms (engines).
+We suggest coordination through blackboards - databases with intelligent, 
+constraint based search - instead of conventional message passing.
+
+<p>
+<b>Remote Action:</b> a simple client-server style remote call mechanism is suggested,
+as a building bloc for various forms of remote action - in particular for
+supporting remote event propagation. Building blocks for implementing agent
+security layers are provided as a combination of server side sandboxing, strong cryptography and password controlled server access. Once security is in place,
+the suggested infrastructure can safely emulate more flexible P2P interaction
+patterns.
+
+<p>
+        <H2><A NAME="tth_sEc3">
+3</A>&nbsp;&nbsp;Expressing Key Agent Programming Patterns</H2>
+
+<p>
+We will start by outlining how Jinni's programming language constructs cover
+key agent programming idioms.
+
+<p>
+<b>Reactive Behavior:</b>
+We have avoided any form of interleaving "thinking" and &#228;ction" stages
+in the agent programming model itself.
+The availability of multi-threading, local and remote blackboard based coordination mechanisms, and multiple reentrant language interpreters allows a logical separation of concerns: inference mechanisms and reaction to events (expressed as patterns waiting for matching blackboard data) are expressed by orthogonal language constructs and can be programmed as loosely coupled components. 
+
+<p>
+<b>Multi-Agent Mechanisms:</b>
+Building efficient multi-agent systems effectively is ensured by a flexible object extension mechanism (Cyclic Multiple Depth First Inheritance). Complex Agents are built by importing from a library of agent roles and event processors. Traditional inheritance has been confined
+to trees (simple inheritance) or lattices (multiple inheritance). This contrasts
+with the dominant information sharing model - the Web - which has an arbitrary
+directed graph structure. At the same time, the multi-agent context, with components developed by independent programmers, suggests a directed graph model as the inheritance mechanism for agent code. Intuitively, this allows programmers to be aware only of a small set of similar "neighbors" and be able to safely import roles and behaviors without being aware of the complete component library.
+
+<p>
+<b>Agent Negotiation:</b>
+Blackboard based programming provides natural building blocks for agent negotiation, search and market-style result optimizers. Our blackboards are enhanced with "blackboard constraint processing" - small chunks of additional code to be tested once the "waiting" pattern has been matched against new data produced by independent local or remote threads.
+
+<p>
+        <H2><A NAME="tth_sEc4">
+4</A>&nbsp;&nbsp;Design Issues in Object Oriented Prolog</H2>
+
+<p>
+Agent Oriented Programming can be seen as a natural extension to Object Oriented programming - provided
+that the object system provides appropriate aggregation mechanisms to build and share
+agent program components.
+
+<p>
+      <H3><A NAME="tth_sEc4.1">
+4.1</A>&nbsp;&nbsp;From modules to classes</H3>
+
+<p>
+Prolog module designs have already tried to provide
+class-like abilities. It makes sense to conceptually
+reuse their syntax and their handling of state through
+local databases for a classes.
+
+<p>
+      <H3><A NAME="tth_sEc4.2">
+4.2</A>&nbsp;&nbsp;Class and Instance state: fields or assertions?</H3>
+
+<p>
+Prolog's associative search
+through dynamic clauses can easily be reused for
+supporting both class and instance level state. Still,
+Object Oriented layers built on top of procedural
+languages have traditionally used fields.
+Prolog assert/retract and possibly support for multiple dynamic 
+databases already provides a richer set of state management
+operations that traditional destructive assignment in procedural
+language bases object oriented systems.
+
+<p>
+Clearly fields can be easily approximated as dynamic unary predicates
+with exactly one clause each. On the
+other hand  "backward compatibility" with traditional Object Oriented
+languages suggests a special syntax for that. It also make sense to
+consider them as a backdoor through which one can introduce strong
+typing to Prolog - without touching the semantics of unification and clause
+resolution. The idea is to use (like in Java) classes as types, together
+with basic types (integers, strings, floats) - and impose dynamic type 
+checking on fields (at assignment time) and on predicate 
+arguments (at call time). The natural mapping of existing Prolog code
+into a typed universe would be that by default, in the absence of syntax, 
+arguments and fields are of the most generic type. 
+
+<p>
+      <H3><A NAME="tth_sEc4.3">
+4.3</A>&nbsp;&nbsp;The Logic of Inheritance</H3>
+
+<p>
+Inheritance can be seen as a special purpose inference mechanism. A two line
+transitive closure Prolog predicate does it - so why do we need it altogether
+in Logic Programming languages? At a closer look, one will notice that
+inheritance is in fact inference applied to locating methods in sets of
+methods (classes). In the presence of method overloading and subtyping,
+the search mechanism can be seen as a restricted form of unification. The
+only problem is that, oddly enough, logic programs (seen as sets of clauses) have
+not been considered first order objects in widely used logic programming
+languages (Prolog in particular). Another issue is that the dominant  object
+oriented programming style is class based. Fairly sophisticated Reflection
+packages are needed in languages like Java to manipulate classes and
+instances as first order objects - and it does not happen in a simple and uniform
+way. On the other hand - a class based design provides well known techniques
+to handle most of the inheritance related overhead at compile time and a good
+basis for a (strong) type system. In a conventional object oriented language,
+a class is simply a collection of methods and fields. On the other hand
+a logic program is a set of clauses - a more uniform domain. It is convenient however
+to see them as a set of predicates (sets of clauses sharing the same main head
+functor) as the semantics of Prolog ensures that 
+control mechanisms like CUT and backtracking are actually confined to clauses
+within a predicate.
+This makes a predicate the appropriate unit to implement a method - and it
+also implies an &#228;ll or nothing" clause inheritance mechanism: a predicate defined
+in a class will override all clauses for the same predicate defined elsewhere.
+Anyway, as most Prolog programmers are aware, mixing clauses from different
+files will result in unexpected semantics and difficult to maintain programs.
+
+<p>
+Traditional inheritance has been confined
+to trees (simple inheritance) or lattices (multiple inheritance). This contrasts
+with the dominant information sharing model - the Web - which has an arbitrary
+directed graph structure (handled quite well despite its size
+and growth). While limiting the scope of inheritance in procedural languages makes
+sense given the presence of side effects, an arbitrary directed graph model
+is worth trying out in the context of declarative languages endowed with
+a formally simpler and cleaner semantics. Procedural languages have been
+unable to reuse their class systems as a mechanism for name spaces - requiring
+for this purpose additional constructs like Java's packages. Interestingly
+enough, the package/namespace system, as well as the mapping from classes to their
+member fields and method arguments, form arbitrary directed graphs. As such,
+they require additional "language ontology" (declarations,
+local names, delegation) that breaks
+the automation induced by free propagation through inheritance. In fact,
+such constructs are just reformulations of the conventional procedure
+call based code reuse.
+
+<p>
+With this in mind, cyclical multiple inheritance looks like a natural
+choice for designing an object oriented structuring mechanism around a logic
+programming language. Depth first search for a matching predicate can happen
+at compile time - together with a loop checking mechanism. Classes that are
+parts of a cycle will see their own methods prevailing over methods (predicates)
+defined elsewhere. A main, prevailing inheritance path based on what's listed
+first in a file gives (most of) the benefits of single hierarchical 
+inheritance.
+
+<p>
+Instance and class level state is implemented naturally through local dynamic
+database mechanisms - with the same &#246;ne predicate at a time" assumption: an
+instance level dynamic predicate will replace all clauses of a class level
+predicate if overriding is used. 
+
+<p>
+        <H2><A NAME="tth_sEc5">
+5</A>&nbsp;&nbsp;Classes, Instances and Inheritance in Jinni's Object Oriented Prolog</H2>
+
+<p>
+Jinni 2002 features a simple, elegant and fast Object Oriented Prolog layer - built as a natural extension to ISO Prolog. Classes are just Prolog files with include declarations - almost no changes  are required to reorganize your existing Prolog code in an Object Oriented style. As the dispatching of method calls is handled at compile time and instances are lightweight, Jinni 2002's Prolog Objects are extremely efficient. Prolog class files can be located at arbitrary URLs on the Web - one can inherit and override from a virtually unlimited library of existing Prolog files. And what if cycles will form? Not a problem! Jinni 2002 supports multiple cyclic inheritance for building in a scalable way, an arbitrary network of Web or file based interdependent Prolog classes!
+
+<p>
+A class foo is associated to each Prolog file (or URL) let's say foo.pl. In a way similar with compiling a Prolog file in a conventional way with <tt>?-compile(foo)</tt>, the user can enter a default instance of the class foo with
+
+<p>
+
+<pre>
+?-enter_class(foo).
+</pre>
+
+<p>
+or call code in it (like in the presence of a conventional module system) from outside with
+
+<p>
+
+<pre>
+?-foo:&lt;predicate&#62;.
+</pre>
+
+<p>
+If foo.pl contains <tt>:-[&lt;superclassfile&#62;]</tt> declarations, let's say something like <tt>:-[bar]</tt>, definitions not found in foo will be searched in bar. As files and URLs are treated in similar ways, inheritance directives like <tt>:-['http://www.my_url.com']</tt> can refer to non-local URLs as well.
+
+<p>
+ISO Prolog's <tt>:-initialization((&lt;Goal&#62;))</tt> declarations are processed (in reverse order) after collecting them from included files - as a mechanism of class level initialization, shared among all instances. Code added with <b>assert/1</b> in such <b>initialization/1</b> calls will be visible in all instances.
+
+<p>
+Code inheritance is handled at compile time - through a special <tt>ocompile/1</tt> command  which reinterprets include directives like <tt>:-[&lt;file&#62;]</tt> as inheritance from other Prolog files/classes. Classes are compiled on the fly, at the first use of a class or creation of a new instance.
+
+<p>
+The multiple cyclical depth first inheritance mechanism is implemented by keeping the path consisting of the list of visited includes, when (at compile time) predicates not defined locally, are brought from files or URLs. In the presence of multiple includes, a "depth-first" order for finding definitions ensures that a dominant main inheritance tree prevails in case of ambiguity. This concept of cyclical inheritance allows reuse of  Prolog code located virtually everywhere on the Web from a local perspective.
+
+<p>
+Constructors are simply predicates of various arities having the same name as the file (or URL). At instance creation time,  no-arg constructors of supers are automatically called, in reverse inheritance order. This usually ensures that fields defined locally or in the main inheritance chain will prevail. Programmers should  initialize most fields in these default constructors. Constructors (of any arity) are inherited, if not provided. They can freely call constructors defined in their super classes using their predicate names, same as the ones of the superclasses' names.
+
+<p>
+Instance Fields are local to each instance. A <b>set</b> operation <tt>&lt;field name&#62;  &lt;= &lt;value&#62;</tt>  and a <b>get</b> operation <tt>&lt;field name&#62;  =&#62; &lt;Prolog variable&#62;</tt> are provided, like in:
+
+<p>
+
+<pre>
+radius &lt;= 99
+radius =&#62; R
+</pre>
+
+<p>
+<b>Assert/1</b> and other database operations are local to instances - but the results of class level asserts are visible in instances - until overridden by a local assert with the same predicate name and arity.
+
+<p>
+<b>Instances</b> are created from <b>Constructors</b> (same as class names if no-arg, having the main functor the same as the class name if having arguments) with the <b>new/2</b> command:
+
+<p>
+
+<pre>
+new(Constructor,Instance)
+</pre>
+
+<p>
+In the process, an internal <b>Class</b> handle is created and if needed the code for the class is compiled on the fly and attached to it.
+
+<p>
+Class Fields are shared among instances. In fact, they are just instance fields belonging to instance 0 - which keeps the state of the class itself. A class field set operation <tt>&lt;field name&#62;  &lt;== &lt;value&#62;</tt>  and a class field get operation <tt>&lt;field name&#62;  ==&#62; &lt;Prolog variable&#62;</tt>  are used as in:
+
+<p>
+
+<pre>
+instance_count &lt;== 10
+instance_count ==&#62; R
+</pre>
+
+<p>
+When performed from instances of a given class, these operations are applied to the fields of the class, not the instance. Like static variables in Java, they refer to data shared among all instances of a class.
+
+<p>
+        <H2><A NAME="tth_sEc6">
+6</A>&nbsp;&nbsp;Other Agent Building Blocks: Engines, Threads and Blackboards</H2>
+  
+<p>
+      <H3><A NAME="tth_sEc6.1">
+6.1</A>&nbsp;&nbsp;Multiple Inference Engines, Answer Generation and Control</H3>
+
+<p>
+Independently of its multi-threading mechanism, Jinni 2002 provides first order inference engines - separate instances of its dynamically growing/shrinking runtime system (heap,stack,trail) which can be controlled through the following API:
+
+<p>
+
+<UL>
+<li>  <b>new_engine(Instance, AnswerPattern, Goal, EngineHandle):</b> creates and returns a new engine based
+   on code and dynamic database state associated with a Prolog class instance
+
+<li>
+<p>
+  <b>get(EngineHandle, Answer):</b> asks an engine  for a new Answer, which will be of the  
+     form <b>the(AnswerPatternInstance)</b> on success and which will be no on failure as
+     well on any call after failure occurred
+
+<li> <b>stop(EngineHandle):</b>  makes sure 
+    the engine is stopped. Only no answers will be available from the engine in the future.
+
+<li> <b>return(Answer):</b> initiated by the engine - which acts such that the next 
+   <b>get/2</b> of the parent will obtain a copy of Answer. Note that engines
+   are fully reentrant - in particular, the parent can force the engine to resume its work with 
+   another <b>get/2 request</b> - in which case the engine performs as if the 
+   <b>return/1</b> statement were not in effect.
+</UL>
+<p>
+Example:
+
+<p>
+
+<pre>
+?- new_engine(X,(member(X,[1,2]),
+   (X=1,return(good(X));X&#62;1)),E),
+   get(E,A),get(E,B),get(E,C),get(E,D).
+
+A = the(good(1)) B = the(1) C = the(2)  
+D = no E = 1331 X = _120 ;
+</pre>
+
+<p>
+This kind of functionality seems the simplest way to implement some agent-style  control mechanism on top of Prolog - it provides a minimal set of language constructs for the  kind of control users want to have interactively over Prolog's answer production.
+
+<p>
+      <H3><A NAME="tth_sEc6.2">
+6.2</A>&nbsp;&nbsp;Threads and Hubs</H3>
+Jinni 2002 supports a simple multi-threading model, given by the following API:
+
+<p>
+
+<UL>   
+<li> <b>bg(Goal,ThreadHandle):</b> launches a new thread executing Goal and returns a ThreadHandle to it
+   
+<li> <b>hub_ms(Timeout,HubHandle):</b> constructs a new Hub returned as a HubHandle - a synchronization device on which <b>N</b> consumer threads can wait with <b>collect(HubHandle,Data)</b> for data produced by <b>M</b> producers providing data with <b>put(HubHandle,Data)</b>. However, if a given consumer waits more than Timeout milliseconds it returns and signals failure. As usual in Java, 0 timeout means indefinite suspension.
+    
+<li> <b>current_thread(ThreadHandle):</b> returns a handle to the current thread - might be passed to another thread wanting to join this one.
+    
+<li> bf join_thread(ThreadHandle): waits until a given thread terminates.
+    
+<li> <b>sleep_ms(Timeout):</b> suspends for Timeout milliseconds, while consuming minimal (practically no) CPU power
+</UL>
+<p>
+      <H3><A NAME="tth_sEc6.3">
+6.3</A>&nbsp;&nbsp;Thread Coordination with Blackboards</H3>
+
+<p>
+Blackboards are global (one per Jinni process) databases which provide thread coordination through the following (extended Linda) operations:
+
+<p>
+
+<UL>    
+<li> <b>in(Pattern):</b> waits for data on the blackboard which matches (through unification) Pattern
+    
+<li> <b>out(Pattern):</b> puts for data on the blackboard and possibly resumes a thread waiting with <b>in/1</b> if Pattern matches
+    
+<li> <b>all(Pattern,Matches):</b> returns a list of terms on the blackboard ready to match Pattern or an empty list if none matches. Such data has been put on the blackboard using <b>out/1</b> operations.
+    
+<li> <b>wait_for(Term,Constraint):</b> waits for a term on the blackboard, such that Constraint holds
+    
+<li> <b>notify_about(Term):</b> notifies a suspended matching <b>wait_for(Term,Constraint)</b>, 
+    if <b>Constraint</b> holds, that <b>Term</b> is available
+</UL>
+<p>
+Blackboard operations can be combined with <b>remote_run</b> remote predicate calls to allow interaction between threads distributed in different processes on the same or on different computers on the net. Threads can be launched locally or remotely with <b>bg</b> operations.
+
+<p>
+       <H4><A NAME="tth_sEc6.3.1">
+6.3.1</A>&nbsp;&nbsp;Using Blackboard Constraints</H4>
+
+<p>
+The natural extension to Linda [<a href="#linda89" name=CITElinda89>3</a>,<a href="#dbt95a" name=CITEdbt95a>4</a>] introduced in Jinni 
+is to use <em>constraint</em> solving for the 
+selection of matching terms, instead of
+plain unification, as provided by
+<b>wait_for(Term,Constraint)</b> and <b>notify_about(Term)</b>.
+
+<p>
+For instance,
+<font size="-1">
+<pre> 
+   notify_about(stock_offer(qqq,21)) 
+</pre></font>
+
+<p>
+ would trigger execution of a thread having issued 
+<font size="-1">
+<pre>
+   wait_for(stock_offer(qqq,Price),Price&lt;22).
+</pre></font>
+
+<p>
+ while something like
+<font size="-1">
+<pre> 
+   notify_about(stock_offer(qqq,23)) 
+</pre></font>
+ would leave the thread having issued the <b>wait_for</b>
+operation suspended.
+
+<p>
+Note that in a client/server Linda interaction, 
+triggering an atomic transaction when data
+verifying a simple arithmetic inequality becomes available, would
+be expensive. It would
+require repeatedly taking terms out of the blackboard, through expensive
+network transfers, and put them back unless the client can verify that a constraint
+holds. On the other hand, a server side execution checks a constraint only after a match
+occurs between new incoming data and the head of a suspended thread's constraint
+checking clause, i.e. a basic indexing mechanism is used to avoid useless
+computations. In this setting, a remote client thread can perform
+all the operations atomically on its own thread,
+using local operations on the server,
+and return the computed results asynchronously.
+The (simplified) fragment showing the implementation of
+<tt>wait_for and notify_about</tt> is as follows:
+
+<p>
+<font size="-1">
+<pre>
+wait_for(Pattern,Constraint):-
+  if(take_pattern(available_for(Pattern),
+                  Constraint),
+     true,
+     ((
+       out(waiting_for(Pattern,Constraint)),
+       in(holds_for(Pattern,Constraint))
+     ))
+  ).
+</pre></font>
+
+<p>
+<font size="-1">
+<pre>
+notify_about(Pattern):-
+  if(take_pattern(
+       waiting_for(Pattern,Constraint),
+       Constraint),
+     out(holds_for(Pattern,Constraint)),
+     out(available_for(Pattern))
+  ).
+</pre></font>
+
+<p>
+<font size="-1">
+<pre>
+% takes the first matching Pattern 
+% for which Constraint holds
+take_pattern(Pattern,Constraint):-
+  all(Pattern,Ps),
+  member(Pattern,Ps),
+  call(Constraint),
+  in(Pattern,_).
+</pre></font>
+
+<p>
+Note that each time the head of the waiting clause matches
+incoming data, its body is (re)-executed.
+
+<p>
+Although termination of constraint checking is left in the programmer's hand,
+only one thread is affected by a loop in the code. This is quite important
+in a multi-agent setting as it ensures that a server's integrity as such
+not being compromised by a looping client thread. Note that incorporating 
+symbolic constraint reducers (CLP, FD or interval based)
+can significantly improve performance for large scale problems.
+
+<p>
+        <H2><A NAME="tth_sEc7">
+7</A>&nbsp;&nbsp;Remote Execution with Object Oriented Prolog Classes</H2>
+
+<p>
+As part of the growing library of Object Oriented Prolog components (see directory classlib), Jinni provides a server and a client class which will be used as inheritance roots for various components (secure client and server, agents etc.).  
+
+<p>
+      <H3><A NAME="tth_sEc7.1">
+7.1</A>&nbsp;&nbsp;The Server and Client classes</H3>
+
+<p>
+The constructor <b>server(Port,Password)</b> creates a server instance listening on a port and only executing queries of clients providing a matching password.
+
+<p>
+The constructor <b>client(Host,Port)</b> creates a client which will try to connect to a server on Host, Port. The resulting client is ready to send queries with <b>ask(Goal)</b>.  While a client performing a <b>remote_run</b> operation opens and closes the socket automatically, instances of this client will keep the socket open until the programmer uses a disconnect operation. All calls on a given socket run on the same thread on the server. This added flexibility requires less system resources and avoids <b>TCP_WAIT</b> related errors on operating systems slow in freeing the ports of closed sockets. Note that a password (<em>tweety</em> in the examples) is needed for the server to accept a client's requests.
+
+<p>
+
+<pre>
+Server Window:
+?- new(server(8888,tweety),S),
+   S:serve.
+hello
+
+Client Window
+?- new(client(localhost,8888,tweety),
+       C),
+   C:ask(println(hello)),
+   C:disconnect.
+</pre>
+ 
+<p>
+      <H3><A NAME="tth_sEc7.2">
+7.2</A>&nbsp;&nbsp;Secure Communications Using Cryptography and Sealed Objects</H3>
+
+<p>
+When running under JDK 1.4 or later, which integrates a cryptography package Jinni provides secure communication classes. Note that from a user's perspective security is completely transparent, as shown in the following example:
+
+<p>
+
+<pre>
+Server Window:
+?- new(secure_server(8888,tweety),S),
+   S:serve.
+hello
+
+Client Window
+?- new(secure_client(localhost,8888,tweety),
+       C),
+   C:ask(println(hello))
+</pre>
+
+<p>
+Internally, Jinni makes use of serialized  Prolog terms which are encrypted as Sealed Objects before being sent over a socket. 
+
+<p>
+      <H3><A NAME="tth_sEc7.3">
+7.3</A>&nbsp;&nbsp;The Transport Layer</H3>
+
+<p>
+The transport layer is provided as a simple client-server Remote Predicate Call mechanism given by the following API:
+
+<p>
+
+<UL>   
+<li> <b>run_server(Port,Password):</b> runs a server on a given Port and with given Password (to be matched by connecting client queries)
+   
+<li> <b>remote_run(Host,Port,Answer,Goal,Passwd,Result):</b> asks a server waiting on <b>Host, Port</b> to execute <b>Goal</b> and return a <b>Result</b> of the form <b>the(AnswerInstance)</b> if the query succeeds or no if it fails. The returned answer instance contains a copy of <b>Answer</b> with bindings resulting of the execution of <b>Goal</b>. Note that the execution is deterministic and only the first solution is returned.
+</UL>
+<p>
+Note that the transport layer is a replaceable component and can be provided by RMI, SOAP, CORBA, multicast sockets
+or any other communication mechanism.
+
+<p>
+        <H2><A NAME="tth_sEc8">
+8</A>&nbsp;&nbsp;Agent Programming</H2>
+
+<p>
+      <H3><A NAME="tth_sEc8.1">
+8.1</A>&nbsp;&nbsp;Agent Programming: form Message Passing to Blackboards and Inference Engines</H3>
+
+<p>
+The first thing that strikes someone looking into
+performatives + message based agent scripts is the
+tediousness of
+communication between agents - reminding the 
+colorful chaos and redundancy of a <em>bazaar</em>
+rather that the crisp architectural rules of
+a <em>cathedral</em><a href="#tthFtNtAAC" name=tthFrefAAC><sup>2</sup></a>, 
+where the actors try to explain, argue and
+negotiate instead of actually getting 
+business done. Often, message passing based agent
+communication is dominated by frivolous
+exchanges focusing on the protocol
+instead of the work to be performed.
+
+<p>
+Excessive communication is often an indication of
+limited intelligence and automation. We believe
+that inferential
+mechanisms will enable agents to avoid asking each
+other the obvious - very much like wise people do.
+This also means that autonomous search mechanisms,
+associative processing of events and data records
+is needed. 
+
+<p>
+Our agent infrastructure design is based on the
+belief that message passing agent programming constructs 
+should evolve into a more structured blackboard
+based and inference enabled component technology.
+
+<p>
+      <H3><A NAME="tth_sEc8.2">
+8.2</A>&nbsp;&nbsp;Basic agent programming with Jinni</H3>
+
+<p>
+Agents' behaviors are implemented easily in terms of synchronized in/out Linda operations
+and remote execution. As an example of such functionality, we will describe the use of
+two simple chat agents, which are part of Jinni's standard library: 
+
+<p>
+
+<b>Window 1&nbsp;&nbsp;</b>: a reactive channel listener 
+
+<p>
+
+<pre>
+?-listen(fun(_)). 
+</pre>
+
+<p>
+
+<b>Window 2&nbsp;&nbsp;</b>: a selective channel publisher 
+
+<p>
+
+<pre>
+?-talk(fun(jokes)). 
+</pre>
+
+<p>
+ They implement a front end to Jinni's associative publish/subscribe abilities. 
+The more general pattern <tt>fun(_)</tt> 
+will reach all the users interested in instances of <tt>fun/1</tt>, 
+in particular <tt>fun(jokes)</tt>. However, someone 
+publishing on an unrelated channel e.g. with <tt>?-talk(stocks(nasdaq))</tt>. will not reach fun/1 listeners 
+because stocks(nasdaq) and fun(jokes) channel patterns are not unifiable. 
+
+<p>
+      <H3><A NAME="tth_sEc8.3">
+8.3</A>&nbsp;&nbsp;Coordinating the Sell/Buy Function for Stock Market Agents</H3>
+
+<p>
+ A more realistic stock market agent's buy/sell components look as
+follows:
+
+<p>
+<font size="-1">
+<pre>
+sell(Who,Stock,AskPrice):-
+  % triggers a matching buy transaction on the 
+  % (remote) server implementing the "market"
+  remote_run(
+    notify_about(offer(Who,Stock,AskPrice))
+  ).
+
+buy(Who,Stock,SellingPrice):-
+  % runs as a background thread
+  % in parallel with other buy operations
+  % while executing code on a remote server
+  bg(remote_run(
+    try_to_buy(Who,Stock,SellingPrice)
+  )).
+
+try_to_buy(Me,Stock,LimitPrice):-
+  % this thread connects to a server side 
+  % constraint and waits until the constraint
+  % is solved to true on the server
+  % by a corresponding sell transaction
+  wait_for(offer(You,Stock,YourPrice),[ 
+    YourPrice=&lt;LimitPrice,
+    % server side 'local' in/1
+    in(has(You,Stock)),
+    in(capital(You,YourCapital)), 
+    in(capital(Me,MyCapital)),  
+    MyNewCapital is MyCapital-YourPrice,
+    YourNewCapital is YourCapital+YourPrice,
+    out(capital(You,YourNewCapital)),
+    out(capital(Me,MyNewCapital)),
+    out(has(Me,Stock))
+  ]).
+</pre></font>
+
+<p>
+      <H3><A NAME="tth_sEc8.4">
+8.4</A>&nbsp;&nbsp;Agent Programming with Agent Classes and Inference Engines</H3>
+
+<p>
+Agent classes are built on top of Jinni's Object Oriented Prolog system. 
+Jinni's Multiple Cyclic Inheritance allows static reuse of
+agent features and agent behavior elements 
+and compositional mechanisms for building new agents
+from libraries distribute over the Internet.
+
+<p>
+An Agent Class provides a <em>goal set</em> and a <em>
+specialized inference engine</em> working
+as query interpreter on a separate thread. In a
+client-server setting this can be seen as a 
+generalized service processor. An agent instance
+feeds the query interpreter 
+while listening as a server on a port. It also
+creates a thread for each goal in the goal set.
+Agent instances have unique global IDs and communicate
+through remote or local blackboards. Each agent instance
+runs its own set of goal threads.
+
+<p>
+<font size="-1">
+<pre>
+/*
+  Basic Agent Class. Encapsulates
+  peer-to-peer capabilities 
+  (client + server) and 
+  goal-oriented behavior.
+*/
+
+:-[prolog_object].
+:-[client].
+:-[server].
+
+/*
+  Self centered test agent: its client 
+  component talks to its server component 
+  on a local port.
+*/
+agent:-
+  agent(behave(20),2000,
+        localhost,2000,agatha).
+
+/* 
+  Default Agent Constructor:
+  - runs a goal in background for 20 seconds
+  - listens on a local port as a server
+  - sets up client side communication with
+    a server at a given host and port
+*/  
+agent(Goal,LocalPort,RemoteHost,
+                     RemotePort,Password):-
+  server(LocalPort,Password),
+  client(RemoteHost,RemotePort,Password),
+  bg(serve), % starts server thread
+  bg(Goal).  % starts goal thread
+
+/*
+  Default simple behavior:
+  prints messages each second.
+*/       
+behave(N):-
+  for(I,1,N),
+    sleep(1),
+    ask(println(message(I))),
+  I=N.
+</pre></font>
+
+<p>
+Note that the agent class simply a combination of client and server
+classes together with one or more (background) goal threads.
+
+<p>
+Deriving an agent using a secure transport layer with the same
+default behavior is obtained by extending <b>agent</b> with 
+<b>secure_server</b>
+and <b>secure_client</b> components:
+
+<p>
+<font size="-1">
+<pre>
+:-[secure_server].
+:-[secure_client].
+:-[agent].
+</pre></font>
+
+<p>
+where a secure server is defined as:
+
+<p>
+<font size="-1">
+<pre>
+:-[server].
+% provides encrypted and
+% serialize Prolog terms
+:-[sealed_term]. 
+</pre></font>
+
+<p>
+and a secure client is defined as:
+
+<p>
+<font size="-1">
+<pre>
+:-[client].
+:-[sealed_term].
+</pre></font>
+
+<p>
+        <H2><A NAME="tth_sEc9">
+9</A>&nbsp;&nbsp;Related Work</H2>
+An important number of early software agent applications 
+are described in [<a href="#bradshaw96:software" name=CITEbradshaw96:software>7</a>]
+and, in the context of new generation networking software, 
+in [<a href="#tennenhouse96:towards" name=CITEtennenhouse96:towards>8</a>,<a href="#cugola96:characterization" name=CITEcugola96:characterization>9</a>]. 
+
+<p>
+Mobile code/mobile computation technologies are pioneered by General Magic's
+Telescript (see [<a href="#odissey" name=CITEodissey>10</a>] 
+for their Java based <em>mobile agent</em> product) 
+and IBM's Java based Aglets [<a href="#aglets" name=CITEaglets>11</a>].
+Other mobile agent and mobile object related work illustrate the rapid
+growth of the field:
+[<a href="#ambi" name=CITEambi>12</a>,<a href="#steensbaard95:object" name=CITEsteensbaard95:object>13</a>,<a href="#agentTCL" name=CITEagentTCL>14</a>,<a href="#gray98:tcl" name=CITEgray98:tcl>15</a>,<a href="#white98:thesis" name=CITEwhite98:thesis>16</a>,<a href="#white96:telescript" name=CITEwhite96:telescript>17</a>].
+
+<p>
+Implementation technologies for mobile code are studied in 
+[<a href="#adl-tabatabai96:efficient" name=CITEadl-tabatabai96:efficient>18</a>].
+Early work on the Linda coordination framework [<a href="#linda89" name=CITElinda89>3</a>,<a href="#CasCia96" name=CITECasCia96>19</a>,<a href="#sharedpro91" name=CITEsharedpro91>20</a>] 
+has shown its potential for coordination of multi-agent systems.
+The logical modeling and planning aspects of computational Multi-Agent systems have been pioneered
+by [<a href="#cohen:79a" name=CITEcohen:79a>21</a>,<a href="#cohen:89a" name=CITEcohen:89a>22</a>,<a href="#kowalski:91a" name=CITEkowalski:91a>23</a>,<a href="#wooldridge:92a" name=CITEwooldridge:92a>24</a>,<a href="#cohen:94a" name=CITEcohen:94a>25</a>,<a href="#cohen:95a" name=CITEcohen:95a>26</a>,<a href="#lesperance:95a" name=CITElesperance:95a>27</a>,<a href="#chaibdraa:94a" name=CITEchaibdraa:94a>28</a>].
+
+<p>
+        <H2><A NAME="tth_sEc10">
+10</A>&nbsp;&nbsp;Conclusion</H2>
+We have shown that agent programming patterns are well
+expressed in terms of an object oriented layer extended with
+a generalized inheritance mechanism, by composing library
+components for secure peer-to-peer agent communication,
+coordination and goal execution.
+We have used for this purpose a number of
+independent programming language
+constructs like inference engines, threads and remote
+execution mechanisms. Blackboards with
+constraints and associative search have been suggested
+as an alternative to message passing agent architectures.
+An increasing number of past and ongoing projects are using
+our agent architecture for applications ranging from virtual
+personalities to online trading agents and internet based
+teaching tools. We plan to extend our agent class libraries to
+cover a larger diversity of agent programming patterns in a number
+of different application domains.
+
+<p>
+<H2>References</H2>
+<DL compact>
+
+<p>
+<dt>[<a href="#CITEtarau:shaker" name=tarau:shaker>1</a>]</dt><dd>
+Paul Tarau.
+ Inference and Computation Mobility with Jinni.
+ In K.R. Apt, V.W. Marek, and M.&nbsp;Truszczynski, editors, <em>The
+  Logic Programming Paradigm: a 25 Year Perspective</em>, pages 33-48. Springer,
+  1999.
+ ISBN 3-540-65463-1.
+
+<p>
+<dt>[<a href="#CITEj2k_ug" name=j2k_ug>2</a>]</dt><dd>
+BinNet Corporation.
+ Jinni 2002 A High Performance Java and .NET based Prolog for Object
+  and Agent Oriented Internet Programming.
+ Technical report, BinNet Corp., 2002.
+ Available at
+  http://www.binnetcorp.com/download/jinnidemo/JinniUserGuide.html.
+
+<p>
+<dt>[<a href="#CITElinda89" name=linda89>3</a>]</dt><dd>
+N.&nbsp;Carriero and D.&nbsp;Gelernter.
+ Linda in Context.
+ <em>CACM</em>, 32(4):444-458, 1989.
+
+<p>
+<dt>[<a href="#CITEdbt95a" name=dbt95a>4</a>]</dt><dd>
+K.&nbsp;De&nbsp;Bosschere and P.&nbsp;Tarau.
+ Blackboard-based Extensions in Prolog.
+ <em>Software - Practice and Experience</em>, 26(1):49-69, January
+  1996.
+
+<p>
+<dt>[<a href="#CITEshoham:93a" name=shoham:93a>5</a>]</dt><dd>
+Y.&nbsp;Shoham.
+ Agent-oriented programming.
+ <em>Artificial Intelligence</em>, 60(1):51-92, 1993.
+
+<p>
+<dt>[<a href="#CITEbazaar" name=bazaar>6</a>]</dt><dd>
+Eric&nbsp;S. Raymond.
+ The Cathedral and the Bazaar.
+ Technical report, www.tuxedo.org, 2002.
+ Available at http://www.tuxedo.org/&nbsp;esr/writings/cathedral-bazaar.
+
+<p>
+<dt>[<a href="#CITEbradshaw96:software" name=bradshaw96:software>7</a>]</dt><dd>
+Jeffrey Bradshaw, editor.
+ <em>Software Agents</em>.
+ AAAI Press/MIT Press, Menlo Park, Cal., 1996.
+
+<p>
+<dt>[<a href="#CITEtennenhouse96:towards" name=tennenhouse96:towards>8</a>]</dt><dd>
+David&nbsp;L. Tennenhouse and David&nbsp;J. Wetherall.
+ Towards an active network architecture.
+ <em>Computer Communication Review</em>, 26(2), April 1996.
+
+<p>
+<dt>[<a href="#CITEcugola96:characterization" name=cugola96:characterization>9</a>]</dt><dd>
+Gianpaolo Cugola, Carlo Ghezzi, Gian&nbsp;Pietro Picco, and Giovanni Vigna.
+ A characterization of mobility and state distribution in mobile code
+  languages.
+ In <em>2nd ECOOP Workshop on Mobile Object Systems</em>, pages 10-19,
+  Linz, Austria, July 1996.
+
+<p>
+<dt>[<a href="#CITEodissey" name=odissey>10</a>]</dt><dd>
+GeneralMagicInc.
+ Odissey.
+ Technical report, 1997.
+ available at http://www.genmagic.com/agents.
+
+<p>
+<dt>[<a href="#CITEaglets" name=aglets>11</a>]</dt><dd>
+IBM.
+ Aglets.
+ Technical report, 1999.
+ http://www.trl.ibm.co.jp/aglets.
+
+<p>
+<dt>[<a href="#CITEambi" name=ambi>12</a>]</dt><dd>
+Luca Cardelli.
+ Abstractions for Mobile Computation.
+ Technical report, Microsoft Research, April 1999.
+
+<p>
+<dt>[<a href="#CITEsteensbaard95:object" name=steensbaard95:object>13</a>]</dt><dd>
+Bjarne Steensbaard and Eric Jul.
+ Object and native code thread mobility among heterogeneous computers.
+ In <em>Proceedings of the 15th ACM Symposium on Operating Systems
+  Principles</em>, pages 68-78, Copper Moutain, Co., December 1995.
+
+<p>
+<dt>[<a href="#CITEagentTCL" name=agentTCL>14</a>]</dt><dd>
+R.&nbsp;S. Gray.
+ Agent tcl: A flexible and secure mobile agent system.
+ In <em>Proceedings of the Fourth Annual Tcl/Tk Workshop</em>, pages
+  9-23, July 1996.
+ http://www.cs.dartmouth.edu/&nbsp;agent/papers/tcl96.ps.Z.
+
+<p>
+<dt>[<a href="#CITEgray98:tcl" name=gray98:tcl>15</a>]</dt><dd>
+Robert&nbsp;S. Gray.
+ Agent tcl: A flexible and secure mobile-agent system.
+ Technical Report PCS-TR98-327, Dartmouth College, Computer Science,
+  Hanover, NH, January 1998.
+ Ph.D. Thesis, June 1997.
+
+<p>
+<dt>[<a href="#CITEwhite98:thesis" name=white98:thesis>16</a>]</dt><dd>
+D.&nbsp;Eric White.
+ A comparison of mobile agent migration mechanisms.
+ Senior Honors Thesis, Dartmouth College, June 1998.
+
+<p>
+<dt>[<a href="#CITEwhite96:telescript" name=white96:telescript>17</a>]</dt><dd>
+James&nbsp;E. White.
+ Telescript technology: Mobile agents.
+ In Bradshaw [<a href="#bradshaw96:software" name=CITEbradshaw96:software>7</a>].
+ Also available as General Magic White Paper.
+
+<p>
+<dt>[<a href="#CITEadl-tabatabai96:efficient" name=adl-tabatabai96:efficient>18</a>]</dt><dd>
+Ali-Reza Adl-Tabatabai, Geoff Langdale, Steven Lucco, and Robert Wahbe.
+ Efficient and Language-independent Mobile Programs.
+ In <em>Proceedings of the ACM SIGPLAN '96 Conference on Programming
+  Language Design and Implementation (PLDI)</em>, pages 127-136, Philadelphia,
+  Pa., May 1996.
+
+<p>
+<dt>[<a href="#CITECasCia96" name=CasCia96>19</a>]</dt><dd>
+S.&nbsp;Castellani and P.&nbsp;Ciancarini.
+ Enhancing Coordination and Modularity Mechanisms for a Language with
+  Objects-as-Multisets.
+ In P.&nbsp;Ciancarini and C.&nbsp;Hankin, editors, <em>Proc. 1st Int. Conf.
+  on Coordination Models and Languages</em>, volume 1061 of <em>LNCS</em>, pages
+  89-106, Cesena, Italy, April 1996. Springer.
+
+<p>
+<dt>[<a href="#CITEsharedpro91" name=sharedpro91>20</a>]</dt><dd>
+A.&nbsp;Brogi and P.&nbsp;Ciancarini.
+ The Concurrent Language, Shared Prolog.
+ <em>ACM Transactions on Programming Languages and Systems</em>,
+  13(1):99-123, 1991.
+
+<p>
+<dt>[<a href="#CITEcohen:79a" name=cohen:79a>21</a>]</dt><dd>
+P.&nbsp;R. Cohen and C.&nbsp;R. Perrault.
+ Elements of a Plan Based Theory of Speech Acts.
+ <em>Cognitive Science</em>, 3:177-212, 1979.
+
+<p>
+<dt>[<a href="#CITEcohen:89a" name=cohen:89a>22</a>]</dt><dd>
+P.&nbsp;R. Cohen, M.&nbsp;L. Greenberg, D.&nbsp;M. Hart, and A.&nbsp;E. Howe.
+ Trial by Fire: Understanding the Design Requirements for Agents in
+  Complex Environments.
+ <em>AI Magazine</em>, 10(3):32-48, 1989.
+
+<p>
+<dt>[<a href="#CITEkowalski:91a" name=kowalski:91a>23</a>]</dt><dd>
+R.&nbsp;Kowalski and J.-S. Kim.
+ A Metalogic Programming Approach to Multi-Agent Knowledge and
+  Belief.
+ In V.&nbsp;Lifschitz, editor, <em>AI and Mathematical Theory of
+  Computation: Papers in Honour of John McCarthy</em>. Academic Press, 1991.
+
+<p>
+<dt>[<a href="#CITEwooldridge:92a" name=wooldridge:92a>24</a>]</dt><dd>
+M.&nbsp;Wooldridge.
+ <em>The Logical Modelling of Computational Multi-Agent Systems</em>.
+ PhD thesis, Department of Computation, UMIST, Manchester, UK, October
+  1992.
+ (Also available as Technical Report MMU-DOC-94-01, Department of
+  Computing, Manchester Metropolitan University, Chester St., Manchester, UK).
+
+<p>
+<dt>[<a href="#CITEcohen:94a" name=cohen:94a>25</a>]</dt><dd>
+P.&nbsp;R. Cohen and A.&nbsp;Cheyer.
+ An Open Agent Architecture.
+ In O.&nbsp;Etzioni, editor, <em>Software Agents - Papers from the 1994
+  Spring Symposium (Technical Report SS-94-03)</em>, pages 1-8. AAAIP, March
+  1994.
+
+<p>
+<dt>[<a href="#CITEcohen:95a" name=cohen:95a>26</a>]</dt><dd>
+P.&nbsp;R. Cohen and H.&nbsp;J. Levesque.
+ Communicative Actions for Artificial Agents.
+ In <em>Proceedings of the First International Conference on
+  Multi-Agent Systems (ICMAS-95)</em>, pages 65-72, San Francisco, CA, June 1995.
+
+<p>
+<dt>[<a href="#CITElesperance:95a" name=lesperance:95a>27</a>]</dt><dd>
+Y.&nbsp;L&#233;sperance, H.&nbsp;J. Levesque, F.&nbsp;Lin, D.&nbsp;Marcu, R.&nbsp;Reiter, and R.&nbsp;B.
+  Scherl.
+ Foundations of a Logical Approach to Agent Programming.
+ In M.&nbsp;Wooldridge, J.&nbsp;P. M&#252;ller, and M.&nbsp;Tambe, editors, <em>
+  Intelligent Agents II (LNAI 1037)</em>, pages 331-346. Springer-Verlag:
+  Heidelberg, Germany, 1996.
+
+<p>
+<dt>[<a href="#CITEchaibdraa:94a" name=chaibdraa:94a>28</a>]</dt><dd>
+B.&nbsp;Chaib-draa and P.&nbsp;Levesque.
+ Hierarchical Models and Communication in Multi-Agent Environments.
+ In <em>Proceedings of the Sixth European Workshop on Modelling
+  Autonomous Agents and Multi-Agent Worlds (MAAMAW-94)</em>, pages 119-134,
+  Odense, Denmark, August 1994.
+
+<p>
+</DL><hr><H3>Footnotes:</H3>
+
+<p><a name=tthFtNtAAB></a><a href="#tthFrefAAB"><sup>1</sup></a> Contact address: <b>Paul Tarau, Ph.D.</b>
+  Department of Computer Science,
+   University of North Texas,
+   P.O. Box 311366,
+   Denton, Texas 76203,
+   E-mail: tarau@cs.unt.edu
+)
+<p><a name=tthFtNtAAC></a><a href="#tthFrefAAC"><sup>2</sup></a> The pun resulting from
+this comparison is related of course
+to [<a href="#bazaar" name=CITEbazaar>6</a>] which advocates the contrary for
+human actors involved in software engineering tasks.
+<p><hr><small>File translated from T<sub><font size="-1">E</font></sub>X by <a href="http://hutchinson.belmont.ma.us/tth/">T<sub><font size="-1">T</font></sub>Hgold</a>, version 2.24.<br>On 28 Sep 2002, 16:01.</small>
+</HTML>

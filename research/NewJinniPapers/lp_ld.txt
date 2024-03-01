@@ -1,0 +1,74 @@
+Programming Language Design and Logic Programming
+
+The Problem:
+
+- great computational mechanisms - poor programming language design
+- Prolog: 
+   - plagued by old language design - but still providing
+     the best overall functionality
+   - ISO standard - too late, hardwiring a 20 years old design
+- attempts: 
+    - multi-paradigm languages: Oz, Curry
+    - restrictive designes: VP, Mercury
+    - OO layers: integration is superficial - inferential aspects of
+      OO (inheritance, automated delegation mechanisms) not intgratead
+      with LP's extensive inference abilities
+    - LP metaprogramming and OO-reflection have never been connected
+- major advances in language design and component technology
+  had minimal impact on LP languages
+- the equivalent of the Haskell revolution in FP - and possibly more
+
+Proposal
+
+- research effort to design a modern, state of the art LP language
+- incorporate modern SE techniques
+
+- very likely to look like a post OO - Agent Oriented Programming language
+- smooth integration of multi-threading and distributed programming concepts
+- built-in component technologies, in particular component broker and
+  automated service recognition mechanisms
+
+Past results:
+
+  Kernel Prolog, Fluents, Jinni, Prolog Engines, NL programming
+  Internet Programming, Internet Search Agents etc.
+  Mobiliy, High Level Networking, Distributed Programming
+
+Claimed Benefits:
+
+- new LP language, reference impl. will be provided
+- cross-fertilization: research results will backpropagate
+  into the field of Programming Language Design - we expect
+  to influence the design of a new generation of agent oriented
+  programming languages
+- possible workshop on "Inferential Aspects of Programming Languages"
+
+Related Work:
+
+- agent languages, mobility, distribution
+- component technologies
+- post OO language design
+- learning from developments in FP
+- toward Inferential Programming Languages
+
+Towards Agent Oriented Logic Programming
+
+- built on top of Jinni's OO system
+
+- OO agent hierarchies
+
+- Multiple Cyclic Inheritance allows static reuse of
+  agent features and compositional mechanisms for
+  building new agents from standard agent part libraries
+
+An Agent Class provides a goal set and a specialized
+query interpreter (it can be seen as a generalized
+service processor).
+
+An agent instance feeds the query interpreter 
+while listening as a server on a port. It also
+creates a thread for each goal in the goal set.
+ 
+Agent instances have unique global IDs and communicate
+through global or local blackboards. Each agent instance
+runs its own set of goal threads.

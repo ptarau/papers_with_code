@@ -1,0 +1,20 @@
+XML Based Syntax Ecodings for Prolog
+
+We describe mapping from Prolog programs to
+XML documents. The syntax assumes a fixed
+set of operators - but otherwise includes
+all essential Prolog constructs and 
+supports bidirectional translation to/from
+ISO Prolog syntax.
+
+Similar to the effort to provide XML-encodings
+for other tree-structured languages (for instance
+VRML) our encoding provides means for logic
+programming components to excahnge data and
+interoperate with mainstream tools and languages
+like Java and .NET.
+
+A dual interpretation of our effort is to provide
+an inference mechanism which empowers XML-encoded
+business logic with knowledge processing
+capabilities.

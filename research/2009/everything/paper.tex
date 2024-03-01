@@ -1,0 +1,1700 @@
+\pdfoutput=1
+% ICFP'09 Confirmation Number:    104
+% Submission Passcode:    104X-H1C5C0J9I2 
+
+\documentclass[9pt,preprint,natbib]{TOOLS/sigplanconf}
+\usepackage{amsfonts,amsmath}
+\input TOOLS/chheader.tex
+
+\begin{document}
+\conferenceinfo{ICFP}{date, City.} 
+\copyrightyear{2009} 
+\copyrightdata{[to be supplied]} 
+
+\titlebanner{}      % These are ignored unless
+\preprintfooter{}   % 'preprint' option specified.
+
+\title{
+   ``Everything'' - as a functional program
+}
+\subtitle{or {\em a rambling renaissance man's guide to data transformations}}
+           
+\authorinfo{Paul Tarau}
+   {Department of Computer Science and Engineering\\
+   University of North Texas}
+   {\em tarau@cs.unt.edu}
+
+\maketitle
+
+\begin{abstract}
+We explore in this paper, in the form of a literate Haskell program a uniform
+data centric upper ontology of computational entities, derived from first
+principles: a {\em groupoid of isomorphisms} between fundamental data types
+provides the ability to shift views of a given informational entity at will.
+
+After introducing isomorphisms between elementary
+data types (natural numbers, sets, multisets, finite functions, graphs,
+hypergraphs, bitstring and parenthesis languages, etc.) we lift them
+to hereditarily
+finite universes through {\em hylomorphisms} derived
+from {\em ranking/unranking} and
+{\em pairing/unpairing} operations.
+
+An embedded higher order {\em combinator language} provides
+any-to-any encodings automatically.
+
+Applications range from
+stream iterators on
+combinatorial objects to
+self-delimiting codes,
+succinct data representations and generation
+of random instances.
+
+\end{abstract}
+
+%\category{CR-number}{subcategory}{third-level}
+
+%\terms
+
+
+\keywords
+computational mathematics in Haskell, 
+data type transformations,
+higher order combinators,  
+hylomorphisms, 
+ranking/unranking, Goedel numberings
+
+\begin{comment}
+\begin{code}
+module ISO where
+import Data.List
+import Data.Char
+import Random
+-- import Data.Graph.Inductive
+\end{code}
+\end{comment}
+
+\section{Introduction}
+
+Mathematical theories often borrow proof patterns and reasoning
+techniques across close and sometime not so close fields.
+
+A relatively small number of universal data types are used as basic building
+blocks in programming languages and their runtime interpreters,
+corresponding to a few well tested mathematical abstractions like sets,
+functions, graphs, groups, categories etc.
+
+Compilers convert programs from human centered to machine centered
+representations. Complexity classes are defined through compilation with
+limited resources (time or space) to similar problems
+\cite{Cook04theoriesfor}.
+
+Clearly, this as part of a more general pattern: analogical/metaphorical
+thinking routinely shifts entities and operations 
+from a field to another hoping to uncover similarities
+in representation or use \cite{lakoff}. 
+
+This might sound somewhat interesting - but it is awfully vague. 
+From where a precise challenge is derived: can we turn the {\em
+metaphors we leave by} into well defined data transformation mechanisms?
+
+One can see the ``computational universe'' - in analogy with its
+physical or biological counterparts - as being populated by a wide diversity of
+data types - all fundamentally {\em different}. Under this view, knowledge
+appears as accumulation of information about similarities and differences and
+ {\em abstraction} (i.e. lossy but sufficient approximation) helps managing
+the otherwise intractable set of attributes and behaviors.
+
+However, this view of the ``computational universe" forgets a
+salient difference: while we have not designed the representations and laws
+governing the physical or biological world, we have designed their
+computational counterparts. And ownership has its privileges: we can 
+freely shift the view while fixing the object of the view, if we wish!
+
+This paper is about advocating constructively\footnote{
+  We really mean it - the
+  paper is executable as a literate Haskell program - the code is available
+  from \url{http://logic.cse.unt.edu/tarau/research/2009/everything.zip}.
+} 
+an exploration of the ``computational universe'' in which everything {\em is} 
+everything else, or, for the relativist, everything {\em can be seen} as everything else.
+
+Under this assumption on the computational {\em upper ontology}, information
+can take the {\em shape} of an arbitrary data type. And one is quickly conduced
+to accept that the {\em frame of reference} is unimportant - and that any of these shapes 
+can be seen as the essential shape of an entity, given that 
+{\em isomorphisms} can faithfully shift it from one shape 
+to another and back without loss of information.
+
+We see these encodings as a first step
+towards a ``theory of everything'' joining together
+the basic building blocks of various computational artifacts, i.e.
+an executable {\em upper ontology} of computational entities.
+
+The cognoscenti might observe that this is not very far from what Leibniz, in
+{\em La Monadologie} \cite{monadologie} had already expressed about \ldots {\em
+Monads}:
+\begin{quote} {\em
+Now this interconnectedness, or this accommodation of all created things to
+each, and of each to all the rest, means that each simple substance has relations 
+to all the others, which it expresses. 
+Consequently, it is a permanent living mirror of the universe.}
+\end{quote}
+
+As we shall see, the natural framework to organize such isomorphisms 
+is a {\em finite groupoid} i.e. a category \cite{matcat} where every morphism is
+an isomorphism, with objects provided by the data types and morphisms 
+provided by their transformations.
+
+As a practical goal, we hope this can facilitate the refactoring of the
+enormous ontology exhibited by various computer science and engineering fields,
+that have resulted over a relatively short period of
+evolution in unnecessarily steep learning curves limiting communication
+and synergy between fields. % and inducing high costs for specialized training.
+
+It is important to keep in mind that we must not lose any
+information if we want to be able to shift views at will. Therefore, the only {\em morphisms}
+that matter, in this ontology, are {\em isomorphisms}. 
+
+This brings us into
+familiar territory: substitution of equals by equals - {\em referential
+transparency} - an intrinsic feature of functional programming languages.
+And it makes Haskell the natural choice for the first iteration of such an
+effort - while keeping in mind that the frame of reference can be easily
+shifted to a different programming paradigm.
+
+\section{A possible first frame of reference: a ranking/unranking algorithm for
+finite sequences} \label{cons}
+
+One has to start somewhere - and that usually comes with a set of assumptions
+that are genuinely {\em a priori} i.e. such that most people have no trouble
+working with them even outside formal computer science or mathematical training.
+
+In this sense, natural numbers are probably not just
+the oldest computational abstraction - but also the most 
+widely accepted one as being ``built from first principles''. With their
+usual (second order) Peano axiomatization \cite{kirby82}, 
+natural numbers are also formally well understood - if one cares.
+We will, therefore, use them as our first data type, providing 
+not only a surprisingly strong structuring mechanism - but
+also enough expressiveness for hosting universal data and program
+structures.
+\begin{df}
+A {\em ranking/unranking} function defined on a data type is a
+bijection to/from the set of natural numbers (denoted $\mathbb{N}$ through the paper).
+\end{df}
+When applied to formulae or proofs, ranking functions are usually called
+{\em G\"{o}del numberings} as they have originated in arithmetization
+techniques used in the proof of G\"{o}del's incompleteness results.
+G\"{o}del
+numberings are typically {\em one-to-one} but not {\em onto} i.e. not all
+natural numbers correspond to valid formulae. 
+Originating in combinatorics, {\em ranking/unranking}
+functions are {\em bijective} as they relate arbitrary combinatorial 
+objects to unique natural numbers.
+
+We start with an unusually simple (but nevertheless {\em new})
+ranking/unranking algorithm for finite sequences of arbitrary (i.e. unbounded size!) 
+natural numbers. Let's first observe that
+\begin{prop}
+$\forall z \in \mathbb{N}-\{0\}$ the diophantic equation
+\begin{equation}
+2^x(2y+1)=z
+\end{equation}
+has exactly one solution $x,y \in \mathbb{N}$.
+\end{prop}
+This follows immediately from the unicity of the decomposition of a natural
+number as a multiset of prime factors. 
+
+Given the definitions
+\begin{code}
+type N = Integer
+cons :: N->N->N
+cons x y  = (2^x)*(2*y+1)
+
+hd :: N->N
+hd n | n>0 = if odd n then 0 else 1+hd  (n `div` 2)
+
+tl :: N->N
+tl n = n `div` 2^((hd n)+1)
+
+as_ns_n :: N->[N]
+as_ns_n 0 = []
+as_ns_n n = hd n : as_ns_n (tl n)
+ 
+as_n_ns :: [N]->N  
+as_n_ns [] = 0
+as_n_ns (x:xs) = cons x (as_n_ns xs)
+\end{code}
+the following holds:
+\begin{prop}
+{\tt as\_n\_ns} is a bijection from finite sequences of natural numbers to
+natural numbers and {\tt as\_ns\_n} is its inverse.
+\end{prop}
+This follows from the fact that {\tt cons} and the pair {\tt (hd, tl)} define a bijection between
+$\mathbb{N}-\{0\}$ and $\mathbb{N} \times \mathbb{N}$ and that the value of {\tt as\_n\_ns} is
+uniquely determined by the applications of {\tt tl} and the sequence of values
+returned by {\tt hd}.
+\begin{codex}
+*ISO> hd 2008
+3
+*ISO> tl 2008
+125
+*ISO> cons 3 125
+2008
+\end{codex}
+Note also that this isomorphism preserves ``list processing'' operations i.e.
+if one defines:
+\begin{code}
+append 0 ys = ys
+append xs ys = cons (hd xs) (append (tl xs) ys)
+\end{code}
+then the isomorphism commutes with operations like list concatenation:
+\begin{prop}
+~\\
+(as\_ns\_n n)++(as\_ns\_n m) $\equiv$ as\_ns\_n (append n m)\\
+as\_n\_ns (ns++ms) $\equiv$ append (as\_n\_ns ns) (as\_n\_ns ms)
+\end{prop}
+
+One might notice at this point that {\tt hd,tl,cons,0}
+define on $\mathbb{N}$ an algebraic structure isomorphic to the one 
+introduced by {\tt CAR,CDR,CONS,NIL} in John McCarthy's classic LISP paper
+\cite{mccarthy60}\footnote{And following John McCarthy's {\em eval} construct
+one can now build relatively easily a LISP interpreter working directly and
+exclusively through simple arithmetic operations on natural numbers.}.
+
+\section{Connecting the dots with a groupoid of isomorphisms}
+
+\begin{df}
+A category in which every morphism is an isomorphism is called a {\em groupoid}.
+\end{df}
+We represent {\em isomorphism} pairs like {\tt as\_ns\_n} and {\tt
+as\_n\_ns} as a data type {\tt Iso}, together with the operations  {\tt compose,
+itself, invert} providing the (finite) {\em groupoid} structure.ß
+
+\begin{code}
+data Iso a b = Iso (a->b) (b->a)
+
+compose :: Iso a b -> Iso b c -> Iso a c
+compose (Iso f g) (Iso f' g') = Iso (f' . f) (g . g')
+
+itself = Iso id id
+
+invert (Iso f g) = Iso g f
+\end{code}
+It makes sense at this point to connect everything to a {\em hub} type --
+for instance $\mathbb{N}$ -- to avoid having to provide $n*(n-1)/2$
+isomorphisms. We call such a connector an {\tt Encoder}:
+\begin{code}
+type Encoder a = Iso a N
+\end{code}
+We first define a trivial {\tt Encoder}:
+\begin{code}
+n :: Encoder N
+n = itself
+\end{code}
+and then an {\tt Encoder} from finite sequences of (unbounded) natural numbers
+to $\mathbb{N}$:
+\begin{code}
+ns :: Encoder [N] 
+ns = Iso as_n_ns as_ns_n
+\end{code}
+It makes sense to lift the operations  {\tt as\_ns\_n} and {\tt
+as\_n\_ns} to route a transformation to/from an arbitrary type through the
+common {\em hub} by introducing a new combinator {\tt as}:
+\begin{code}  
+as :: Encoder a -> Encoder b -> b -> a
+as that this x = g x where 
+   Iso _ g = compose that (invert this)
+\end{code}
+It works as follows:
+\begin{codex}
+*ISO> as ns n 2009
+[0,2,0,1,0,0,0,0]
+*ISO> as n ns [0,2,0,1,0,0,0,0]
+2009
+\end{codex}
+Note that indeed, {\tt as ns n} generalizes {\tt as\_ns\_n} in an intuitive way:
+\begin{codex}
+*ISO> as_ns_n 2009
+[0,2,0,1,0,0,0,0]
+*ISO> as_n_ns [0,2,0,1,0,0,0,0]
+2009
+\end{codex}
+
+\section{Encoding of some fundamental data types}
+We will now quickly put the mechanism at work and show that Encoders for some
+fundamental data types are surprisingly easy to build.
+
+\subsection{From finite sequences to finite sets of natural numbers}
+An encoder of finite sets of natural numbers (assumed ordered) as sequences is
+obtained by adjusting the encoding of multisets so that {\tt 0}s are first mapped to {\tt 1}s - this
+ensures that all elements are different.
+\begin{code}
+set :: Encoder [N]
+set = compose (Iso as_ns_set as_set_ns) ns
+
+as_set_ns = (map pred) . as_ms_ns . (map succ)
+as_ns_set = (map pred) . as_ns_ms . (map succ)
+\end{code}
+It works as follows:
+\begin{codex}
+*ISO> as set n 2009
+[0,3,4,6,7,8,9,10]
+*ISO> as n set it
+2009
+\end{codex}
+
+\subsection{From sequences to multisets of natural numbers}
+An encoder of multisets (assumed ordered) as sequences is obtained by ``summing
+up'' a sequence with {\tt scanl}.
+\begin{code}
+ms :: Encoder [N]
+ms = compose (Iso as_ns_ms as_ms_ns) ns
+
+as_ms_ns ns = tail (scanl (+) 0 ns)
+as_ns_ms ms = zipWith (-) (ms) (0:ms)
+\end{code}
+It works as follows:
+\begin{codex}
+*ISO> as ms n 2009
+[0,2,2,3,3,3,3,3]
+*ISO> as n ms it
+2009
+\end{codex}
+One can see how this is derived by summing up from:
+\begin{codex}
+*ISO> as ns n 2009
+[0,2,0,1,0,0,0,0]
+\end{codex}
+
+
+
+\section{Generic unranking and ranking hylomorphisms} \label{unrank}
+
+The {\em ranking problem} for a family of
+combinatorial objects is finding a unique 
+natural number associated to it,
+called its {\em rank}.
+The inverse {\em unranking problem} consists of generating a unique
+combinatorial object associated to each natural number. 
+
+\subsection{Hereditarily finite data types}
+
+The unranking operation is seen here as an instance of a generic
+{\em anamorphism} (an {\em unfold} operation), while the ranking
+operation is seen as an instance of the corresponding catamorphism (a {\em
+fold} operation) \cite{DBLP:conf/fpca/MeijerH95,DBLP:journals/jfp/Hutton99}.
+Together they form a mixed transformation called {\em hylomorphism}. 
+We will use such hylomorphisms to {\em lift} isomorphisms between lists
+and natural numbers to isomorphisms between a derived tree
+data type and natural numbers.
+
+The data type representing such {\em hereditarily finite} structures will be
+a generic multi-way tree with a single leaf type {\tt []}.
+
+\begin{code}
+data T = H Ts deriving (Eq,Ord,Read,Show)
+type Ts = [T]
+\end{code}
+The two sides of our hylomorphism 
+are parameterized by two transformations
+{\tt f} and {\tt g} forming
+an isomorphism {\tt Iso f g}:
+\begin{code}
+unrank f n = H (unranks f (f n))
+unranks f ns = map (unrank f) ns
+
+rank g (H ts) = g (ranks g ts)
+ranks g ts = map (rank g) ts
+\end{code}
+Both combinators can be seen as a form of ``structured recursion''
+that propagates a simpler operation guided by the structure of
+the data type. 
+We can now combine an 
+anamorphism+catamorphism pair into
+an isomorphism {\tt hylo} defined
+with {\tt rank} and {\tt unrank} 
+on the corresponding
+hereditarily finite data types:
+\begin{code}
+hylo :: Iso b [b] -> Iso T b
+hylo (Iso f g) = Iso (rank g) (unrank f)
+
+hylos :: Iso b [b] -> Iso Ts [b]
+hylos (Iso f g) = Iso (ranks g) (unranks f)
+\end{code}
+
+\subsubsection{Hereditarily finite sets}
+Hereditarily finite sets \cite{finitemath} will be represented
+as an Encoder for the tree type {\tt T}:
+\begin{code}
+hfs :: Encoder T
+hfs = hylo (Iso (as set n) (as n set))
+\end{code}
+Otherwise, hylomorphism induced isomorphisms
+work as usual with our embedded
+transformation language:
+
+\begin{codex}
+*ISO> as hfs n 42
+H [H [H []],H [H [],H [H []]],H [H [],H [H [H []]]]]
+\end{codex}
+One can notice that we have just derived as a
+``free algorithm'' Ackermann's encoding
+\cite{ackencoding}
+from hereditarily finite sets to natural numbers:
+\vskip 0.30cm
+$f(x)$ = {\tt if} $x=\{\}$ {\tt then} $0$ {\tt else} $\sum_{a \in x}2^{f(a)}$
+\vskip 0.30cm
+\noindent together with its inverse
+\begin{code}
+ackermann = as n hfs
+inverse_ackermann = as hfs n
+\end{code}
+One can represent the action of a hylomorphism unfolding a natural number into
+a hereditarily finite set as a directed graph with outgoing edges
+induced by by applying the {\tt inverse\_ackermann} function as shown
+in Fig. \ref{f1}.
+\FIG{f1}{2008 as a HFS}{0.50}{isof1.pdf}
+
+\subsection{Hereditarily finite multisets}
+In a similar way, one can derive an Encoder for hereditarily finite multisets
+based on the {\tt ms} isomorphism:
+\begin{code}
+hfm :: Encoder T
+hfm = hylo (Iso (as ms n) (as n ms))
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as hfm n 2008
+H [H [H [],H []],H [H [],H []],
+   H [H [H [H []]]],H [H [H [H []]]],
+   H [H [H [H []]]],H [H [H [H []]]],H [H [H [H []]]]]
+*ISO> as n hfm it
+2008
+\end{codex}
+
+\subsubsection{Hereditarily finite functions}
+The same tree data type can host a hylomorphism
+derived from finite functions instead of
+finite sets:
+\begin{code}
+hff :: Encoder T
+hff = hylo (Iso (as ns n) (as n ns))
+\end{code}
+The {\tt hff} Encoder can be seen as a ``free algorithm'', providing
+data compression/succinct representation for Hereditarily 
+Finite Sets. Note, for instance,
+the significantly smaller tree size in:
+\begin{codex}
+*ISO> as hff n 2008
+H [H [H [],H []],H [],H [H []],H [],H [],H [],H []]
+\end{codex}
+One can represent the action of a hylomorphism unfolding a natural number into
+a hereditarily finite function as a directed ordered multi-graph as shown
+in Fig. \ref{f2}. Note that as the mapping {\tt as fun n} generates
+a sequence where the order of the edges matters, this order is
+indicated integers starting from {\tt 0} labeling the edges.
+\FIG{f2}{2008 as a HFF}{0.50}{isof2.pdf}
+
+\section{Pairing functions as Encoders}
+An important type of isomorphism, originating in Cantor's work of infinite sets
+connects natural numbers and pairs of natural numbers.
+\begin{df}
+An isomorphism $f: \mathbb{N} \times \mathbb{N} \rightarrow \mathbb{N}$ is
+called a {\em pairing function} and its inverse $f^{-1}$ is called an {\em
+unpairing} function.
+\end{df}
+Given the definitions:
+\begin{code}
+unpair z = (hd (z+1), tl (z+1))
+pair (x,y) = (cons x y)-1
+\end{code}
+shifting by 1 turns {\tt hd} and {\tt tl} in
+total functions on $\mathbb{N}$ such that $unpair~0=(0,0)$ i.e. the following
+holds:
+\begin{prop}
+~\\
+$unpair:\mathbb{N} \rightarrow \mathbb{N} \times \mathbb{N}$ 
+is a bijection and $pair=unpair^{-1}$.
+\end{prop}
+Note that unlike {\tt hd} and {\tt tl}, {\tt
+unpair} is defined for all natural numbers:
+\begin{codex}
+*ISO> map unpair [0..7]
+[(0,0),(1,0),(0,1),(2,0),(0,2),(1,1),(0,3),(3,0)]
+\end{codex}
+
+As the cognoscenti might notice, this is in fact a classic {\em
+pairing/unpairing function} that has been used, by Pepis, Kalmar and Robinson 
+in some fundamental work on recursion theory, 
+decidability and Hilbert's Tenth Problem in
+\cite{pepis,kalmar1,robinson50,robinsons68b}.
+
+Using the functions {\tt pair} and {\tt unpair} we define the Encoder:
+\begin{code}
+type N2 = (N,N)
+n2 :: Encoder N2
+n2 = Iso pair unpair
+\end{code}
+we obtain a pairing/unpairing isomorphism {\tt n2} between and $\mathbb{N}
+\times \mathbb{N}$ and $\mathbb{N}$.
+Another interesting pairing function \cite{pigeon} can be derived from
+the Moser-De Bruijn sequence (A000695, \cite{A000695})
+\begin{code}
+inflate = (as n set) . (map (*2)) . (as set n)
+\end{code}
+as follows:
+\begin{code}
+bpair (i,j) = inflate i + ((*2) . inflate) j
+bunpair k = (deflate xs,deflate ys) where 
+  (xs,ys) = partition even (as set n k)
+  deflate = (as n set) . (map (`div` 2))
+\end{code}
+It works as follows:
+\begin{codex}
+*ISO> map bunpair [0..7]
+[(0,0),(1,0),(0,1),(1,1),(2,0),(3,0),(2,1),(3,1)]
+*ISO> map bpair it
+[0,1,2,3,4,5,6,7]
+\end{codex}
+\begin{prop}
+{\tt bunpair} creates a pair by separating even and odd bits of a natural
+number; its inverse {\tt bpair} merges them back.
+\end{prop}
+Together, they provide a pairing/unpairing isomorphism {\tt n2'} between and
+$\mathbb{N} \times \mathbb{N}$ and $\mathbb{N}$:
+\begin{code}
+n2' :: Encoder N2
+n2' = Iso bpair bunpair
+\end{code}
+working as follows
+\begin{codex}
+*ISO> as n n2' (2008,2009)
+4191170
+*ISO> as n2' n it
+(2008,2009)
+\end{codex}
+
+In a way similar to hereditarily finite trees generated by unfoldings one can
+apply strictly decreasing\footnote{except for 0 and 1, typically} unpairing
+functions recursively. Figures \ref{iso2008p} and \ref{iso2008b} show the
+directed graphs describing recursive application of {\tt bunpair} and {\tt
+pepis\_unpair}.
+
+\FIG{iso2008p}{Graph obtained by recursive application of {\tt unpair}
+for 2008}{0.40}{iso2008p.pdf}
+
+\FIG{iso2008b}{Graph obtained by recursive application of {\tt bunpair}
+for 2008}{0.40}{iso2008b.pdf}
+
+Given that unpairing functions are bijections from $N$ to $N \times N$
+they will progressively cover all points having natural number coordinates in
+their range in the plane. Figure \ref{isounpair1} %, \ref{isounpair2} 
+shows the curve generated by {\tt bunpair}. %and {\tt unpair}.
+
+\FIG{isounpair1}
+{2D curve connecting values of {\tt unpair n} for $n \in [0..2^{10}-1]$}
+{0.25}{isounpair1.pdf}
+
+\begin{comment}
+
+\FIG{isounpair2}
+{2D curve connecting values of {\tt unpair n} for $n \in [0..2^{10}-1]$}
+{0.25}{isounpair2.pdf}
+
+Fig. \ref{f6} shows the action of the pairing function {\tt bpair}
+on its two arguments arguments in [0..63].
+\FIG{f6}{Values of bpair x y with x,y in [0..63]}{0.25}{isof6.pdf}
+
+\end{comment}
+
+\subsection{Encoding unordered pairs}
+To derive an encoding of unordered pairs, i.e. 2 element sets, one
+can combine pairing/unpairing with conversion between sequences and
+sets:
+\begin{code}
+pair2unord_pair (x,y) = as set ns [x,y]
+unord_pair2pair [a,b] = (x,y) where 
+  [x,y]=as ns set [a,b]   
+
+unord_unpair = pair2unord_pair . bunpair
+unord_pair = bpair . unord_pair2pair
+\end{code}
+We can derive the following  Encoder:
+\begin{code}
+set2 :: Encoder [N]
+set2 = compose (Iso unord_pair unord_unpair) n
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as set2' n 2008
+[60,87]
+*ISO> as n set2' [60,87]
+2008
+*ISO> as n set2' [87,60]
+2008
+\end{codex}
+
+\subsection{Encodings multiset pairs}
+To derive an encoding of 2 element multisets, one
+can combine pairing/unpairing with conversion between sequences and
+multisets:
+\begin{code}
+pair2mset_pair (x,y) = (a,b) where [a,b]=as ms ns [x,y]
+mset_unpair2pair (a,b) = (x,y) where [x,y] = as ns ms [a,b]
+
+mset_unpair = pair2mset_pair . bunpair
+mset_pair = bpair . mset_unpair2pair
+\end{code}
+We can derive the following Encoder:
+
+\begin{code}
+mset2 :: Encoder N2
+mset2 = compose (Iso mset_unpair2pair pair2mset_pair) n2
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as mset2 n 2008
+(60,86)
+*ISO> as n mset2 it
+2008
+\end{codex}
+
+Figure \ref{isounpair3} shows the curve generated by {\tt mset\_unpair}
+covering the lattice of points in its range.
+
+\FIG{isounpair3}
+{2D curve connecting values of {\tt mset\_unpair n} for $n \in [0..2^{10}-1]$}
+{0.25}{isounpair3.pdf}
+
+
+\subsection{Encoding signed integers}
+To encode signed integers one can map positive numbers to even numbers and
+strictly negative numbers to odd numbers. This gives the Encoder:
+
+\begin{code}
+z:: Encoder Z
+z = compose (Iso z2nat nat2z) n
+
+nat2z n = if even n then n `div` 2 else (-n-1) `div` 2
+z2nat n = if n<0 then -2*n-1 else 2*n
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as set z (-42)
+[0,1,4,6]
+*ISO> as z set [0,1,4,6]
+-42
+\end{codex}
+
+\subsection{Extending pairing/unpairing to signed integers}
+Given the bijection from $n$ to $z$ one can easily extend pairing/unpairing
+operations to signed integers. We obtain the Encoder:
+\begin{code}
+type Z = Integer
+type Z2 = (Z,Z)
+
+z2 :: Encoder Z2
+z2 = compose (Iso zpair zunpair) n
+
+zpair (x,y) = (nat2z . bpair) (z2nat x,z2nat y)
+zunpair z = (nat2z n,nat2z m) where (n,m)= (bunpair . z2nat) z
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> map zunpair [-5..5]
+[(-1,1),(-2,-1),(-2,0),(-1,-1),(-1,0),
+ (0,0),(0,-1),(1,0),(1,-1),(0,1),(0,-2)]
+*ISO> map zpair it
+[-5,-4,-3,-2,-1,0,1,2,3,4,5]
+
+*ISO> as z2 z (-2008)
+(63,-26)
+*ISO> as z z2 it
+-2008
+\end{codex}
+Figure \ref{isozunpair} shows the curve covering the lattice of integer
+coordinates generated by the function {\tt zunpair}.
+
+\FIG{isozunpair}
+{Curve generated by unpairing function on signed integers}
+{0.25}{isozunpair.pdf}
+
+The same construction can be extended to multiset pairing functions:
+\begin{code}
+mz2 :: Encoder Z2
+mz2 = compose (Iso mzpair mzunpair) n
+
+mzpair (x,y) = (nat2z . mset_pair) (z2nat x,z2nat y)
+mzunpair z = (nat2z n,nat2z m) where 
+  (n,m)= (mset_unpair . z2nat) z
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as mz2 z (-42)
+(1,-8)
+*ISO> as z mz2 it
+-42
+\end{codex}
+
+
+
+\section{Encoding graphs and hypergraphs} \label{graphs}
+We will now show that more complex data types like digraphs and hypergraphs
+have extremely simple encoders. This shows once more the importance
+of compositionality in the design of our embedded transformation
+language.
+ 
+\subsection{Encoding directed graphs} \label{digraphs}
+We can find a bijection from 
+directed graphs (with no isolated vertices, corresponding to their
+ view as binary relations), to finite sets by fusing their list
+ of ordered pair representation into finite sets with a pairing
+ function:
+\begin{code}
+digraph2set ps = map bpair ps
+set2digraph ns = map bunpair ns
+\end{code}
+The resulting Encoder is:
+\begin{code}
+digraph :: Encoder [N2]
+digraph = compose (Iso digraph2set set2digraph) set
+\end{code}
+It works as follows:
+\begin{codex}
+*ISO> as digraph n 2008
+[(1,1),(2,0),(2,1),(3,1),(0,2),(1,2),(0,3)]
+*ISO> as n digraph it
+2008
+\end{codex}
+Fig. \ref{f5} shows the digraph associated to {\tt 2008}.
+\FIG{f5}{2008 as a digraph}{0.50}{isof5.pdf}
+
+
+\subsection{Encoding undirected graphs} \label{ugraphs}
+We can find a bijection from 
+undirected graphs to finite sets by fusing their list
+ of unordered pair representation into finite sets with a pairing
+ function on unordered pairs:
+\begin{code}
+graph2set ps = map unord_pair ps
+set2graph ns = map unord_unpair ns
+\end{code}
+The resulting Encoder is:
+\begin{code}
+graph :: Encoder [[N]]
+graph = compose (Iso graph2set set2graph) set
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as graph n 2008
+[[1,3],[2,3],[2,4],[3,5],[0,3],[1,4],[0,4]]
+*ISO> as n graph it
+2008
+*ISO> as n graph 
+        [[1,3],[3,2],[2,4],[5,3],[0,3],[4,1],[0,4]]
+2008
+\end{codex}
+Note that, as expected, the result is invariant to changing the order of
+elements in pairs like {\tt [1,4]} and {\tt [3,5]} to {\tt [4,1]} and
+{\tt [5,3]}.
+
+\subsection{Encoding directed multigraphs} \label{mdigraphs}
+We can find a bijection from 
+directed multigraphs (directed graphs with multiple edges between pairs of
+vertices) to finite sequences by fusing their list of ordered pair
+representation into finite sequences with a pairing function.
+The resulting Encoder is:
+\begin{code}
+mdigraph :: Encoder [N2]
+mdigraph = compose (Iso digraph2set set2digraph) ns
+\end{code}
+
+\begin{codex}
+*ISO> as mdigraph n 2008
+[(1,1),(0,0),(1,0),(0,0),(0,0),(0,0),(0,0)]
+*ISO> as n mdigraph it
+2008
+\end{codex}
+Note that the only change to the {\tt digraph} Encoder is replacing
+the composition with {\tt set} by a composition with {\tt ns}.
+ 
+\subsection{Encoding undirected multigraphs} \label{mgraphs}
+We can find a bijection from 
+undirected multigraphs (undirected graphs with multiple edges between 
+unordered pairs of
+vertices) to finite sequences by fusing their list of pair
+representation into finite sequences with a 
+pairing function on unordered pairs:
+
+The resulting Encoder is:
+\begin{code}
+mgraph :: Encoder [[N]]
+mgraph = compose (Iso graph2set set2graph) ns
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as mgraph n 2008
+[[1,3],[0,1],[1,2],[0,1],[0,1],[0,1],[0,1]]
+*ISO> as n mgraph it
+2008
+\end{codex}
+Note that the only change to the {\tt graph} Encoder is replacing
+the composition with {\tt set} by a composition with {\tt fun}.
+
+\subsection{Encoding hypergraphs}
+A hypergraph (also called {\em set system}) is a pair $H=(X,E)$ where
+$X$ is a set and $E$ is a set of non-empty subsets of $X$.
+
+We can easily
+derive a bijective encoding of {\em hypergraphs}, 
+represented as sets of sets:
+\begin{code}
+set2hypergraph = map (as set n)
+hypergraph2set = map (as n set)
+\end{code}
+The resulting Encoder is:
+\begin{code}
+hypergraph :: Encoder [[N]]
+hypergraph = compose (Iso hypergraph2set set2hypergraph) set
+\end{code}
+It works as follows
+\begin{codex}
+*ISO> as hypergraph n 2008
+[[0,1],[2],[1,2],[0,1,2],[3],[0,3],[1,3]]
+*ISO> as n hypergraph it
+2008
+\end{codex}
+
+
+\section{Encoding parenthesis languages} \label{paren}
+An encoder for a parenthesis language is obtained by
+combining a parser and writer. As hereditarily finite
+functions naturally map one-to-one to parenthesis expressions expressed as
+bitstrings, we will choose them as target of the transformers.
+\begin{code}
+hff_pars :: Encoder [N]
+hff_pars = compose (Iso pars2hff hff2pars) hff
+\end{code}
+
+The parser recurses over a bitstring and builds a {\tt HFF} as follows:
+\begin{code}
+pars2hff cs = parse_pars 0 1 cs
+
+parse_pars l r cs | newcs == [] = t where
+  (t,newcs)=pars_expr l r cs
+  pars_expr l r (c:cs) | c==l = ((H ts),newcs) where
+    (ts,newcs) = pars_list l r cs    
+  pars_list l r (c:cs) | c==r = ([],cs)
+  pars_list l r (c:cs) = ((t:ts),cs2) where 
+    (t,cs1)=pars_expr l r (c:cs)
+    (ts,cs2)=pars_list l r cs1
+\end{code}
+The writer recurses over a {\tt HFF} and collects
+matching ``parenthesis'' (denoted 0 and 1) pairs:
+\begin{code}
+hff2pars = collect_pars 0 1
+
+collect_pars l r (H ns) =
+  [l]++ (concatMap (collect_pars l r) ns)++[r] 
+\end{code}
+This transformation maps {\tt 42} into the bitstring representation of {\tt
+"((())(())(()))"} as {\tt [0,0,0,1,1,0,0,1,1,0,0,1,1,1]}.
+
+\section{Parenthesis encoding of hereditarily finite types as a
+self-delimiting code}
+
+Like the Elias omega code \cite{elias75}, a balanced parenthesis
+representation is obviously {\em self-delimiting} as proven by the fact that 
+the reader {\tt pars\_expr} defined in section \ref{paren} will
+extract a balanced parenthesis expression from a finite or infinite list
+while returning the part of the list left over.
+More precisely, the following holds:
+\begin{prop}
+The {\tt hff\_pars} encoding is a self-delimiting code. If $n$ is a natural
+number then {\tt hd n} equals the code of the first parenthesized subexpression
+of the code of $n$ and {\tt tl n} equals the code of the expression obtained by
+removing it from the code for $n$, both of which represent self-delimiting codes.
+\end{prop}
+
+One can compute, for comparison purposes, the optimal undelimited
+bitstring encoding provided by the Encoder {\tt bits}
+\begin{codex}
+*ISO2> as bits n 2008
+[1,0,0,1,1,0,1,1,1,1]
+*ISO> as hff_pars n 2008
+[0,0,0,1,0,1,1,0,1,0,0,1,1,0,1,0,1,0,1,0,1,1]
+\end{codex}
+As the last example shows, the information density of
+a parenthesis representation is lower than the information theoretical optimal
+representation provided by the (undelimited) {\tt bits} Encoder that maps
+$\mathbb{N}$ to the regular language $\{0,1\}^*$
+
+There are however cases when the parenthesis language representation is more
+compact. For instance,
+\begin{codex}
+*ISO> as n bits (as hff_pars n (2^2^16))
+32639
+\end{codex}
+while the conventional representation of the same number would
+have thousands of digits. We refer to \cite{arxiv:fISO} for
+a comparison between this self-delimiting code and Elias omega code.
+
+\section{Other encodings}
+We will sample a few miscellaneous encodings showing the
+flexibility and expressiveness of our framework.
+
+\subsection{Encoding SAT problems}
+Boolean Satisfiability (SAT) problems are encoded as lists of lists representing
+conjunctions of disjunctions of positive or negative propositional symbols.
+
+After defining:
+\begin{code}
+set2sat = map (set2disj . (as set n)) where
+  shift0 z = if (z<0) then z else z+1
+  set2disj = map (shift0. nat2z)
+  
+sat2set = map ((as n set) . disj2set) where
+  shiftback0 z = if(z<0) then z else z-1
+  disj2set = map (z2nat . shiftback0)
+\end{code}
+we obtain the Encoder
+\begin{code}
+sat :: Encoder [[Z]]
+sat = compose (Iso sat2set set2sat) set
+\end{code}
+working as follows:
+\begin{codex}
+*ISO> as sat n 2008
+[[1,-1],[2],[-1,2],[1,-1,2],[-2],[1,-2],[-1,-2]]
+*ISO> as n sat it
+2008
+\end{codex}
+Clearly this encoding can be used to generate random SAT problems out of
+easier to generate random natural numbers.
+
+\subsection{Encoding strings}
+Strings can be seen just as a notational equivalent
+of lists of natural numbers written in base $2^n$. Assuming n=128, for
+ASCII strings we obtain an Encoder immediately as: 
+\begin{code}
+string :: Encoder String
+string = Iso string2n n2string
+
+string2n cs = from_base 128 (map (fromIntegral . ord) cs)
+
+n2string xs = map (chr . fromIntegral) (to_base 128 xs)
+\end{code}
+
+\begin{codex}
+*ISO> as ns string "hello"
+[3,1,0,0,1,2,0,2,0,1,0,2,0,1,0,0,0,0,0,1,0]
+*ISO> as string ns it
+"hello"
+\end{codex}
+
+\subsection{Functional binary numbers}
+
+Church numerals are well known as a functional
+representation for Peano arithmetic. While
+benefiting from lazy evaluation, they
+implement a form of unary arithmetic
+that uses $O(n)$ space to represent $n$.
+This suggest devising a functional representation
+that mimics binary numbers. We will do this 
+following the model described in subsection \ref{bits}
+to provide an isomorphism between $\mathbb{N}$
+and the functional equivalent of
+the regular language $\{0,1\}^*$. We will
+view each bit as a $\mathbb{N} \rightarrow \mathbb{N}$ 
+transformer:
+\begin{code}
+b x = pred x -- begin
+o x = 2*x+0  -- bit 0
+i x = 2*x+1  -- bit 1
+e = 1        -- end
+\end{code}
+As the following example shows, composition
+of functions $o$ and $i$
+closely parallels the corresponding bitlists: 
+\begin{codex}
+*ISO> b$i$o$o$i$i$o$i$i$i$i$e
+2008
+*ISO> as bits n 2008
+[1,0,0,1,1,0,1,1,1,1]
+\end{codex}
+%$
+
+We can follow the same model with an abstract data type:
+\begin{code}
+data D = E | O D | I D deriving (Eq,Ord,Show,Read)
+data B = B D deriving (Eq,Ord,Show,Read)
+\end{code}
+from which we can generate functional
+bitstrings as an instance of a {\em fold} operation:
+\begin{code}
+funbits2n :: B -> N
+funbits2n = bfold b o i e
+
+bfold fb fo fi fe (B d) = fb (dfold d) where
+  dfold E = fe
+  dfold (O x) = fo (dfold x)
+  dfold (I x) = fi (dfold x)
+\end{code}
+Dually, we can reverse the effect of the functions $b,o,i,e$ as:
+\begin{code}
+b' x = succ x
+o' x | even x = x `div` 2
+i' x | odd x = (x-1) `div` 2
+e' = 1
+\end{code}
+and define a generator for our data type as an {\em unfold} operation:
+\begin{code}
+n2funbits :: N -> B
+n2funbits = bunfold b' o' i' e'
+
+bunfold fb fo fi fe x = B (dunfold (fb x)) where
+  dunfold n | n==fe = E
+  dunfold n | even n = O (dunfold (fo n))
+  dunfold n | odd n = I (dunfold (fi n))
+\end{code}
+The two operations form an isomorphism:
+\begin{codex}
+*ISO> funbits2n 
+   (B $ I $ O $ O $ I $ I $ O $ I $ I $ I $ I $ E)
+2008
+*ISO> n2funbits it
+B (I (O (O (I (I (O (I (I (I (I E))))))))))
+\end{codex}
+%$
+We can define our Encoder as follows:
+\begin{code}
+funbits :: Encoder B
+funbits = compose (Iso funbits2n n2funbits) n
+\end{code}
+
+Arithmetic operations can now be performed directly on this representation.
+For instance, one can define a successor function as:
+\begin{code}
+bsucc (B d) = B (dsucc d) where
+  dsucc E = O E
+  dsucc (O x) = I x
+  dsucc (I x) = O (dsucc x) 
+\end{code}
+Equivalently, arithmetics can be borrowed from $\mathbb{N}$:
+\begin{codex}
+*ISO> bsucc (B $ I $ O $ O $ I $ I $ 
+             O $ I $ I $ I $ I $ E)
+B (O (I (O (I (I (O (I (I (I (I E))))))))))
+*ISO> as n funbits it
+2009
+*ISO> borrow (with n funbits) succ (B $ I $ O $ O $ I $ 
+                             I $ O $ I $ I $ I $ I $ E)
+B (O (I (O (I (I (O (I (I (I (I E))))))))))
+*ISO> as n funbits it
+2009
+\end{codex}
+While Haskell's C-based arbitrary length integers are likely
+to be more efficient for most operations, this representation, like Church
+numerals, has the benefit of supporting partial or delayed computations
+through lazy evaluation.
+
+\section{An alternative starting point: the regular language
+$\{0,1\}^{*}$} \label{bits}
+As the reader might guess - this can go on and on - and in fact 
+one can find in \cite{arxiv:fISO} a much larger set of encodings 
+covering more than 60 data types as diverse as BDDs, 
+dyadic rationals, Gauss integers, DNA strands, etc.
+
+But an important point we want to make in this paper is that the frame of
+reference is unimportant. In fact, the frame of reference used in
+\cite{arxiv:fISO} is finite functions while in this paper we picked
+$\mathbb{N}$ as our {\em hub}. We will now rebuild $\mathbb{N}$ itself
+through a more computer oriented - and ultimately a more {\em information
+theoretical} view: as arbitrary bitstrings i.e. as elements of the regular
+language $\{0,1\}^{*}$. First we need a decoder/encoder:
+\begin{code}
+bits :: Encoder [N]
+bits = Iso as_n_bits as_bits_n
+
+as_bits_n = drop_last . (to_base 2) . succ where
+  drop_last = reverse . tail . reverse
+
+as_n_bits bs = pred (from_base 2 (bs ++ [1]))
+    
+to_base base n = 
+  d : (if q==0 then [] else (to_base base q)) where
+     (q,d) = quotRem n base
+    
+from_base base [] = 0
+from_base base (x:xs) | x>=0 && x<base = 
+   x+base*(from_base base xs)
+\end{code}
+It works as follows:
+\begin{codex}
+*ISO> as bits n 42
+[1,1,0,1,0]
+*ISO> as n bits [1,1,0,1,0]
+42
+\end{codex}
+Note that the bit order is from smaller to larger exponents of 2 and that final 1
+digits (used as delimiters in conventional computer representations of binary
+numbers) have been removed. This ensures that every combination of 0 and 1 in
+$\{0,1\}^{*}$ represents a number.
+
+We start with successor/predecessor operations:
+\begin{code}
+s [] = [0]
+s (0:xs) = 1:xs
+s (1:xs) = 0:s xs
+
+p [0] = []
+p (0:xs) = 1:p xs 
+p (1:xs) = 0:xs
+\end{code}
+working as expected
+\begin{codex}
+*ISO> as n bits (s (as bits n 42))
+43
+*ISO> as n bits (p (as bits n 43))
+42
+\end{codex}
+A new design pattern emerges:
+\begin{code}
+nf f = (as n bits) . f . (as bits n)
+nf2 f x y = as n bits (f (as bits n x) (as bits n y))
+\end{code}
+It works as follows:
+\begin{codex}
+*ISO> nf s 42
+43
+*ISO> nf p 43
+42
+\end{codex}
+Note that this can be seen as a functor moving operations from a datatype to
+another.
+We can further generalize it and define the {\em isofunctor} {\tt
+borrow\_from}:
+\begin{code}
+borrow_from lender borrower f = 
+  (as borrower lender) . f . (as lender borrower)
+\end{code}
+It works as follows
+\begin{codex}
+*ISO> borrow_from bits n s 42
+43
+*ISO> borrow_from bits n p 43
+42
+\end{codex}
+as well as its 2-argument variant:
+\begin{code}
+borrow_from2 lender borrower f x y = 
+  (as borrower lender) 
+  (f (as lender borrower x) (as lender borrower y))
+\end{code}
+We will now rebuild various arithmetic operations seen as acting on arbitrary
+undelimited bitstrings. We start with {\tt db} and {\tt hf} implementing {\em
+double} and {\em half} - the last one truncating toward 0:
+\begin{code}
+db  = p . (0:)
+hf = tail . s
+\end{code}
+Rebuilding hd ({\tt h}), tl ({\tt t}) and cons ({\tt c}) is remarkably easy
+- we do not need addition or multiplication yet:
+\begin{code}
+h :: [N]->[N]
+h = h' . p
+
+h' [] = []
+h' (1:_) = []
+h' (0:xs) = s (h' xs)
+
+t :: [N]->[N]
+t = t' . p
+t' = hf . t''
+
+t'' (0:xs) = t'' xs
+t'' xs = xs
+
+c x ys = s (c' x ys)
+c' x xs = c'' x  (db xs)
+
+c'' [] ys = ys
+c'' xs ys = 0: c'' (p xs) ys
+\end{code}
+We can try them out directly on numbers using the {\tt borrow\_from} functor:
+\begin{codex}
+*ISO> borrow_from2 bits n c 42 2009
+17675748928126976
+*ISO> borrow_from bits n h 17675748928126976
+42
+*ISO> borrow_from bits n t 17675748928126976
+2009
+\end{codex}
+Addition can be implemented  by case analysis - i.e. treating the case when
+there's a carry-on 0 {\tt sm0} and carry-on 1 {\tt sm1} separately:
+\begin{code}
+sm xs ys = p (sm0 xs ys)
+
+sm0 [] [] = [0]
+sm0 [] (0:ys) = 1:ys
+sm0 [] (1:ys) = 0:(s ys)
+sm0 (0:xs) [] = 1:xs
+sm0 (1:xs) [] = 0:(s xs)
+sm0 (0:xs) (0:ys) = 0:(sm0 xs ys)
+sm0 (0:xs) (1:ys) = 1:(sm0 xs ys)
+sm0 (1:xs) (0:ys) = 1:(sm0 xs ys)
+sm0 (1:xs) (1:ys) = 0:(sm1 xs ys)
+
+sm1 xs ys = s (sm0 xs ys)
+\end{code}
+Multiplication needs to handle {\tt []} (representing {\tt 0}) as a special
+case. Otherwise, it just applies the usual algorithm:
+\begin{code}
+m [] _ = []
+m _ [] = []
+m xs ys = s (m1 (p xs) (p ys)) where
+  m1 [] ys = ys
+  m1 (0:xs) ys = 0:(m1 xs ys)
+  m1 (1:xs) ys = sm0 ys (0:(m1 xs ys))
+\end{code}
+Both operations work as expected:
+\begin{codex}
+*ISO> sm [1,0,1,0] [0,0,1]
+[0,0,0,0,0]
+*ISO> map (as n bits) [[1,0,1,0],[0,0,1]]
+[20,11]
+*ISO> 20+11
+31
+*ISO> as bits n 31
+[0,0,0,0,0]
+*ISO> borrow_from2 bits n sm 42 13
+55
+*ISO> borrow_from2 bits n m 5 12
+60
+\end{codex}
+One can see that after shifting the frame of reference to the the bitstring view
+of natural numbers we can still work with addition, multiplication etc. as
+usual.
+
+\section{Sketch of a fully arithmetized functional programming language}
+We have briefly shown that shifting views over data types is quite easy - and we
+refer to \cite{arxiv:fISO} for other such isomorphisms between about 60
+different data types. We will now focus on programming constructs.
+We can start with some simple list operations
+\begin{code}
+lst n = cons n 0
+
+len 0 = 0
+len xs = succ (len (tl xs))
+\end{code}
+working as follows
+\begin{codex}
+*ISO> map lst [0..7]
+[1,2,4,8,16,32,64,128]
+*ISO> as ns n 42
+[1,1,1]
+*ISO> len 42
+3
+\end{codex}
+Some well known higher order functions (from the Haskell prelude) are next with
+names prefixed with {\tt n} to avoid conflicts, when needed:
+\begin{code}
+nzipWith _ 0 _ = 0
+nzipWith _ _ 0 = 0
+nzipWith f xs ys = 
+  cons (f (hd xs) (hd ys)) 
+       (nzipWith f (tl xs) (tl ys))
+
+nzip xs ys = nzipWith cons xs ys
+
+nunzip zs = (xs,ys) where 
+  xs = nMap hd zs 
+  ys = nMap tl zs
+\end{code}
+As the following definitions and examples show, more complex data
+types like associative lists are easily defined ``inside'' a natural number:
+\begin{code}
+getAssoc _ 0 = 0
+getAssoc k ps = 
+  if 0==xy then 0 
+  else if k== x then y 
+  else getAssoc k (tl ps) where 
+    xy=hd ps
+    x=hd xy
+    y=tl xy
+ 
+addAssoc k v ps=cons (cons k v) ps
+\end{code}
+\begin{codex}
+*ISO> as n ns [0,1,2]
+37
+*ISO> as n ns [3,4,5]
+16648
+*ISO> nzip 37 16648
+2361183241434889715840
+*ISO> getAssoc 2 it
+5
+*ISO> addAssoc 2 1 (addAssoc 1 2 0)
+8392704
+*ISO> getAssoc 1 8392704
+2
+*ISO> getAssoc 2 8392704
+1
+*ISO> getAssoc 3 8392704
+0
+\end{codex}
+The {\tt fold} family has been shown to be able to express a large class
+of interesting other functions as shown in
+\cite{DBLP:journals/jfp/Hutton99,DBLP:conf/fpca/MeijerH95}.
+Various fold operations are defined along the lines of their Haskell prelude
+counterparts:
+\begin{code}  
+nfoldl _ z 0    =  z
+nfoldl f z xs =  nfoldl f (f z (hd xs)) (tl xs)
+
+nfoldr f z 0     =  z
+nfoldr f z xs =  f (hd xs) (nfoldr f z (tl xs))
+
+nscanl _ q 0 = lst q
+nscanl f q xs = cons q (nscanl f (f q (hd xs)) (tl xs))
+\end{code}
+They works as follows:
+\begin{codex}
+*ISO> nfoldl (+) 0  8466
+10
+*ISO> as ns n (nscanl (+) 0  8466)
+[0,1,3,6,10]
+\end{codex}
+We can now define the equivalent of {\tt reverse}, {\tt map} and {\tt concat}
+\begin{code}
+rev = nfoldl (flip cons) 0
+
+nMap f ns = nfoldr (\x xs->cons (f x) xs) 0 ns
+ 
+nconcat xss = nfoldr append 0 xss 
+ 
+nconcatMap f xs = nconcat (nMap f xs)
+\end{code}
+working as follows
+\begin{codex}
+*ISO> as n ns [1,2,3]
+274
+*ISO> rev 274
+328
+*ISO> as ns n 328
+[3,2,1]
+*ISO> nMap (\x->x^2+1) 274
+524548
+*ISO> as ns n 524548
+[2,5,10]
+\end{codex}
+Following \cite{mccarthy60} one can build a fully arithmetized theory of
+recursive functions together with a Turing-equivalent {\tt
+eval} predicate along the lines of \cite{Chaitin75atheory}. Moreover, our
+compact bijective encodings are likely to be practical enough for experimenting
+with various concepts of algorithmic complexity and randomness \cite{vitanyi}.
+
+\section{A final touch: emulating monadic constructs}
+We can now emulate monadic constructs (except that we have $\mathbb{N}$
+instead of the parametric type {\tt Monad a}) as follows:
+\begin{code}
+infixl 1  >>-
+m >>- k = nconcatMap k m
+nreturn = lst
+ 
+nsequence = foldr mcons (nreturn 0) where 
+  mcons p q = p>>- \x -> q >>- \y ->nreturn (cons x y)
+\end{code}
+The monadic list operation:
+\begin{codex}
+*ISO>  [0,1] >>= \x->[0,1] >>= \y-> return (x,y)
+[(0,0),(0,1),(1,0),(1,1)]
+\end{codex}
+is now emulated as:
+\begin{codex}
+*ISO> as n ns [0,1]
+5
+*ISO> 5 >>- \x-> 5 >>- \y-> nreturn (cons x y)
+33058
+\end{codex}
+which, after shifting to a list view (and then to a list of pairs view) becomes:
+\begin{codex}
+*ISO> as ns n 33058
+[1,3,2,6]
+*ISO> map (\x->(hd x,tl x)) [1,3,2,6]
+[(0,0),(0,1),(1,0),(1,1)]
+\end{codex}
+Similarly, {\tt nsequence} emulates Haskell's {\tt sequence} construct as
+follows:
+\begin{codex}
+*ISO> nsequence [1,1,2]
+2048
+*ISO> map (as ns n) [1,1,2]
+[[0],[0],[1]]
+*ISO> sequence it
+[[0,0,1]]
+*ISO> as ns n 2048
+[11]
+*ISO> as ns n 11
+[0,0,1]
+\end{codex}
+
+\section{Applications}
+Besides their utility as a uniform basis for a general purpose
+data conversion library, let us point out
+some specific applications of our isomorphisms.
+
+\subsection{Combinatorial generation}
+A free combinatorial generation algorithm (providing
+a constructive proof of recursive enumerability)
+for a given structure is obtained simply through
+an isomorphism from $nat$:
+\begin{code}
+nth thing = as thing n
+nths thing = map (nth thing)
+stream_of thing = nths thing [0..]
+\end{code}
+\begin{codex}
+*ISO> nth set 42
+[1,3,5]
+
+*ISO> nth bits 42
+[1,1,0,1,0]
+
+*ISO> take 3 (stream_of hfs)
+[H [],H [H []],H [H [H []]]]
+\end{codex}
+
+\subsection{Random generation}
+Combining {\tt nth} with a random generator for natural numbers
+provides free algorithms for random generation of
+complex objects of customizable size:
+\begin{code}
+ran thing seed largest = 
+  head (random_gen thing seed largest 1)
+
+random_gen thing seed largest n = genericTake n
+  (nths thing (rans seed largest))
+  
+rans seed largest = 
+    randomRs (0,largest) (mkStdGen seed)
+\end{code}
+For instance
+\begin{codex}
+*ISO> random_gen set 11 999 3
+[[0,2,5],[0,5,9],[0,1,5,6]]
+\end{codex}
+generates a list of 3 random sets.
+
+For instance
+\begin{codex}
+*ISO>ran digraph 5 (2^31)
+[(1,0),(0,1),(2,1),(1,3),(2,2),(3,2),(4,0),(4,1),
+ (5,1),(6,0),(6,1),(7,1),(5,3),(6,2),(6,3)]
+ 
+*ISO> ran hfs 7 30
+H [H [],H [H [],H [H []]],H [H [H [H []]]]]
+\end{codex}
+generate a random digraph and a hereditarily finite set, respectively.
+
+Random generators for various data types are useful for further automating
+test generators in tools like QuickCheck 
+\cite{DBLP:journals/sigplan/ClaessenH02}
+by generating customized random tests.
+
+An interesting other application is generating random problems or programs of a
+given type and size.
+For instance
+\begin{codex}
+*ISO> ran sat 8 (2^31)
+[[-1],[1,-1],[-1,2],[1,-1,2],[-2],[1,-2],
+ [-1,-2],[1,-1,-2],[2,-2],[1,2,-2],[-1,2,-2],
+ [3],[1,-1,3],[1,-1,2,3],[1,-2,3],[-1,-2,3],
+ [2,-2,3],[1,2,-2,3],[-1,2,-2,3]]
+\end{codex}
+generates a random SAT-problem.
+
+\subsection{Succinct representations}
+Depending on the information theoretical density of
+various data representations as well as on the
+constant factors involved in various data structures,
+significant data compression can be achieved by
+choosing an alternate isomorphic representation,
+as shown in the following examples:
+
+\begin{codex}
+*ISO> as hff hfs (H [H [H []],H [H [],
+        H [H []]],H [H [],H [H [H []]]]])
+H [H [H []],H [H []],H [H []]]
+*ISO> as n hff (H [H [H []],H [H []],H [H []]])
+42
+*ISO> as ns bits [0,1,0,0,0,0,0,0,0,0,0]
+[0,10]
+\end{codex}
+
+In particular, mapping to efficient arbitrary length
+integer implementations (usually C-based
+libraries), can provide more compact
+representations or improved performance
+for isomorphic higher level 
+data representations. Alternatively,
+lazy representations as provided by
+functional binary numbers
+for very large
+integers encapsulating results of some
+computations might turn out to be more
+effective space-wise or time-wise.
+
+Using our groupoid of isomorphisms one can compare representations sharing
+a common datatype and make interesting conjectures about their
+asymptotic information density, as shown in \cite{arxiv:fISO}.
+
+\section{Related work} \label{related}
+The closest reference on encapsulating bijections
+as a Haskell data type is \cite{bijarrows} 
+and Conal Elliott's composable
+bijections module \cite{bijeliot},
+where, in a more complex setting,
+Arrows \cite{hughes:arrows} are used 
+as the underlying abstractions.
+While our {\tt Iso} data type is similar
+to the {\em Bij} data type in \cite{bijeliot} and
+BiArrow concept of \cite{bijarrows},
+the techniques for using such isomorphisms
+as building blocks of an embedded composition
+language centered around encodings
+as natural numbers are new.
+
+{\em Ranking} functions can be traced back to G\"{o}del numberings
+\cite{Goedel:31,conf/icalp/HartmanisB74} associated to formulae. 
+Together with their inverse {\em unranking} functions they are also 
+used in combinatorial generation
+algorithms
+\cite{conf/mfcs/MartinezM03,knuth06draft}.
+However the generic view of such transformations as hylomorphisms obtained compositionally
+from simpler isomorphisms, as described in this paper,
+is new.
+Note also that G\"{o}del numberings are typically injective but not {\em
+onto} applications, and can only be turned into bijections 
+by exhaustive enumeration of their range.
+By contrast our ranking/unranking functions are designed to be
+``genuinely'' bijective, usually with computational effort 
+linear in the size of the data types.
+
+Pairing functions have been used in work on decision problems as early as
+\cite{robinson50,robinsons68b}. A
+typical use in the foundations of mathematics is
+\cite{DBLP:journals/tcs/CegielskiR01}.
+An extensive study of various pairing functions and their 
+computational properties is presented in 
+\cite{DBLP:conf/ipps/Rosenberg02a}.
+
+Natural number encodings of hereditarily finite sets have 
+triggered the interest of researchers in fields ranging from 
+Axiomatic Set Theory and Foundations of Logic to 
+Complexity Theory and Combinatorics
+\cite{finitemath,kaye07,DBLP:journals/mlq/Kirby07}.
+Contrary to the well known hereditarily finite sets, the concepts of
+hereditarily finite multisets and functions as well as their
+encodings, are likely to be new, given that our sustained 
+search efforts have not lead so far to anything
+similar. 
+
+\section{Conclusion} \label{concl}
+We have described
+encodings for various data types
+in a uniform framework
+as data type isomorphisms with a groupoid structure.
+The framework has been extended
+with hylomorphisms providing
+generic mechanisms for encoding
+hereditarily finite sets, multisets and functions.
+In addition, by using pairing/unpairing functions
+we have also derived unusually simple encodings for
+graphs, digraphs and hypergraphs.
+
+While we have focused on the connected groupoid providing
+isomorphisms to/from natural numbers, similar techniques
+can be used to organize bijective transformations
+in fields ranging from compilation and complexity theory
+to data compression and cryptography.
+
+We refer to \cite{arxiv:fISO} for implementations of
+a number of other encoders as well as  various  applications.
+
+%\bibliographystyle{INCLUDES/splncs}
+\bibliographystyle{plainnat}
+\bibliography{INCLUDES/theory,tarau,INCLUDES/proglang,INCLUDES/biblio,INCLUDES/syn}
+
+\end{document}
+
+
+\begin{comment}
+\section{Hereditarily finite representations and inductive graphs}
+We will implement here a graph view of various hereditarily finite
+representations using Martin Erwig's inductive graph library {\tt fgl}.
+
+\subsection{Representation of hylomorphisms as inductive graphs}
+First we transform through {\em deforestation} our {\em unfold} functions
+mapping natural numbers to {\tt hfs, hfm} and {\tt hff} trees to generate
+a list of edges.
+
+\begin{code}
+as_pairg_n = n2es f where f n = [hd n,tl n]
+
+as_ng_n = n2es as_ns_n
+
+as_mg_n = n2es (as ms n)
+
+as_sg_n = n2ps (as set n)
+
+n2es f n = n2edges e f n where  e n m i = (n,m,i)
+n2ps f n = n2edges e f n where e n m _ = (n,m,())
+
+n2edges e f n = nub (n2es0 f n) where
+  n2es0 _ 0 = []
+  n2es0 f n = (zipWith (e n) ms [0..]) ++ 
+              (concatMap (n2es0 f) ms) where 
+                 ms=f n   
+\end{code}
+
+\subsection{The Inductive Graph view}
+
+Then we map the list of edges representations to inductive graphs.
+\begin{code}
+es2gr :: (Ord a) => [(a, a, t)] -> Gr a t
+es2gr es = mkGraph lvs les where (lvs,les)=es2les es
+
+es2les es =  (lvs,les) where 
+  vs=to_vertices es
+  lvs=zip [0..] vs
+  les=to_edges vs es
+
+to_vertices es = sort $ nub $ concatMap f es where
+  f (from,to,_label)=[from,to]
+  
+to_edges vs es = map (f vs) es where
+  f vs (x,y,l) = (lookUp x vs,lookUp y vs,l)    
+  lookUp n ns = i where Just i=elemIndex n ns
+\end{code}
+
+
+\subsection{A ``visual'' view as inductive graphs}
+
+Finally, we visualize the graphs using graphviz:
+\begin{code}
+eviz es = gviz (es2gr es)
+  
+gviz g = writeFile "gr.gv" 
+  ((graphviz g "" (0.0,0.0) (2,2) Portrait)++"\n")
+ 
+fig1=eviz . as_pairg_n
+fig2=eviz . as_ng_n
+fig3=eviz . as_mg_n
+fig4=eviz . as_sg_n 
+\end{code}
+
+\end{comment}

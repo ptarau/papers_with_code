@@ -1,0 +1,1451 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns:st1="urn:schemas-microsoft-com:office:smarttags"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=us-ascii">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 10">
+<meta name=Originator content="Microsoft Word 10">
+<link rel=File-List href="aolp_files/filelist.xml">
+<link rel=Edit-Time-Data href="aolp_files/editdata.mso">
+<!--[if !mso]>
+<style>
+v\:* {behavior:url(#default#VML);}
+o\:* {behavior:url(#default#VML);}
+w\:* {behavior:url(#default#VML);}
+.shape {behavior:url(#default#VML);}
+</style>
+<![endif]-->
+<title> Agent Programming Constructs and Object Oriented Logic Programming in
+Jinni 2003 </title>
+<o:SmartTagType namespaceuri="urn:schemas-microsoft-com:office:smarttags"
+ name="PlaceType"/>
+<o:SmartTagType namespaceuri="urn:schemas-microsoft-com:office:smarttags"
+ name="PlaceName"/>
+<o:SmartTagType namespaceuri="urn:schemas-microsoft-com:office:smarttags"
+ name="place"/>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author> </o:Author>
+  <o:LastAuthor> </o:LastAuthor>
+  <o:Revision>2</o:Revision>
+  <o:TotalTime>1</o:TotalTime>
+  <o:Created>2003-05-11T23:29:00Z</o:Created>
+  <o:LastSaved>2003-05-11T23:30:00Z</o:LastSaved>
+  <o:Pages>1</o:Pages>
+  <o:Words>6408</o:Words>
+  <o:Characters>36531</o:Characters>
+  <o:Company> </o:Company>
+  <o:Lines>304</o:Lines>
+  <o:Paragraphs>85</o:Paragraphs>
+  <o:CharactersWithSpaces>42854</o:CharactersWithSpaces>
+  <o:Version>10.3311</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel>
+ </w:WordDocument>
+</xml><![endif]--><!--[if !mso]><object
+ classid="clsid:38481807-CA0E-42D2-BF39-B33AF135CC4D" id=ieooui></object>
+<style>
+st1\:*{behavior:url(#ieooui) }
+</style>
+<![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;
+	mso-font-charset:2;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:0 268435456 0 0 -2147483648 0;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+h1
+	{mso-margin-top-alt:auto;
+	margin-right:0in;
+	mso-margin-bottom-alt:auto;
+	margin-left:0in;
+	mso-pagination:widow-orphan;
+	mso-outline-level:1;
+	font-size:24.0pt;
+	font-family:"Times New Roman";
+	font-weight:bold;}
+h2
+	{mso-margin-top-alt:auto;
+	margin-right:0in;
+	mso-margin-bottom-alt:auto;
+	margin-left:0in;
+	mso-pagination:widow-orphan;
+	mso-outline-level:2;
+	font-size:18.0pt;
+	font-family:"Times New Roman";
+	font-weight:bold;}
+h3
+	{mso-margin-top-alt:auto;
+	margin-right:0in;
+	mso-margin-bottom-alt:auto;
+	margin-left:0in;
+	mso-pagination:widow-orphan;
+	mso-outline-level:3;
+	font-size:13.5pt;
+	font-family:"Times New Roman";
+	font-weight:bold;}
+p
+	{mso-margin-top-alt:auto;
+	margin-right:0in;
+	mso-margin-bottom-alt:auto;
+	margin-left:0in;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+pre
+	{margin-top:0in;
+	margin-bottom:0in;
+	margin-bottom:.0001pt;
+	font-size:10.0pt;
+	font-family:"Courier New";
+	mso-fareast-font-family:"Times New Roman";}
+tt
+	{font-family:"Courier New";
+	mso-ascii-font-family:"Courier New";
+	mso-fareast-font-family:"Times New Roman";
+	mso-hansi-font-family:"Courier New";
+	mso-bidi-font-family:"Courier New";}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+ /* List Definitions */
+ @list l0
+	{mso-list-id:622469466;
+	mso-list-template-ids:-366820354;}
+@list l0:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+@list l1
+	{mso-list-id:832452818;
+	mso-list-template-ids:170848734;}
+@list l1:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+@list l2
+	{mso-list-id:1292977427;
+	mso-list-template-ids:1428862772;}
+@list l2:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+@list l3
+	{mso-list-id:1887179079;
+	mso-list-template-ids:334906716;}
+@list l3:level1
+	{mso-level-number-format:bullet;
+	mso-level-text:\F0B7;
+	mso-level-tab-stop:.5in;
+	mso-level-number-position:left;
+	text-indent:-.25in;
+	mso-ansi-font-size:10.0pt;
+	font-family:Symbol;}
+ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+<!--[if gte mso 10]>
+<style>
+ /* Style Definitions */
+ table.MsoNormalTable
+	{mso-style-name:"Table Normal";
+	mso-tstyle-rowband-size:0;
+	mso-tstyle-colband-size:0;
+	mso-style-noshow:yes;
+	mso-style-parent:"";
+	mso-padding-alt:0in 5.4pt 0in 5.4pt;
+	mso-para-margin:0in;
+	mso-para-margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";}
+</style>
+<![endif]-->
+</head>
+
+<body lang=EN-US link=blue vlink=blue style='tab-interval:.5in'>
+
+<div class=Section1>
+
+<h1 align=center style='text-align:center'>Agent Programming Constructs and
+Object Oriented Logic Programming in Jinni 2003 </h1>
+
+<h3 align=center style='text-align:center'>Paul Tarau </h3>
+
+<h2>Abstract</h2>
+
+<p class=MsoNormal>We show that key agent programming patterns are well
+expressed in terms of an object oriented logic programming layer extended with
+a generalized inheritance mechanism and independent inference engines. Instead
+of proposing yet another agent programming <em>``model''</em> we simply derive
+key agent programming patterns as the natural result of a set of programming
+language constructs. The suggested equation: <em><o:p></o:p></em></p>
+
+<p><i>Agents = Objects + Logic + Inference Engines + Coordination + Remote
+Action </i></p>
+
+<p>provides orthogonal agent composition mechanisms which are expressive and
+highly reusable. The approach described in this paper has emerged in the
+process of building Agent classes as extensions to our Object Oriented Prolog
+system, Jinni 2003, available for online evaluation at: . </p>
+
+<p><em>Keywords: Agent Programming Languages, Remote Execution, Blackboard-based
+Agent Coordination, Multi-threaded Logic Programming Engines, Distributed AI </em></p>
+
+<h2><a name="tth_sEc1">1</a>&nbsp;&nbsp;Introduction</h2>
+
+<p>The paradigm shift towards networked, mobile, ubiquitous computing has
+brought a number of challenges which require new ways to deal with increasingly
+complex patterns of interaction: autonomous, reactive and mobile computational
+entities are needed to take care of unforeseen problems, to optimize the flow
+of communication, to offer a simplified and personalized view to end users.
+These requirements naturally lead towards the emergence of <em>agent programs</em>
+with increasingly sophisticated inference capabilities, as well as autonomy and
+self-reliance. </p>
+
+<p>Jinni (Java INference engine and Networked Interactor) [<a
+href="#tarau:shaker">1</a>,<a name="CITEj2k_ug"></a><a href="#j2k_ug"><span
+style='mso-bookmark:CITEj2k_ug'>2</span><span style='mso-bookmark:CITEj2k_ug'></span></a><span
+style='mso-bookmark:CITEj2k_ug'></span>], is a lightweight, multi-threaded
+compiled Prolog system with powerful Object and Agent Oriented extensions,
+intended to be used as a flexible scripting tool for gluing together knowledge
+processors with Java and .NET components in distributed applications. Jinni's
+high level, portable, secure networking layer provides intelligent
+interoperation between Java and .NET components on Windows on Linux/Unix and
+Pocket PC platforms. </p>
+
+<p>Jinni threads are coordinated through blackboards, local to each process.
+Associative search based on term unification (a variant of Linda [<a
+name=CITElinda89></a><a href="#linda89"><span style='mso-bookmark:CITElinda89'>3</span><span
+style='mso-bookmark:CITElinda89'></span></a><span style='mso-bookmark:CITElinda89'>,<a
+name=CITEdbt95a></a></span><a href="#dbt95a"><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'>4</span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'></span></span></a><span style='mso-bookmark:
+CITElinda89'><span style='mso-bookmark:CITEdbt95a'>]) is used as the basic
+synchronization mechanism. Threads, blackboard and networking operations are
+controlled with lightweight, fast bytecode Prolog interpreters. The synergy of
+these features makes Jinni a convenient development platform for distributed
+AI, and in particular, for building intelligent autonomous agent applications. </span></span></p>
+
+<h2><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><a
+name="tth_sEc2">2</a>&nbsp;&nbsp;The Jinni Ontology: Orthogonal Language
+Constructs for Agent Programming</span></span></h2>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>As
+technology matures and design patterns emerge and consolidate, Agent
+Programming is getting closer and closer to a <em>programming paradigm</em>
+status [<a name="CITEshoham:93a"></a></span></span><a href="#shoham:93a"><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><span
+style='mso-bookmark:"CITEshoham\:93a"'>5</span></span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><span
+style='mso-bookmark:"CITEshoham\:93a"'></span></span></span></a><span
+style='mso-bookmark:"CITEshoham\:93a"'></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'>]. This implies a high degree of compositionality
+- ability to put together general purpose programs from simple, reusable
+building blocks. With this in mind, we will overview here the set of orthogonal
+components which make up Jinni's <em>Ontology</em>. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>Objects:</b>
+provide proven program composition and code reuse mechanisms and allow
+extension of libraries of behaviors and knowledge processing components. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>Logic:</b>
+Logic programming provides well understood, resolution based inference
+mechanisms. Beyond clause selection in the resolution process and generalized
+parameter passing, unification provides flexible search in message queues and
+databases. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>Inference
+Engines:</b> execution of multiple independent goals is needed for implementing
+complex reactive patterns in agent programs. Engines are lightweight and highly
+autonomous instances of language interpreters - running through various
+scheduling models - in particular through blackboard coordinated
+multi-threading. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>Coordination:</b>
+agent coordination can (and should) be separated from the details of agent
+communication and the agent's computational mechanisms (engines). We suggest
+coordination through blackboards - databases with intelligent, constraint based
+search - instead of conventional message passing. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>Remote
+Action:</b> a simple client-server style remote call mechanism is suggested, as
+a building bloc for various forms of remote action - in particular for
+supporting remote event propagation. Building blocks for implementing agent
+security layers are provided as a combination of server side sandboxing, strong
+cryptography and password controlled server access. Once security is in place,
+the suggested infrastructure can safely emulate more flexible P2P interaction
+patterns. </span></span></p>
+
+<h2><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><a
+name="tth_sEc3">3</a>&nbsp;&nbsp;Expressing Key Agent Programming Patterns</span></span></h2>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>We
+will start by outlining how Jinni's programming language constructs cover key
+agent programming idioms. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>Reactive
+Behavior:</b> We have avoided any form of interleaving ``thinking'' and
+``action'' stages in the agent programming model itself. The availability of
+multi-threading, local and remote blackboard based coordination mechanisms, and
+multiple reentrant language interpreters allows a logical separation of
+concerns: inference mechanisms and reaction to events (expressed as patterns
+waiting for matching blackboard data) are expressed by orthogonal language
+constructs and can be programmed as loosely coupled components. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>Multi-Agent
+Mechanisms:</b> Building efficient multi-agent systems effectively is ensured
+by a flexible object extension mechanism (Cyclic Multiple Depth First
+Inheritance). Complex Agents are built by importing from a library of agent
+roles and event processors. Traditional inheritance has been confined to trees
+(simple inheritance) or lattices (multiple inheritance). This contrasts with
+the dominant information sharing model - the Web - which has an arbitrary
+directed graph structure. At the same time, the multi-agent context, with
+components developed by independent programmers, suggests a directed graph
+model as the inheritance mechanism for agent code. Intuitively, this allows programmers
+to be aware only of a small set of similar ``neighbors'' and be able to safely
+import roles and behaviors without being aware of the complete component
+library. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>Agent
+Negotiation:</b> Blackboard based programming provides natural building blocks
+for agent negotiation, search and market-style result optimizers. Our
+blackboards are enhanced with ``blackboard constraint processing'' - small
+chunks of additional code to be tested once the ``waiting'' pattern has been
+matched against new data produced by independent local or remote threads. </span></span></p>
+
+<h2><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><a
+name="tth_sEc4">4</a>&nbsp;&nbsp;Supporting Agent Programming Constructs in
+Object Oriented Prolog</span></span></h2>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Agent
+Oriented Programming can be seen as a natural extension to Object Oriented
+programming - provided that the object system provides appropriate aggregation
+mechanisms to build and share agent program components. </span></span></p>
+
+<h3><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><a
+name="tth_sEc4.1">4.1</a>&nbsp;&nbsp;From modules to classes</span></span></h3>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Prolog
+module designs have already tried to provide class-like abilities. It makes
+sense to conceptually reuse their syntax and their handling of state through local
+databases, in the design of classes and instances. </span></span></p>
+
+<h3><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><a
+name="tth_sEc4.2">4.2</a>&nbsp;&nbsp;Class and Instance state: fields or
+assertions?</span></span></h3>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Prolog's
+associative search through dynamic clauses can easily be reused for supporting
+both class and instance level state. Still, Object Oriented layers built on top
+of procedural languages have traditionally used fields. Prolog's assert/retract
+and Jinni's support for multiple dynamic databases already provides a richer
+set of state management operations than traditional destructive assignment in
+procedural language based object oriented systems. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Clearly,
+fields can be easily approximated as dynamic unary predicates with exactly one
+clause each. On the other hand ``backward compatibility'' with traditional
+Object Oriented languages suggests a special syntax for that. It also makes
+sense to consider them as a backdoor through which one can introduce strong
+typing to Prolog - without touching the semantics of unification and clause
+resolution. The idea is to use (like in Java) classes as types, together with
+basic types (integers, strings, floats) - and impose dynamic type checking on
+fields (at assignment time) and on predicate arguments (at call time). The
+natural mapping of existing Prolog code into a typed universe would be that by default,
+in the absence of syntax, arguments and fields are of the most generic type. </span></span></p>
+
+<h3><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><a
+name="tth_sEc4.3">4.3</a>&nbsp;&nbsp;The Logic of Inheritance</span></span></h3>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Inheritance
+can be seen as a special purpose inference mechanism. A two line transitive
+closure Prolog predicate does it - so why do we need it altogether in Logic
+Programming languages? At a closer look, one will notice that inheritance is in
+fact inference applied to locating methods in sets of methods (classes). In the
+presence of method overloading and subtyping, the search mechanism can be seen
+as a restricted form of unification. The only problem is that, oddly enough,
+logic programs (seen as sets of clauses) have not been considered first order
+objects in widely used logic programming languages (Prolog in particular).
+Another issue is that the dominant object oriented programming style is class
+based. Fairly sophisticated Reflection packages are needed in languages like
+Java to manipulate classes and instances as first order objects - and it does
+not happen in a simple and uniform way. On the other hand - a class based
+design provides well known techniques to handle most of the inheritance related
+overhead at compile time and a good basis for a (strong) type system. In a
+conventional object oriented language, a class is simply a collection of
+methods and fields types. On the other hand a logic program is a set of clauses
+- a more uniform domain. It is convenient however to see them as a set of
+predicates (sets of clauses sharing the same main head functor) as the
+semantics of Prolog ensures that control mechanisms like CUT and backtracking
+are actually confined to clauses within a predicate. This makes a <em>predicate</em>
+the appropriate unit to implement a method - and it also implies an ``all or
+nothing'' clause inheritance mechanism: a predicate defined in a class will
+override all clauses for the same predicate defined elsewhere. Anyway, as most
+Prolog programmers are aware, mixing clauses from different files will result
+in unexpected semantics and difficult to maintain programs. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Traditional
+inheritance has been confined to trees (simple inheritance) or lattices
+(multiple inheritance). This contrasts with the dominant information sharing
+model - the Web - which has an arbitrary directed graph structure (handled
+quite well despite its size and growth). While limiting the scope of
+inheritance in procedural languages makes sense, given the presence of side
+effects, an arbitrary directed graph model is worth trying out in the context
+of declarative languages endowed with a formally simpler and cleaner semantics.
+Procedural languages have been unable to reuse their class systems as a
+mechanism for name spaces - requiring for this purpose additional constructs
+like Java's packages. Interestingly enough, the package/namespace system, as
+well as the mapping from classes to their member fields and method arguments,
+form arbitrary directed graphs. As such, they require additional ``language
+ontology'' (declarations, local names, delegation) that breaks the automation
+induced by free propagation through inheritance. In fact, such constructs are
+just reformulations of the conventional procedure call based code reuse. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>With
+this in mind, <em>cyclical multiple inheritance</em> looks like a natural
+choice for designing an object oriented structuring mechanism around a logic
+programming language. Depth first search for a matching predicate can happen at
+compile time - together with a loop checking mechanism. Classes that are parts
+of a cycle will see their own methods overriding methods (predicates) defined
+elsewhere. A main, prevailing inheritance path based on what's listed first in
+a file gives (most of) the benefits of single hierarchical inheritance. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Instance
+and class level state is implemented naturally through local dynamic database
+mechanisms - with the same ``one predicate at a time'' assumption: an instance
+level dynamic predicate will replace all clauses of a class level predicate if
+overriding is used. </span></span></p>
+
+<h2><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><a
+name="tth_sEc5">5</a>&nbsp;&nbsp;Classes, Instances and Inheritance in Jinni's
+Object Oriented Prolog</span></span></h2>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Jinni
+2003 features a simple, elegant and fast Object Oriented Prolog layer - built
+as a natural extension to ISO Prolog. Classes are just Prolog files with
+include declarations - no syntactical changes are required to reorganize
+existing Prolog code in an Object Oriented style. As the dispatching of method
+calls is handled at compile time and instances are lightweight, Jinni 2003's
+Prolog Objects are as efficient as ordinary compiled Prolog code. Prolog class
+files can be located at arbitrary URLs on the Web - one can inherit and
+override from a virtually unlimited library of existing Prolog files. And what
+if cycles will form? Not a problem! Jinni 2003 supports multiple cyclic
+inheritance, for building in a scalable way, an arbitrary network of Web or
+file based interdependent Prolog classes! </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>A
+class foo is associated to each Prolog file (or URL) let's say </span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><tt><span
+style='font-size:10.0pt'>foo.pl</span></tt>. In a way similar with compiling a
+Prolog file in a conventional way with </span></span><span style='mso-bookmark:
+CITElinda89'><span style='mso-bookmark:CITEdbt95a'><tt><span style='font-size:
+10.0pt'>?-compile(foo)</span></tt>, the user can call code in a class - like in
+the presence of a conventional module system - with </span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><o:p>&nbsp;</o:p></span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>?-foo:&lt;predicate&gt;.</span></span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>If
+</span></span><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:
+CITEdbt95a'><tt><span style='font-size:10.0pt'>foo.pl</span></tt> contains </span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><tt><span
+style='font-size:10.0pt'>:-[&lt;superclassfile&gt;]</span></tt> declarations,
+let's say something like </span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'><tt><span style='font-size:10.0pt'>:-[bar]</span></tt>,
+definitions not found in </span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'><tt><span style='font-size:10.0pt'>foo.pl</span></tt>
+will be searched in </span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'><tt><span style='font-size:10.0pt'>bar.pl</span></tt>.
+As files and URLs are treated in similar ways, inheritance directives like </span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><o:p>&nbsp;</o:p></span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>:-['http://www.my_url.com'].</span></span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>can
+refer to non-local URLs as well. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>ISO
+Prolog's </span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'><tt><span style='font-size:10.0pt'>:-initialization((&lt;Goal&gt;))</span></tt>
+declarations are processed (in reverse class inclusion order) after collecting
+them from included files - as a mechanism of class level initialization, shared
+among all instances. Code added with <b>assert/1</b> in such <b>initialization/1</b>
+calls will be visible in all instances. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Code
+inheritance is handled at compile time - through a special </span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><tt><span
+style='font-size:10.0pt'>ocompile/1</span></tt> command which reinterprets
+include directives like </span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'><tt><span style='font-size:10.0pt'>:-[&lt;file&gt;]</span></tt>
+as inheritance from other Prolog files/classes. Classes are compiled on the
+fly, at the first use of a class or creation of a new instance. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>The
+multiple cyclical depth first inheritance mechanism is implemented by keeping
+the path consisting of the list of visited <em>includes</em>, when (at compile
+time) predicates not defined locally, are brought from files or URLs. In the
+presence of multiple <em>includes</em>, a depth-first order for finding
+definitions ensures that a dominant main inheritance tree prevails in case of
+ambiguity. This cyclical inheritance mechanism allows reuse of Prolog code
+located virtually everywhere on the Web from a local perspective. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Constructors
+are simply predicates of various arities, having the same name as the file (or
+URL). At instance creation time, no-arg constructors of supers are
+automatically called, in reverse inheritance order. This usually ensures that
+fields defined locally or in the main inheritance chain will prevail.
+Programmers should initialize most fields in these default constructors.
+Constructors (of any arity) are inherited, if not provided. They can freely
+call constructors defined in their super classes using their predicate names,
+same as the ones of the super classes' names. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>Instances</b>
+are created from <b>Constructors</b> (same as class names if no-arg, having the
+main functor the same as the class name if having arguments) with the <b>new/2</b>
+command: </span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><o:p>&nbsp;</o:p></span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>new(Constructor,Instance)</span></span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>In
+the process, an internal <b>Class</b> handle is created. If needed, the code
+for the class is compiled on the fly and attached to it. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>Instance
+Fields</b> are local to each instance. A <b>set</b> operation </span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><span
+style='font-size:10.0pt'><o:p></o:p></span></span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><o:p>&nbsp;</o:p></span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>&lt;field name&gt;<span style='mso-spacerun:yes'>&nbsp; </span>&lt;= &lt;value&gt;</span></span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>and
+a <b>get</b> operation </span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'><span style='font-size:10.0pt'><o:p></o:p></span></span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><o:p>&nbsp;</o:p></span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>&lt;field name&gt;<span style='mso-spacerun:yes'>&nbsp; </span>=&gt; &lt;Prolog variable&gt;</span></span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>are
+provided, like in: </span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'><span style='font-size:10.0pt'><o:p></o:p></span></span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><o:p>&nbsp;</o:p></span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>radius &lt;= 99</span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>radius =&gt; R</span></span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>Assert/1</b>
+and other database operations are local to instances - but the results of class
+level asserts are visible in instances - until overridden by a local assert
+with the same predicate name and arity. </span></span></p>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>Class
+Fields</b> are shared among instances. A class field set operation </span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><span
+style='font-size:10.0pt'><o:p></o:p></span></span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><o:p>&nbsp;</o:p></span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>&lt;field name&gt;<span style='mso-spacerun:yes'>&nbsp; </span>&lt;== &lt;value&gt;</span></span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>and
+a class field get operation </span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'><span style='font-size:10.0pt'><o:p></o:p></span></span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><o:p>&nbsp;</o:p></span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>&lt;field name&gt;<span style='mso-spacerun:yes'>&nbsp; </span>==&gt; &lt;Prolog variable&gt;</span></span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>are
+used as in: </span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'><span style='font-size:10.0pt'><o:p></o:p></span></span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><o:p>&nbsp;</o:p></span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>instance_count &lt;== 10</span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>instance_count ==&gt; R</span></span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>When
+performed from instances of a given class, these operations are applied to the
+fields of the class, not the instance. Like static variables in Java, they
+refer to data shared among all instances of a class. </span></span></p>
+
+<h2><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><a
+name="tth_sEc6">6</a>&nbsp;&nbsp;Other </span></span><st1:place><st1:PlaceName><span
+  style='mso-bookmark:CITEdbt95a'><span style='mso-bookmark:CITElinda89'>Agent</span></span></st1:PlaceName><span
+ style='mso-bookmark:CITEdbt95a'><span style='mso-bookmark:CITElinda89'> </span></span><st1:PlaceType><span
+  style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Building</span></span></st1:PlaceType></st1:place><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'> Blocks:
+Engines, Threads and Blackboards</span></span></h2>
+
+<h3><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><a
+name="tth_sEc6.1">6.1</a>&nbsp;&nbsp;Multiple Inference Engines, Answer
+Generation and Control</span></span></h3>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Independently
+of its multi-threading mechanism, Jinni 2003 provides ``first class'' inference
+engines - separate instances of its dynamically growing/shrinking runtime
+system (consisting of a heap, stack and trail) which can be controlled through
+the following API: </span></span></p>
+
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo1;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>new_engine(Instance,
+     AnswerPattern, Goal, EngineHandle):</b> creates and returns a new engine
+     based on code and dynamic database state associated with a Prolog class
+     instance </span></span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo1;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>get(EngineHandle,
+     Answer):</b> asks an engine for a new Answer, which will be of the form <b>the(AnswerPatternInstance)</b>
+     on success and which will be no on failure as well on any call after
+     failure occurred </span></span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo1;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>stop(EngineHandle):</b>
+     makes sure the engine is stopped. Only <b>``no''</b> answers will be
+     available from the engine in the future. </span></span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l0 level1 lfo1;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>return(Answer):</b>
+     initiated by the engine - which acts such that the next <b>get/2</b> of
+     the parent will obtain a copy of Answer. Note that engines are fully <em>reentrant</em>
+     - in particular, the parent can force the engine to <em>resume</em> its
+     work with another <b>get/2</b> request - in which case the engine performs
+     as if the <b>return/1</b> statement were not in effect. </span></span></li>
+</ul>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Example:
+</span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><o:p>&nbsp;</o:p></span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>?- new_engine(X,(member(X,[1,2]),</span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><span style='mso-spacerun:yes'>&nbsp;&nbsp; </span>(X=1,return(good(X));X&gt;1)),E),</span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><span style='mso-spacerun:yes'>&nbsp;&nbsp; </span>get(E,A),get(E,B),get(E,C),get(E,D).</span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><o:p>&nbsp;</o:p></span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>A = the(good(1)) B = the(1) C = the(2)<span style='mso-spacerun:yes'>&nbsp; </span></span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>D = no E = 1331 X = _120 ;</span></span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>This
+<em>iterator</em> functionality [<a name="CITEtarau:cl2000"></a></span></span><a
+href="#tarau:cl2000"><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'><span style='mso-bookmark:"CITEtarau\:cl2000"'>6</span></span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><span
+style='mso-bookmark:"CITEtarau\:cl2000"'></span></span></span></a><span
+style='mso-bookmark:"CITEtarau\:cl2000"'></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'>] seems the simplest way to implement a minimal
+set of <em>``performatives''</em> for controlling independent Prolog engines.
+It provides the essential language constructs for allowing users (and their
+agents) to start, explore and stop a Prolog goal's answer computations. </span></span></p>
+
+<h3><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><a
+name="tth_sEc6.2">6.2</a>&nbsp;&nbsp;Threads and Hubs</span></span></h3>
+
+<p class=MsoNormal><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'>Jinni 2003 supports a simple multi-threading
+model, given by the following API: </span></span></p>
+
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo2;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>bg(Goal,ThreadHandle):</b>
+     launches a new thread executing Goal and returns a ThreadHandle to it </span></span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo2;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>hub_ms(Timeout,HubHandle):</b>
+     constructs a new Hub returned as a HubHandle - a synchronization device on
+     which <b>N</b> consumer threads can wait with <b>collect(HubHandle,Data)</b>
+     for data produced by <b>M</b> producers providing data with <b>put(HubHandle,Data)</b>.
+     However, after a given consumer waits more than <b>Timeout</b>
+     milliseconds, it returns and signals failure. As usual in Java, 0 timeout
+     leads to indefinite waiting. </span></span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo2;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>current_thread(ThreadHandle):</b>
+     returns a handle to the current thread - might be passed to another thread
+     wanting to join this one. </span></span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo2;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'>bf
+     join_thread(ThreadHandle): waits until a given thread terminates. </span></span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l1 level1 lfo2;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>sleep_ms(Timeout):</b>
+     suspends for <b>Timeout</b> milliseconds, while consuming practically no
+     CPU power </span></span></li>
+</ul>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>This
+<em>many-to-many</em> consumer/producer thread synchronization mechanism,
+centered around <em>Hubs</em>, provides a high level building block for
+blackboard based agent coordination. </span></span></p>
+
+<h3><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><a
+name="tth_sEc6.3">6.3</a>&nbsp;&nbsp;Thread Coordination with Blackboards</span></span></h3>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Blackboards
+are global (one per Jinni process) databases which provide thread coordination
+through the following (extended Linda) operations: </span></span></p>
+
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo3;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>in(Pattern):</b>
+     waits for data on the blackboard which matches (through unification)
+     Pattern </span></span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo3;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>out(Pattern):</b>
+     puts for data on the blackboard and possibly resumes a thread waiting with
+     <b>in/1</b> if Pattern matches </span></span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo3;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>all(Pattern,Matches):</b>
+     returns a list of terms on the blackboard ready to match Pattern or an
+     empty list if none matches. Such data has been put on the blackboard using
+     <b>out/1</b> operations. </span></span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo3;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>wait_for(Term,Constraint):</b>
+     waits for a term on the blackboard, such that Constraint holds </span></span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l2 level1 lfo3;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><span style='mso-bookmark:CITEdbt95a'><b>notify_about(Term):</b>
+     notifies a matching <b>wait_for(Term,Constraint)</b>, if <b>Constraint</b>
+     holds, that <b>Term</b> is available, and that it can resume execution </span></span></li>
+</ul>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>Blackboard
+operations can be combined with <b>remote_run</b> remote predicate calls to
+allow interaction between threads distributed in different processes on the
+same or on different computers on the net. Threads can be launched locally or
+remotely with <b>bg</b> operations. </span></span></p>
+
+<h4><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'><a
+name="tth_sEc6.3.1">6.3.1</a>&nbsp;&nbsp;Using Blackboard Constraints</span></span></h4>
+
+<p><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>The
+natural extension to Linda [</span></span><a href="#linda89"><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>3</span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'></span></span></a><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:CITEdbt95a'>,</span></span><a
+href="#dbt95a"><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:
+CITEdbt95a'>4</span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEdbt95a'></span></span></a><span style='mso-bookmark:
+CITEdbt95a'></span><span style='mso-bookmark:CITElinda89'>] introduced in Jinni
+is to use <em>constraint</em> solving for the selection of matching terms,
+instead of plain unification, as provided by <b>wait_for(Term,Constraint)</b>
+and <b>notify_about(Term)</b>. </span></p>
+
+<p><span style='mso-bookmark:CITElinda89'>For instance, </span><span
+style='mso-bookmark:CITElinda89'><span style='font-size:10.0pt'><o:p></o:p></span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;</span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp; </span>notify_about(stock_offer('QQQ',21)) </span></pre>
+
+<p class=MsoNormal><span style='mso-bookmark:CITElinda89'>would trigger
+execution of a thread having issued </span><span style='mso-bookmark:CITElinda89'><span
+style='font-size:10.0pt'><o:p></o:p></span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp; </span>wait_for(stock_offer('QQQ',Price),Price&lt;22).</span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'>while something like </span><span
+style='mso-bookmark:CITElinda89'><span style='font-size:10.0pt'><o:p></o:p></span></span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;</span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp; </span>notify_about(stock_offer('QQQ',23)) </span></pre>
+
+<p class=MsoNormal><span style='mso-bookmark:CITElinda89'>would leave the
+thread having issued the <b>wait_for</b> operation suspended. </span></p>
+
+<p><span style='mso-bookmark:CITElinda89'>Note that in a client/server Linda
+interaction, triggering an atomic transaction when data verifying a simple
+arithmetic inequality becomes available, would be expensive. It would require
+repeatedly taking terms out of the blackboard, through expensive network
+transfers, and put them back unless the client can verify that a constraint
+holds. On the other hand, a server side execution checks a constraint only
+after a match occurs between new incoming data and the head of a suspended
+thread's constraint checking clause, i.e. a basic indexing mechanism is used to
+avoid useless computations. In this setting, a remote client thread can perform
+all the operations atomically on its own thread, using local operations on the
+server, and return the computed results asynchronously. The (simplified)
+fragment showing the implementation of </span><span style='mso-bookmark:CITElinda89'><tt><span
+style='font-size:10.0pt'>wait_for and notify_about</span></tt> is as follows: </span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>wait_for(Pattern,Constraint):-</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>if(take_pattern(available_for(Pattern),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>Constraint),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp; </span>true,</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp; </span>((</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>out(waiting_for(Pattern,Constraint)),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>in(holds_for(Pattern,Constraint))</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp; </span>))</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>).</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>notify_about(Pattern):-</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>if(take_pattern(</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>waiting_for(Pattern,Constraint),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>Constraint),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp; </span>out(holds_for(Pattern,Constraint)),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp; </span>out(available_for(Pattern))</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>).</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>% takes the first matching Pattern </span></pre><pre><span
+style='mso-bookmark:CITElinda89'>% for which Constraint holds</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>take_pattern(Pattern,Constraint):-</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>all(Pattern,Ps),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>member(Pattern,Ps),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>call(Constraint),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>in(Pattern,_).</span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'>Note that each time the head of the
+waiting clause matches incoming data, its body is (re)-executed. </span></p>
+
+<p><span style='mso-bookmark:CITElinda89'>Although termination of constraint
+checking is left in the programmer's hand, only one thread is affected by a
+loop in the code. This is quite important in a multi-agent setting as it
+ensures that a server's integrity as such not being compromised by a looping or
+indefinitely suspended client thread. Note that incorporating symbolic
+constraint reducers (CLP, FD or interval based) can significantly improve
+performance for large scale problems. </span></p>
+
+<h2><span style='mso-bookmark:CITElinda89'><a name="tth_sEc7">7</a>&nbsp;&nbsp;Remote
+Execution with Object Oriented Prolog Classes</span></h2>
+
+<p><span style='mso-bookmark:CITElinda89'>As part of the growing library of
+Object Oriented Prolog components, Jinni provides a server and a client class
+which will be used as inheritance roots for various components (secure client
+and server, agents etc.). </span></p>
+
+<h3><span style='mso-bookmark:CITElinda89'><a name="tth_sEc7.1">7.1</a>&nbsp;&nbsp;The
+Server and Client classes</span></h3>
+
+<p><span style='mso-bookmark:CITElinda89'>The constructor <b>server(Port,Password)</b>
+creates a server instance listening on a port and only executing queries of
+clients providing a matching password. </span></p>
+
+<p><span style='mso-bookmark:CITElinda89'>The constructor <b>client(Host,Port)</b>
+creates a client which will try to connect to a server on Host, Port. The
+resulting client is ready to send queries with <b>ask(Goal)</b>. While a client
+performing a <b>remote_run</b> operation opens and closes the socket
+automatically, instances of this client will keep the socket open until the
+programmer uses a disconnect operation. All calls on a given socket run on the
+same thread on the server. This added flexibility requires less system
+resources and avoids <b>TCP_WAIT</b> related errors on operating systems slow
+in freeing the ports of closed sockets. Note that a password (<em>tweety</em>
+in the examples) is needed for the server to accept a client's requests. </span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>Server Window:</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>?- new(server(8888,tweety),S),S:serve.</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>hello</span></pre><pre><span style='mso-bookmark:
+CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span style='mso-bookmark:CITElinda89'>Client Window</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>?- new(client(localhost,8888,tweety),C),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp; </span>C:ask(println(hello)),C:disconnect.</span></pre>
+
+<h3><span style='mso-bookmark:CITElinda89'><a name="tth_sEc7.2">7.2</a>&nbsp;&nbsp;Secure
+Communications Using Cryptography and Sealed Objects</span></h3>
+
+<p><span style='mso-bookmark:CITElinda89'>When running under JDK 1.4 or later,
+which integrates a cryptography package Jinni provides secure communication
+classes. Note that from a user's perspective security is completely
+transparent, as shown in the following example: </span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>Server Window:</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>?- new(secure_server(8888,tweety),S),S:serve.</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>hello</span></pre><pre><span style='mso-bookmark:
+CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span style='mso-bookmark:CITElinda89'>Client Window</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>?- new(secure_client(localhost,8888,tweety),C),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp; </span>C:ask(println(hello)),C:disconnect.</span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'>Internally, Jinni makes use of
+serialized Prolog terms which are encrypted as Sealed Objects before being sent
+over a socket. </span></p>
+
+<h3><span style='mso-bookmark:CITElinda89'><a name="tth_sEc7.3">7.3</a>&nbsp;&nbsp;The
+Transport Layer</span></h3>
+
+<p><span style='mso-bookmark:CITElinda89'>The transport layer is provided as a
+simple client-server Remote Predicate Call mechanism given by the following
+API: </span></p>
+
+<ul type=disc>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l3 level1 lfo4;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><b>run_server(Port,Password):</b> runs a server on a given
+     Port and with given Password (to be matched by connecting client queries) </span></li>
+ <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
+     mso-list:l3 level1 lfo4;tab-stops:list .5in'><span style='mso-bookmark:
+     CITElinda89'><b>remote_run(Host,Port,Answer,Goal,Passwd,Result):</b> asks
+     a server waiting on <b>Host, Port</b> to execute <b>Goal</b> and return a <b>Result</b>
+     of the form <b>the(AnswerInstance)</b> if the query succeeds or no if it
+     fails. The returned answer instance contains a copy of <b>Answer</b> with
+     bindings resulting of the execution of <b>Goal</b>. Note that the
+     execution is deterministic and only the first solution is returned. </span></li>
+</ul>
+
+<p><span style='mso-bookmark:CITElinda89'>Note that the transport layer is a
+replaceable component and can be provided by RMI, SOAP, CORBA, multicast
+sockets or any other communication mechanism. Moreover, to support full P2P
+networking (and in particular, server capability behind firewalls or NAT
+routers), Jinni 2003 provides built-in secure TCP tunneling (a mechanism to
+transparently reverse client/server roles). </span></p>
+
+<h2><span style='mso-bookmark:CITElinda89'><a name="tth_sEc8">8</a>&nbsp;&nbsp;Language
+Constructs for Agent Programming</span></h2>
+
+<p><span style='mso-bookmark:CITElinda89'>We will show in this section how to
+``put it all together'' to express key agent programming idioms in terms of our
+language constructs. </span></p>
+
+<h3><span style='mso-bookmark:CITElinda89'><a name="tth_sEc8.1">8.1</a>&nbsp;&nbsp;Agent
+Programming: form Message Passing to Blackboards and Inference Engines</span></h3>
+
+<p><span style='mso-bookmark:CITElinda89'>The first thing that strikes someone
+looking into traces of performatives + message based agent scripts is the
+tediousness of communication between agents - reminding the colorful chaos and
+redundancy of a <em>bazaar</em> rather that the crisp architectural rules of a <em>cathedral</em><a
+name=tthFrefAAB></a></span><a href="#tthFtNtAAB"><span style='mso-bookmark:
+CITElinda89'><span style='mso-bookmark:tthFrefAAB'><sup>1</sup></span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:tthFrefAAB'></span></span></a><span
+style='mso-bookmark:tthFrefAAB'></span><span style='mso-bookmark:CITElinda89'>,
+where the actors try to explain, argue and negotiate instead of actually
+getting business done. Most of the time, message passing based agent
+communication is dominated by frivolous exchanges focusing on the protocol
+instead of the work to be performed. This is not surprising, in fact, excessive
+communication is often an indication of limited intelligence and automation. We
+believe that inferential mechanisms will enable agents to avoid asking each
+other the obvious - very much like thinking, context aware human agents do.
+This also points out the need for autonomous search mechanisms and associative
+processing of events and data exchanges. </span></p>
+
+<p><span style='mso-bookmark:CITElinda89'>With this in mind, our agent
+infrastructure design is based on the belief that message passing agent
+programming constructs should evolve into a more structured blackboard based
+and inference enabled component technology. </span></p>
+
+<h3><span style='mso-bookmark:CITElinda89'><a name="tth_sEc8.2">8.2</a>&nbsp;&nbsp;Coordinating
+the Sell/Buy Function for Stock Market Agents</span></h3>
+
+<p><span style='mso-bookmark:CITElinda89'>The following example puts together
+multi-threading, Linda operations, blackboard constraints and remote execution
+for building a stock market agent's buy/sell components: </span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>sell(Who,Stock,AskPrice):-</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>% triggers a matching buy transaction on the </span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;</span>% (remote) server implementing the &quot;market&quot;</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>remote_run(</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>notify_about(offer(Who,Stock,AskPrice))</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>).</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>buy(Who,Stock,SellingPrice):-</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>% runs as a background thread</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>% in parallel with other buy operations</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>% while executing code on a remote server</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>bg(remote_run(</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>try_to_buy(Who,Stock,SellingPrice)</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>)).</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>try_to_buy(Me,Stock,LimitPrice):-</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>% this thread connects to a server side </span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;</span>% constraint and waits until the constraint</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>% is solved to true on the server</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>% by a corresponding sell transaction</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>wait_for(offer(You,Stock,YourPrice),[ </span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp;</span>YourPrice=&lt;LimitPrice,</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>% server side 'local' in/1</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>in(has(You,Stock)),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>in(capital(You,YourCapital)), </span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp;</span>in(capital(Me,MyCapital)),<span style='mso-spacerun:yes'>&nbsp; </span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp;</span>MyNewCapital is MyCapital-YourPrice,</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>YourNewCapital is YourCapital+YourPrice,</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>out(capital(You,YourNewCapital)),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>out(capital(Me,MyNewCapital)),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>out(has(Me,Stock))</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>]).</span></pre>
+
+<h3><span style='mso-bookmark:CITElinda89'><a name="tth_sEc8.3">8.3</a>&nbsp;&nbsp;Agent
+Programming with Agent Classes and Inference Engines</span></h3>
+
+<p><span style='mso-bookmark:CITElinda89'>Agent classes are built on top of
+Jinni's Object Oriented Prolog system. Jinni's Multiple Cyclic Inheritance
+allows static reuse of agent features and agent behavior elements and
+compositional mechanisms for building new agents from libraries distribute over
+the Internet. </span></p>
+
+<p><span style='mso-bookmark:CITElinda89'>An Agent Class provides a <em>goal
+set</em> and a <em>specialized inference engine</em> working as query
+interpreter on a separate thread. In a client-server setting this can be seen
+as a generalized service processor. An agent instance feeds the query
+interpreter while listening as a server on a port. It also creates a thread for
+each goal in the goal set. Agent instances have unique global IDs and
+communicate through remote or local blackboards. Each agent instance runs its
+own set of goal threads. </span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>:-[prolog_object].</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>:-[client].</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>:-[server].</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>/* </span></pre><pre><span style='mso-bookmark:
+CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;</span>Default Agent Constructor:</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>- runs a goal in background for 20 seconds</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>- listens on a local port as a server</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>- sets up client side communication with</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>a server at a given host and port</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>*/<span style='mso-spacerun:yes'>&nbsp; </span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>agent(Goal,LocalPort,RemoteHost,RemotePort,Password):-</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>server(LocalPort,Password),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>client(RemoteHost,RemotePort,Password),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>bg(serve), % starts server thread</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>bg(Goal).<span style='mso-spacerun:yes'>&nbsp; </span>% starts goal thread</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>/*</span></pre><pre><span style='mso-bookmark:
+CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>Self centered test agent: its client component talks to its</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>server component on a local port.</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>*/</span></pre><pre><span style='mso-bookmark:
+CITElinda89'>agent:- agent(behave(20),2000,localhost,2000,agatha).</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>/*</span></pre><pre><span style='mso-bookmark:
+CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>Default simple behavior:</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>prints messages each second.</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>*/<span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>behave(N):-</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>for(I,1,N),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>sleep(1),ask(println(message(I))),</span></pre><pre><span
+style='mso-bookmark:CITElinda89'><span style='mso-spacerun:yes'>&nbsp; </span>I=N.</span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'>Note that the agent class is simply a
+combination of client and server classes together with one or more (background)
+goal threads. </span></p>
+
+<p><span style='mso-bookmark:CITElinda89'>Deriving an agent using a secure
+transport layer with the same default behavior is obtained by extending <b>agent</b>
+with <b>secure_server</b>and <b>secure_client</b> components: </span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>:-[secure_server].</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>:-[secure_client].</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>:-[agent].</span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'>where a </span><span
+style='mso-bookmark:CITElinda89'><tt><span style='font-size:10.0pt'>secure_server</span></tt>
+class is defined as: </span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>:-[server].</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>:-[sealed_term]. % provides encrypted Prolog terms</span></pre>
+
+<p><span style='mso-bookmark:CITElinda89'>and a </span><span style='mso-bookmark:
+CITElinda89'><tt><span style='font-size:10.0pt'>secure_client</span></tt> class
+is defined as: </span></p>
+
+<pre><span style='mso-bookmark:CITElinda89'><o:p>&nbsp;</o:p></span></pre><pre><span
+style='mso-bookmark:CITElinda89'>:-[client].</span></pre><pre><span
+style='mso-bookmark:CITElinda89'>:-[sealed_term].</span></pre>
+
+<h2><span style='mso-bookmark:CITElinda89'><a name="tth_sEc9">9</a>&nbsp;&nbsp;Related
+Work</span></h2>
+
+<p class=MsoNormal><span style='mso-bookmark:CITElinda89'>An important number
+of early software agent applications are described in [</span><a
+href="#bradshaw96:software"><span style='mso-bookmark:CITElinda89'>8</span><span
+style='mso-bookmark:CITElinda89'></span></a><span style='mso-bookmark:CITElinda89'>]
+and, in the context of new generation networking software, in [<a
+name="CITEtennenhouse96:towards"></a></span><a href="#tennenhouse96:towards"><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:"CITEtennenhouse96\:towards"'>9</span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:"CITEtennenhouse96\:towards"'></span></span></a><span
+style='mso-bookmark:"CITEtennenhouse96\:towards"'></span><span
+style='mso-bookmark:CITElinda89'>,<a name="CITEcugola96:characterization"></a></span><a
+href="#cugola96:characterization"><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:"CITEcugola96\:characterization"'>10</span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:"CITEcugola96\:characterization"'></span></span></a><span
+style='mso-bookmark:"CITEcugola96\:characterization"'></span><span
+style='mso-bookmark:CITElinda89'>]. Design and implementation of various
+Mobile, Reactive and/or Inferential Agent Infrastructures are described in [<a
+name=CITEaglets></a></span><a href="#aglets"><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEaglets'>11</span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEaglets'></span></span></a><span style='mso-bookmark:
+CITEaglets'></span><span style='mso-bookmark:CITElinda89'>,<a name=CITEambi></a></span><a
+href="#ambi"><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:
+CITEambi'>12</span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEambi'></span></span></a><span style='mso-bookmark:CITEambi'></span><span
+style='mso-bookmark:CITElinda89'>,<a name=CITEagentTCL></a></span><a
+href="#agentTCL"><span style='mso-bookmark:CITElinda89'><span style='mso-bookmark:
+CITEagentTCL'>13</span></span><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:CITEagentTCL'></span></span></a><span style='mso-bookmark:
+CITEagentTCL'></span><span style='mso-bookmark:CITElinda89'>,<a
+name="CITEwhite96:telescript"></a></span><a href="#white96:telescript"><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:"CITEwhite96\:telescript"'>14</span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:"CITEwhite96\:telescript"'></span></span></a><span
+style='mso-bookmark:"CITEwhite96\:telescript"'></span><span style='mso-bookmark:
+CITElinda89'>,<a name="CITEtarau:shaker"></a></span><a href="#tarau:shaker"><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:"CITEtarau\:shaker"'>1</span></span><span
+style='mso-bookmark:CITElinda89'><span style='mso-bookmark:"CITEtarau\:shaker"'></span></span></a><span
+style='mso-bookmark:"CITEtarau\:shaker"'></span><span style='mso-bookmark:CITElinda89'>,<a
+name="CITEtd:tlp"></a></span><a href="#td:tlp"><span style='mso-bookmark:CITElinda89'><span
+style='mso-bookmark:"CITEtd\:tlp"'>15</span></span><span style='mso-bookmark:
+CITElinda89'><span style='mso-bookmark:"CITEtd\:tlp"'></span></span></a><span
+style='mso-bookmark:"CITEtd\:tlp"'></span><span style='mso-bookmark:CITElinda89'>].
+Early work on the Linda coordination framework [</span><a href="#linda89"><span
+style='mso-bookmark:CITElinda89'>3</span><span style='mso-bookmark:CITElinda89'></span></a><span
+style='mso-bookmark:CITElinda89'></span>,<a name=CITECasCia96></a><a
+href="#CasCia96"><span style='mso-bookmark:CITECasCia96'>16</span><span
+style='mso-bookmark:CITECasCia96'></span></a><span style='mso-bookmark:CITECasCia96'></span>,<a
+name=CITEsharedpro91></a><a href="#sharedpro91"><span style='mso-bookmark:CITEsharedpro91'>17</span><span
+style='mso-bookmark:CITEsharedpro91'></span></a><span style='mso-bookmark:CITEsharedpro91'></span>]
+has shown its potential for coordination of multi-agent systems. The logical
+modeling and planning aspects of computational Multi-Agent systems have been
+pioneered by [<a name="CITEkowalski:91a"></a><a href="#kowalski:91a"><span
+style='mso-bookmark:"CITEkowalski\:91a"'>18</span><span style='mso-bookmark:
+"CITEkowalski\:91a"'></span></a><span style='mso-bookmark:"CITEkowalski\:91a"'></span>,<a
+href="#rao:91c">19</a>,<a name="CITErao:93a"></a><a href="#rao:93a"><span
+style='mso-bookmark:"CITErao\:93a"'>20</span><span style='mso-bookmark:"CITErao\:93a"'></span></a><span
+style='mso-bookmark:"CITErao\:93a"'></span>,<a name="CITEwooldridge:92a"></a><a
+href="#wooldridge:92a"><span style='mso-bookmark:"CITEwooldridge\:92a"'>21</span><span
+style='mso-bookmark:"CITEwooldridge\:92a"'></span></a><span style='mso-bookmark:
+"CITEwooldridge\:92a"'></span>,<a name="CITEwooldridge:95d"></a><a
+href="#wooldridge:95d"><span style='mso-bookmark:"CITEwooldridge\:95d"'>22</span><span
+style='mso-bookmark:"CITEwooldridge\:95d"'></span></a><span style='mso-bookmark:
+"CITEwooldridge\:95d"'></span>,<a name="CITEcohen:95a"></a><a href="#cohen:95a"><span
+style='mso-bookmark:"CITEcohen\:95a"'>23</span><span style='mso-bookmark:"CITEcohen\:95a"'></span></a><span
+style='mso-bookmark:"CITEcohen\:95a"'></span>,<a name="CITElesperance:95a"></a><a
+href="#lesperance:95a"><span style='mso-bookmark:"CITElesperance\:95a"'>24</span><span
+style='mso-bookmark:"CITElesperance\:95a"'></span></a><span style='mso-bookmark:
+"CITElesperance\:95a"'></span>,<a href="#wooldridge:95f">25</a>]. A surprising
+variety of Object Oriented Logic Programming resources, including links to
+system implementations, are available at [<a name=CITEoolp></a><a href="#oolp"><span
+style='mso-bookmark:CITEoolp'>26</span><span style='mso-bookmark:CITEoolp'></span></a><span
+style='mso-bookmark:CITEoolp'></span>]. </p>
+
+<p><em>In this context, our design suggests building an agent programming
+infrastructure directly on top of Object Oriented Logic Programming systems,
+rather than within an Agent model (like BDI [<a name="CITErao:91c"></a><a
+href="#rao:91c"><span style='mso-bookmark:"CITErao\:91c"'>19</span><span
+style='mso-bookmark:"CITErao\:91c"'></span></a><span style='mso-bookmark:"CITErao\:91c"'></span>,<a
+name="CITEwooldridge:95f"></a><a href="#wooldridge:95f"><span style='mso-bookmark:
+"CITEwooldridge\:95f"'>25</span><span style='mso-bookmark:"CITEwooldridge\:95f"'></span></a><span
+style='mso-bookmark:"CITEwooldridge\:95f"'></span>], for instance), through a
+number of orthogonal programming language constructs, providing compositional
+agent building blocks.</em> </p>
+
+<h2><a name="tth_sEc10">10</a>&nbsp;&nbsp;Conclusion</h2>
+
+<p class=MsoNormal>We have shown that agent programming patterns are well
+expressed in terms of an object oriented layer extended with a generalized
+inheritance mechanism, by composing library components for secure peer-to-peer
+agent communication, coordination and goal execution. We have used for this
+purpose a number of independent programming language constructs like inference
+engines, threads and remote execution mechanisms. Blackboards with constraints
+and associative search have been suggested as an alternative to message passing
+agent architectures. An increasing number of past and ongoing projects are
+using our agent architecture for applications ranging from virtual
+personalities to online trading agents and internet based teaching tools. We
+plan to extend our agent class libraries to cover a larger diversity of agent
+programming patterns in a number of different application domains. </p>
+
+<h2>References<o:p></o:p></h2>
+
+<p class=MsoNormal>[<a name="tarau:shaker"></a><a href="#CITEtarau:shaker"><span
+style='mso-bookmark:"tarau\:shaker"'>1</span><span style='mso-bookmark:"tarau\:shaker"'></span></a><span
+style='mso-bookmark:"tarau\:shaker"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>Paul Tarau. Inference and
+Computation Mobility with Jinni. In K.R. Apt, V.W. Marek, and
+M.&nbsp;Truszczynski, editors, <em>The Logic Programming Paradigm: a 25 Year
+Perspective</em>, pages 33-48. Springer, 1999. ISBN 3-540-65463-1. </p>
+
+<p class=MsoNormal>[<a name="j2k_ug"></a><a href="#CITEj2k_ug"><span
+style='mso-bookmark:j2k_ug'>2</span><span style='mso-bookmark:j2k_ug'></span></a><span
+style='mso-bookmark:j2k_ug'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>BinNet Corporation. The Jinni 2003
+Prolog Compiler: a High Performance Java and .NET based Prolog for Object and
+Agent Oriented Internet Programming. Technical report, BinNet Corp., 2003. Available
+at http://www.binnetcorp.com/download/jinnidemo/JinniUserGuide.html. </p>
+
+<p class=MsoNormal>[<a name=linda89></a><a href="#CITElinda89"><span
+style='mso-bookmark:linda89'>3</span><span style='mso-bookmark:linda89'></span></a><span
+style='mso-bookmark:linda89'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>N.&nbsp;Carriero and
+D.&nbsp;Gelernter. Linda in Context. <em>CACM</em>, 32(4):444-458, 1989. </p>
+
+<p class=MsoNormal>[<a name=dbt95a></a><a href="#CITEdbt95a"><span
+style='mso-bookmark:dbt95a'>4</span><span style='mso-bookmark:dbt95a'></span></a><span
+style='mso-bookmark:dbt95a'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>K.&nbsp;De&nbsp;Bosschere and
+P.&nbsp;Tarau. Blackboard-based Extensions in Prolog. <em>Software - Practice
+and Experience</em>, 26(1):49-69, January 1996. </p>
+
+<p class=MsoNormal>[<a name="shoham:93a"></a><a href="#CITEshoham:93a"><span
+style='mso-bookmark:"shoham\:93a"'>5</span><span style='mso-bookmark:"shoham\:93a"'></span></a><span
+style='mso-bookmark:"shoham\:93a"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>Y.&nbsp;Shoham. Agent-oriented
+programming. <em>Artificial Intelligence</em>, 60(1):51-92, 1993. </p>
+
+<p class=MsoNormal>[<a name="tarau:cl2000"></a><a href="#CITEtarau:cl2000"><span
+style='mso-bookmark:"tarau\:cl2000"'>6</span><span style='mso-bookmark:"tarau\:cl2000"'></span></a><span
+style='mso-bookmark:"tarau\:cl2000"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>Paul Tarau. Fluents: A Refactoring
+of Prolog for Uniform Reflection and Interoperation with External Objects. In
+John Lloyd, editor, <em>Proceedings of CL'2000</em>, London, July 2000. LNCS,
+Springer-Verlag. </p>
+
+<p class=MsoNormal>[<a name=bazaar></a><a href="#CITEbazaar"><span
+style='mso-bookmark:bazaar'>7</span><span style='mso-bookmark:bazaar'></span></a><span
+style='mso-bookmark:bazaar'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>Eric&nbsp;S. Raymond. The Cathedral
+and the Bazaar. Technical report, www.tuxedo.org, 2002. Available at
+http://www.tuxedo.org/&nbsp;esr/writings/cathedral-bazaar. </p>
+
+<p class=MsoNormal>[<a name="bradshaw96:software"></a><a
+href="#CITEbradshaw96:software"><span style='mso-bookmark:"bradshaw96\:software"'>8</span><span
+style='mso-bookmark:"bradshaw96\:software"'></span></a><span style='mso-bookmark:
+"bradshaw96\:software"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>Jeffrey Bradshaw, editor. <em>Software
+Agents</em>. AAAI Press/MIT Press, Menlo Park, Cal., 1996. </p>
+
+<p class=MsoNormal>[<a name="tennenhouse96:towards"></a><a
+href="#CITEtennenhouse96:towards"><span style='mso-bookmark:"tennenhouse96\:towards"'>9</span><span
+style='mso-bookmark:"tennenhouse96\:towards"'></span></a><span
+style='mso-bookmark:"tennenhouse96\:towards"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>David&nbsp;L. Tennenhouse and
+David&nbsp;J. Wetherall. Towards an active network architecture. <em>Computer
+Communication Review</em>, 26(2), April 1996. </p>
+
+<p class=MsoNormal>[<a name="cugola96:characterization"></a><a
+href="#CITEcugola96:characterization"><span style='mso-bookmark:"cugola96\:characterization"'>10</span><span
+style='mso-bookmark:"cugola96\:characterization"'></span></a><span
+style='mso-bookmark:"cugola96\:characterization"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>Gianpaolo Cugola, Carlo Ghezzi,
+Gian&nbsp;Pietro Picco, and Giovanni Vigna. A characterization of mobility and
+state distribution in mobile code languages. In <em>2nd ECOOP Workshop on
+Mobile Object Systems</em>, pages 10-19, Linz, Austria, July 1996. </p>
+
+<p class=MsoNormal>[<a name=aglets></a><a href="#CITEaglets"><span
+style='mso-bookmark:aglets'>11</span><span style='mso-bookmark:aglets'></span></a><span
+style='mso-bookmark:aglets'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>IBM. Aglets. Technical report,
+1999. http://www.trl.ibm.co.jp/aglets. </p>
+
+<p class=MsoNormal>[<a name=ambi></a><a href="#CITEambi"><span
+style='mso-bookmark:ambi'>12</span><span style='mso-bookmark:ambi'></span></a><span
+style='mso-bookmark:ambi'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>Luca Cardelli. Abstractions for
+Mobile Computation. Technical report, Microsoft Research, April 1999. </p>
+
+<p class=MsoNormal>[<a name=agentTCL></a><a href="#CITEagentTCL"><span
+style='mso-bookmark:agentTCL'>13</span><span style='mso-bookmark:agentTCL'></span></a><span
+style='mso-bookmark:agentTCL'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>R.&nbsp;S. Gray. Agent tcl: A
+flexible and secure mobile agent system. In <em>Proceedings of the Fourth
+Annual Tcl/Tk Workshop</em>, pages 9-23, July 1996. http://www.cs.dartmouth.edu/&nbsp;agent/papers/tcl96.ps.Z.
+</p>
+
+<p class=MsoNormal>[<a name="white96:telescript"></a><a
+href="#CITEwhite96:telescript"><span style='mso-bookmark:"white96\:telescript"'>14</span><span
+style='mso-bookmark:"white96\:telescript"'></span></a><span style='mso-bookmark:
+"white96\:telescript"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>James&nbsp;E. White. Telescript
+technology: Mobile agents. In Bradshaw [<a name="CITEbradshaw96:software"></a><a
+href="#bradshaw96:software"><span style='mso-bookmark:"CITEbradshaw96\:software"'>8</span><span
+style='mso-bookmark:"CITEbradshaw96\:software"'></span></a><span
+style='mso-bookmark:"CITEbradshaw96\:software"'></span>]. Also available as
+General Magic White Paper. </p>
+
+<p class=MsoNormal>[<a name="td:tlp"></a><a href="#CITEtd:tlp"><span
+style='mso-bookmark:"td\:tlp"'>15</span><span style='mso-bookmark:"td\:tlp"'></span></a><span
+style='mso-bookmark:"td\:tlp"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>Paul Tarau and Veronica Dahl.
+High-Level Networking with Mobile Code and First Order AND-Continuations. <em>Theory
+and Practice of Logic Programming</em>, 1(1), March 2001. Cambridge University
+Press. </p>
+
+<p class=MsoNormal>[<a name=CasCia96></a><a href="#CITECasCia96"><span
+style='mso-bookmark:CasCia96'>16</span><span style='mso-bookmark:CasCia96'></span></a><span
+style='mso-bookmark:CasCia96'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>S.&nbsp;Castellani and
+P.&nbsp;Ciancarini. Enhancing Coordination and Modularity Mechanisms for a
+Language with Objects-as-Multisets. In P.&nbsp;Ciancarini and C.&nbsp;Hankin,
+editors, <em>Proc. 1st Int. Conf. on Coordination Models and Languages</em>,
+volume 1061 of <em>LNCS</em>, pages 89-106, Cesena, Italy, April 1996.
+Springer. </p>
+
+<p class=MsoNormal>[<a name=sharedpro91></a><a href="#CITEsharedpro91"><span
+style='mso-bookmark:sharedpro91'>17</span><span style='mso-bookmark:sharedpro91'></span></a><span
+style='mso-bookmark:sharedpro91'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>A.&nbsp;Brogi and
+P.&nbsp;Ciancarini. The Concurrent Language, Shared Prolog. <em>ACM
+Transactions on Programming Languages and Systems</em>, 13(1):99-123, 1991. </p>
+
+<p class=MsoNormal>[<a name="kowalski:91a"></a><a href="#CITEkowalski:91a"><span
+style='mso-bookmark:"kowalski\:91a"'>18</span><span style='mso-bookmark:"kowalski\:91a"'></span></a><span
+style='mso-bookmark:"kowalski\:91a"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>R.&nbsp;Kowalski and J.-S. Kim. A
+Metalogic Programming Approach to Multi-Agent Knowledge and Belief. In
+V.&nbsp;Lifschitz, editor, <em>AI and Mathematical Theory of Computation:
+Papers in Honour of John McCarthy</em>. Academic Press, 1991. </p>
+
+<p class=MsoNormal>[<a name="rao:91c"></a><a href="#CITErao:91c"><span
+style='mso-bookmark:"rao\:91c"'>19</span><span style='mso-bookmark:"rao\:91c"'></span></a><span
+style='mso-bookmark:"rao\:91c"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>A.&nbsp;S. Rao and M.&nbsp;P.
+Georgeff. Modeling rational agents within a BDI-architecture. In R.&nbsp;Fikes
+and E.&nbsp;Sandewall, editors, <em>Proceedings of Knowledge Representation and
+Reasoning (KR&amp;R-91)</em>, pages 473-484. Morgan Kaufmann Publishers: San
+Mateo, CA, April 1991. </p>
+
+<p class=MsoNormal>[<a name="rao:93a"></a><a href="#CITErao:93a"><span
+style='mso-bookmark:"rao\:93a"'>20</span><span style='mso-bookmark:"rao\:93a"'></span></a><span
+style='mso-bookmark:"rao\:93a"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>A.&nbsp;S. Rao and M.&nbsp;P.
+Georgeff. A model-theoretic approach to the verification of situated reasoning
+systems. In <em>Proceedings of the Thirteenth International Joint Conference on
+Artificial Intelligence (IJCAI-93)</em>, pages 318-324, Chamb&eacute;ry,
+France, 1993. </p>
+
+<p class=MsoNormal>[<a name="wooldridge:92a"></a><a href="#CITEwooldridge:92a"><span
+style='mso-bookmark:"wooldridge\:92a"'>21</span><span style='mso-bookmark:"wooldridge\:92a"'></span></a><span
+style='mso-bookmark:"wooldridge\:92a"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>M.&nbsp;Wooldridge. <em>The Logical
+Modelling of Computational Multi-Agent Systems</em>. PhD thesis, Department of
+Computation, UMIST, Manchester, UK, October 1992. (Also available as Technical
+Report MMU-DOC-94-01, Department of Computing, Manchester Metropolitan
+University, Chester St., Manchester, UK). </p>
+
+<p class=MsoNormal>[<a name="wooldridge:95d"></a><a href="#CITEwooldridge:95d"><span
+style='mso-bookmark:"wooldridge\:95d"'>22</span><span style='mso-bookmark:"wooldridge\:95d"'></span></a><span
+style='mso-bookmark:"wooldridge\:95d"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>M.&nbsp;Wooldridge and N.&nbsp;R.
+Jennings. Intelligent agents: Theory and practice. <em>The Knowledge
+Engineering Review</em>, 10(2):115-152, 1995. </p>
+
+<p class=MsoNormal>[<a name="cohen:95a"></a><a href="#CITEcohen:95a"><span
+style='mso-bookmark:"cohen\:95a"'>23</span><span style='mso-bookmark:"cohen\:95a"'></span></a><span
+style='mso-bookmark:"cohen\:95a"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>P.&nbsp;R. Cohen and H.&nbsp;J.
+Levesque. Communicative Actions for Artificial Agents. In <em>Proceedings of
+the First International Conference on Multi-Agent Systems (ICMAS-95)</em>,
+pages 65-72, San Francisco, CA, June 1995. </p>
+
+<p class=MsoNormal>[<a name="lesperance:95a"></a><a href="#CITElesperance:95a"><span
+style='mso-bookmark:"lesperance\:95a"'>24</span><span style='mso-bookmark:"lesperance\:95a"'></span></a><span
+style='mso-bookmark:"lesperance\:95a"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>Y.&nbsp;L&eacute;sperance,
+H.&nbsp;J. Levesque, F.&nbsp;Lin, D.&nbsp;Marcu, R.&nbsp;Reiter, and R.&nbsp;B.
+Scherl. Foundations of a Logical Approach to Agent Programming. In
+M.&nbsp;Wooldridge, J.&nbsp;P. M&uuml;ller, and M.&nbsp;Tambe, editors, <em>Intelligent
+Agents II (LNAI 1037)</em>, pages 331-346. Springer-Verlag: Heidelberg,
+Germany, 1996. </p>
+
+<p class=MsoNormal>[<a name="wooldridge:95f"></a><a href="#CITEwooldridge:95f"><span
+style='mso-bookmark:"wooldridge\:95f"'>25</span><span style='mso-bookmark:"wooldridge\:95f"'></span></a><span
+style='mso-bookmark:"wooldridge\:95f"'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>M.&nbsp;Wooldridge. A BDI logic of
+planning agents. Submitted, 1995. </p>
+
+<p class=MsoNormal>[<a name=oolp></a><a href="#CITEoolp"><span
+style='mso-bookmark:oolp'>26</span><span style='mso-bookmark:oolp'></span></a><span
+style='mso-bookmark:oolp'></span>]</p>
+
+<p class=MsoNormal style='margin-left:.5in'>Paulo Moura. Object-Oriented Logic
+Programming Resources. Technical report, 2002. Website:
+http://www.uc.pt/oolpr/bibliography.html. </p>
+
+<h2>Appendix: Jinni 2003 Prototype of an Agent Based Mars Exploration Simulator</h2>
+
+<p>The simulator consists of autonomous agents with emphasis on reaction to
+events and communication relaying. </p>
+
+<pre><o:p>&nbsp;</o:p></pre><pre>% mission_control.pl: emulates an Earth based monitoring station</pre><pre>:-[agent].</pre><pre>:-[connections].</pre><pre><o:p>&nbsp;</o:p></pre><pre>mission_control:-</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>where(orbiter,OHost,OPort,Pwd),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>where(mission_control,_,MPort,Pwd),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>agent(start,MPort,OHost,OPort,Pwd).</pre><pre><o:p>&nbsp;</o:p></pre><pre>start:-</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>println(starting(mission_control)),sleep(1),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>bg(monitor).</pre><pre><o:p>&nbsp;</o:p></pre><pre>monitor:-</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>beats(N,T),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>for(I,1,N),</pre><pre><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>sleep(T),report(mission_control_ok(I)),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>I=N.<span style='mso-spacerun:yes'>&nbsp; </span></pre><pre><o:p>&nbsp;</o:p></pre><pre>report(Mes):-println(Mes).</pre><pre><o:p>&nbsp;</o:p></pre><pre>% mars_events.pl: emulates external events</pre><pre>:-[server].</pre><pre>:-[connections].</pre><pre><o:p>&nbsp;</o:p></pre><pre>mars_events:-</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>where(mars_events,_Host,Port,Pwd),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>bg((server(Port,Pwd),serve)),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>bg(start).</pre><pre><o:p>&nbsp;</o:p></pre><pre>start:-</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>report(starting(mars_events)),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>beats(N,T),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>for(I,1,N),</pre><pre><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>sleep(T),report(mars_event(I)),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>I=N.<span style='mso-spacerun:yes'>&nbsp; </span></pre><pre><o:p>&nbsp;</o:p></pre><pre>report(Mes):-println(Mes).</pre><pre><o:p>&nbsp;</o:p></pre><pre>% orbiter.pl - proxy agent connecting mission_control and rovers</pre><pre>:-[agent].</pre><pre>:-[connections].</pre><pre><o:p>&nbsp;</o:p></pre><pre>orbiter:-</pre><pre> <span style='mso-spacerun:yes'>&nbsp;</span>where(mission_control,MHost,MPort,Pwd),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>where(orbiter,_OHost,OPort,Pwd),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>agent(start,OPort,MHost,MPort,Pwd).</pre><pre><o:p>&nbsp;</o:p></pre><pre>start:-</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>println(starting(orbiter)),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>sleep(3),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>bg(report).</pre><pre><o:p>&nbsp;</o:p></pre><pre>report:-</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>beats(N,T),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>for(I,1,N),</pre><pre><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>sleep(T),report(orbiter_ok(I)),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>I=N.</pre><pre><o:p>&nbsp;</o:p></pre><pre>% proxy: communication forwarding</pre><pre>report(Mes):-ask(report(Mes)).</pre><pre><o:p>&nbsp;</o:p></pre><pre>% rover.pl Mars rover with sensors and motors</pre><pre>:-[agent].</pre><pre>:-[connections].</pre><pre><o:p>&nbsp;</o:p></pre><pre>rover(Id):-</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>id&lt;=Id,x&lt;=0,y&lt;=0,</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>where(orbiter,OHost,OPort,Pwd),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>where(rover,_RHost,RPort0,Pwd),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>RPort is RPort0+Id,</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>agent(start,RPort,OHost,OPort,Pwd).</pre><pre> </pre><pre>start:-sleep(5),bg(roam),report.</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span></pre><pre>report:-</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>id=&gt;Id,</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>beats(N,T),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>for(I,1,N),</pre><pre><span style='mso-spacerun:yes'>&nbsp;&nbsp; </span>sleep(T),x=&gt;X,y=&gt;Y,</pre><pre><span style='mso-spacerun:yes'>&nbsp;&nbsp; </span>report(rover(Id,step(I,x(X),y(Y)))),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>I=N.</pre><pre><o:p>&nbsp;</o:p></pre><pre>report(Mes):-ask(report(Mes)).</pre><pre><o:p>&nbsp;</o:p></pre><pre>roam:-</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>beats(N,T),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>for(I,1,N),</pre><pre><span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>sleep(T),random_move(x),random_move(y),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>I=N.</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span></pre><pre>random_move(Coord):-</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>random_delta(R),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>Coord=&gt;X,NewX is X+R,Coord&lt;=NewX.</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span></pre><pre>random_delta(X):-random(RX),X is (RX mod 3)-1.</pre><pre><o:p>&nbsp;</o:p></pre><pre>% connections.pl: configuaration file for various agent connections</pre><pre><o:p>&nbsp;</o:p></pre><pre>/* where(Agent,Host,Port) facts */</pre><pre><o:p>&nbsp;</o:p></pre><pre>where(mission_control,localhost,2001,eureka).</pre><pre>where(mars_events,localhost,2002,eureka).</pre><pre>where(orbiter,localhost,2003,eureka).</pre><pre>where(rover,localhost,2004,eureka).</pre><pre><o:p>&nbsp;</o:p></pre><pre>/* beats(Number, IntervalInTimeUnits): defines simulation length and speed */</pre><pre>beats(5,3).</pre><pre><o:p>&nbsp;</o:p></pre><pre>% script.pl: launching various agents</pre><pre>go:-</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>new(mission_control,_MC),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>new(mars_events,_ME),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>new(orbiter,_O),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>new(rover(0),_R0),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>new(rover(1),_R1),</pre><pre><span style='mso-spacerun:yes'>&nbsp; </span>println(mission_started).</pre><pre><o:p>&nbsp;</o:p></pre><pre>Example of output:</pre><pre><o:p>&nbsp;</o:p></pre><pre>Starting Jinni 2003, version 8.58</pre><pre>Copyright (C) BinNet Corp. 1999-2003</pre><pre>Support: binnetcorp@binnetcorp.com</pre><pre>Home: http://www.binnetcorp.com</pre><pre><o:p>&nbsp;</o:p></pre><pre>?- script:go.</pre><pre>server_ready_on_port(2001)</pre><pre>starting(mission_control)</pre><pre>server_ready_on_port(2002)</pre><pre>starting(mars_events)</pre><pre>server_ready_on_port(2003)</pre><pre>starting(orbiter)</pre><pre>server_ready_on_port(2004)</pre><pre>server_ready_on_port(2005)</pre><pre>mission_started</pre><pre>yes</pre><pre>?- mars_event(1)</pre><pre>mission_control_ok(1)</pre><pre>mars_event(2)</pre><pre>orbiter_ok(1)</pre><pre>mission_control_ok(2)</pre><pre>rover(0,step(1,x(0),y(0)))</pre><pre>rover(1,step(1,x(0),y(0)))</pre><pre>mars_event(3)</pre><pre>orbiter_ok(2)</pre><pre>mission_control_ok(3)</pre><pre>rover(0,step(2,x(-2),y(-1)))</pre><pre>rover(1,step(2,x(-2),y(0)))</pre><pre>mars_event(4)</pre><pre>orbiter_ok(3)</pre><pre>mission_control_ok(4)</pre><pre>rover(0,step(3,x(-2),y(0)))</pre><pre>rover(1,step(3,x(-2),y(1)))</pre><pre>mars_event(5)</pre><pre>orbiter_ok(4)</pre><pre>mission_control_ok(5)</pre><pre>rover(0,step(4,x(-3),y(-1)))</pre><pre>rover(1,step(4,x(-2),y(1)))</pre><pre>orbiter_ok(5)</pre><pre>rover(0,step(5,x(-2),y(0)))</pre><pre>rover(1,step(5,x(-1),y(1)))</pre><pre><o:p>&nbsp;</o:p></pre>
+
+<div class=MsoNormal align=center style='text-align:center'>
+
+<hr size=2 width="100%" align=center>
+
+</div>
+
+<h3>Footnotes:</h3>
+
+<p><a name=tthFtNtAAB></a><a href="#tthFrefAAB"><sup>1</sup></a> The pun
+resulting from this comparison is related, of course, to [<a name=CITEbazaar></a><a
+href="#bazaar"><span style='mso-bookmark:CITEbazaar'>7</span><span
+style='mso-bookmark:CITEbazaar'></span></a><span style='mso-bookmark:CITEbazaar'></span>]
+which advocates the contrary for human actors involved in software engineering
+tasks. </p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,154 @@
+\begin{thebibliography}{10}
+
+\bibitem{elias75}
+Elias, P.:
+\newblock Universal codeword sets and representations of the integers.
+\newblock IEEE Transactions on Information Theory \textbf{21}(2) (1975)
+  194--203
+
+\bibitem{sac09fISO}
+Tarau, P.:
+\newblock {Isomorphisms, Hylomorphisms and Hereditarily Finite Data Types in
+  Haskell}.
+\newblock In: {Proceedings of ACM SAC'09}, Honolulu, Hawaii, ACM (March 2009)
+  1898--1903
+
+\bibitem{arxiv:fISO}
+Tarau, P.:
+\newblock {Declarative Combinatorics: Isomorphisms, Hylomorphisms and
+  Hereditarily Finite Data Types in Haskell} (January 2009)
+  http://arXiv.org/abs/0808.2953, unpublished draft, 104 pages.
+
+\bibitem{pepis}
+Pepis, J.:
+\newblock Ein verfahren der mathematischen logik.
+\newblock The Journal of Symbolic Logic \textbf{3}(2) (jun 1938)  61--76
+
+\bibitem{kalmar1}
+Kalmar, L.:
+\newblock On the reduction of the decision problem. first paper. ackermann
+  prefix, a single binary predicate.
+\newblock The Journal of Symbolic Logic \textbf{4}(1) (mar 1939)  1--9
+
+\bibitem{kalmar2}
+{Kalmar, Laszlo}, {Suranyi, Janos}:
+\newblock On the reduction of the decision problem.
+\newblock The Journal of Symbolic Logic \textbf{12}(3) (sep 1947)  65--73
+
+\bibitem{kalmar3}
+{Kalmar, Laszlo}, {Suranyi, Janos}:
+\newblock On the reduction of the decision problem: Third paper. pepis prefix,
+  a single binary predicate.
+\newblock The Journal of Symbolic Logic \textbf{15}(3) (sep 1950)  161--173
+
+\bibitem{robinson50}
+Robinson, J.:
+\newblock General recursive functions.
+\newblock Proceedings of the American Mathematical Society \textbf{1}(6) (dec
+  1950)  703--718
+
+\bibitem{robinson68a}
+Robinson, J.:
+\newblock Recursive functions of one variable.
+\newblock Proceedings of the American Mathematical Society \textbf{19}(4) (aug
+  1968)  815--820
+
+\bibitem{robinsons68b}
+Robinson, J.:
+\newblock Finite generation of recursively enumerable sets.
+\newblock Proceedings of the American Mathematical Society \textbf{19}(6) (dec
+  1968)  1480--1486
+
+\bibitem{mccarthy60}
+McCarthy, J.:
+\newblock Recursive functions of symbolic expressions and their computation by
+  machine, part i.
+\newblock Commun. ACM \textbf{3}(4) (1960)  184--195
+
+\bibitem{DBLP:journals/jfp/Hutton99}
+Hutton, G.:
+\newblock {A Tutorial on the Universality and Expressiveness of Fold}.
+\newblock J. Funct. Program. \textbf{9}(4) (1999)  355--372
+
+\bibitem{DBLP:conf/fpca/MeijerH95}
+Meijer, E., Hutton, G.:
+\newblock {Bananas in Space: Extending Fold and Unfold to Exponential Types}.
+\newblock In: FPCA. (1995)  324--333
+
+\bibitem{Goedel:31}
+G\"{o}del, K.:
+\newblock \"{U}ber formal unentscheidbare {S\"{a}tze der Principia Mathematica
+  und verwandter Systeme I}.
+\newblock Monatshefte f\"{u}r Mathematik und Physik \textbf{38} (1931)
+  173--198
+
+\bibitem{conf/icalp/HartmanisB74}
+Hartmanis, J., Baker, T.P.:
+\newblock On simple goedel numberings and translations.
+\newblock In Loeckx, J., ed.: ICALP. Volume~14 of Lecture Notes in Computer
+  Science., Springer (1974)  301--316
+
+\bibitem{conf/mfcs/MartinezM03}
+Martinez, C., Molinero, X.:
+\newblock Generic algorithms for the generation of combinatorial objects.
+\newblock In Rovan, B., Vojtas, P., eds.: MFCS. Volume 2747 of Lecture Notes in
+  Computer Science., Springer (2003)  572--581
+
+\bibitem{knuth06draft}
+Knuth, D.:
+\newblock {The Art of Computer Programming, Volume 4, draft} (2006)
+  http://www-cs-faculty.stanford.edu/$\sim$knuth/taocp.html.
+
+\bibitem{Ruskey90generatingbinary}
+Ruskey, F., Proskurowski, A.:
+\newblock Generating binary trees by transpositions.
+\newblock J. Algorithms \textbf{11} (1990)  68--84
+
+\bibitem{Myrvold01rankingand}
+Myrvold, W., Ruskey, F.:
+\newblock Ranking and unranking permutations in linear time.
+\newblock Information Processing Letters \textbf{79} (2001)  281--284
+
+\bibitem{finitemath}
+Takahashi, M.o.:
+\newblock {A Foundation of Finite Mathematics}.
+\newblock Publ. Res. Inst. Math. Sci. \textbf{12}(3) (1976)  577--708
+
+\bibitem{kaye07}
+Kaye, R., Wong, T.L.:
+\newblock {On Interpretations of Arithmetic and Set Theory}.
+\newblock Notre Dame J. Formal Logic Volume \textbf{48}(4) (2007)  497--510
+
+\bibitem{abian78}
+Abian, A., Lamacchia, S.:
+\newblock On the consistency and independence of some set-theoretical
+  constructs.
+\newblock Notre Dame Journal of Formal Logic \textbf{X1X}(1) (1978)  155--158
+
+\bibitem{avigad97}
+Avigad, J.:
+\newblock {The Combinatorics of Propositional Provability}.
+\newblock In: ASL Winter Meeting, San Diego (January 1997)
+
+\bibitem{DBLP:journals/mlq/Kirby07}
+Kirby, L.:
+\newblock {Addition and multiplication of sets}.
+\newblock Math. Log. Q. \textbf{53}(1) (2007)  52--65
+
+\bibitem{bijarrows}
+Alimarine, A., Smetsers, S., van Weelden, A., van Eekelen, M., Plasmeijer, R.:
+\newblock There and back again: arrows for invertible programming.
+\newblock In: Haskell '05: Proceedings of the 2005 ACM SIGPLAN workshop on
+  Haskell, New York, NY, USA, ACM Press (2005)  86--97
+
+\bibitem{bijeliot}
+{Conal Elliott}:
+\newblock {Data.Bijections Haskell Module}.
+\newblock http://haskell.org/haskellwiki/TypeCompose.
+
+\bibitem{hughes:arrows}
+Hughes, J.:
+\newblock {Generalizing Monads to Arrows} Science of Computer Programming 37,
+  pp. 67-111, May 2000.
+
+\end{thebibliography}

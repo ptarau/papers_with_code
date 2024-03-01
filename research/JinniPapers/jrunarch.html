@@ -1,0 +1,706 @@
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<META NAME="GENERATOR" CONTENT="TtHgold 2.24">
+                                                                     [0]   
+<title> 
+    Architecture of the Jinni 2000 Runtime System
+</title>
+ 
+<H1 align=center>
+    Architecture of the Jinni 2000 Runtime System
+ </H1>
+
+<p>
+
+<H3 align=center>Paul Tarau </H3>
+
+<p>
+
+<H3 align=center> </H3>
+
+<p>
+
+<H2> Abstract</H2>
+We overview the Jinni 2000 continuation passing Java based Prolog system's
+runtime system and compilation technology.
+
+<p>
+<em>Keywords: implementation of Prolog, WAM, BinWAM, continuation passing style compilation, data-representations for Prolog run-time systems</em>.
+<p>
+<p>
+        <H2><A NAME="tth_sEc1">
+1</A>&nbsp;&nbsp;Introduction</H2>
+Jinni 2000 is a Java-emulated Prolog engine based on a program transformation 
+introduced in [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>10</a>].
+It replaces the WAM by a simplified continuation passing logic engine [<a href="#Tarau91:JAP" name=CITETarau91:JAP>8</a>] based on a mapping of full Prolog to binary logic programs (binarization).
+As conventional WAM's environments are discarded in favor of a heap-only run-time system
+heap garbage collection becomes instrumental both as a means to ensure ability to run
+large classes of Prolog programs and as a means to improve performance by
+reducing memory bandwidth.
+
+<p>
+        <H2><A NAME="tth_sEc2">
+2</A>&nbsp;&nbsp;The binarization transformation</H2>
+
+<p>
+We will start by reviewing the program transformation
+that allows compilation of logic programs towards a
+simplified WAM specialized for the execution of binary logic programs.
+We refer the reader to [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>10</a>] for the original
+definition of this transformation.
+
+<p>
+Binary clauses have only one atom in the body 
+(except for some inline `builtin' operations like arithmetics)
+and therefore they need no `return' after a call.
+A transformation introduced in [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>10</a>] allows to
+faithfully represent logic programs with operationally equivalent
+binary programs.
+
+<p>
+To keep things simple we will describe our transformations in the case
+of definite programs. First, we need to modify the well-known description
+of SLD-resolution [<a href="#LL87" name=CITELL87>5</a>] to be closer to Prolog's operational
+semantics. We will follow here the notations of [<a href="#pt93b" name=CITEpt93b>11</a>].
+
+<p>
+Let us define the <em>composition</em> operator <font face=symbol>Å</font
+> 
+that combines clauses by unfolding the leftmost body-goal
+of the first argument.
+
+<p>
+Let <tt>A<sub>0</sub>:-A<sub>1</sub>,A<sub>2</sub>,...,A<sub>n</sub></tt> and 
+<tt>B<sub>0</sub>:-B<sub>1</sub>,...,B<sub>m</sub></tt> be two clauses (suppose n &gt; 0, m <font face=symbol>³</font
+> 0). We define 
+ <tt>(A<sub>0</sub>:-A<sub>1</sub>,A<sub>2</sub>,...,A<sub>n</sub>)</tt> <font face=symbol>Å</font
+> 
+<tt>(B<sub>0</sub>:-B<sub>1</sub>,...,B<sub>m</sub>) = (A<sub>0</sub>:-B<sub>1</sub>,...,B<sub>m</sub>,A<sub>2</sub>,...,A<sub>n</sub>)</tt><font face=symbol>q</font
+>
+
+<p>
+with <font face=symbol>q</font
+> = mgu(<tt>A<sub>1</sub></tt>,<tt>B<sub>0</sub></tt>). If the atoms <tt>A<sub>1</sub></tt> and
+<tt>B<sub>0</sub></tt> do not unify, the result of the composition is denoted as <font face=symbol>^</font
+>.
+Furthermore, as usual, we consider <tt>A<sub>0</sub>:-true,A<sub>2</sub>,...,A<sub>n</sub></tt> 
+to be equivalent to <tt>A<sub>0</sub>:-A<sub>2</sub>,...,A<sub>n</sub></tt>, and for any clause <tt>C</tt>, <tt><font face=symbol>^</font
+> <font face=symbol>Å</font
+> C = C <font face=symbol>Å</font
+> <font face=symbol>^</font
+> = <font face=symbol>^</font
+></tt>.
+We assume that at least one operand has been renamed to a variant with fresh variables. 
+
+<p>
+This Prolog-like inference rule is called LD-resolution and it has
+the advantage of giving a more accurate description of Prolog's operational semantics than SLD-resolution.
+
+<p>
+Before defining the binarization transformation, we describe two
+auxiliary transformations.
+
+<p>
+The first transformation converts facts into rules by  giving
+them the atom <tt>true</tt> as body. E.g., the fact <tt>p</tt> is
+transformed into the rule <tt>p :- true</tt>.
+
+<p>
+The second transformation, inspired by [<a href="#Warren82" name=CITEWarren82>14</a>],
+eliminates the metavariables by wrapping them in a <tt>call/1</tt> goal.
+E.g., the rule <tt>and(X,Y):-X, Y</tt> is transformed into <tt>
+and(X,Y) :- call(X), call(Y).</tt>
+
+<p>
+The transformation of [<a href="#Tarau90:PLILP" name=CITETarau90:PLILP>10</a>]
+(<em>binarization</em>) adds continuations
+as  extra   arguments  of   atoms  in a way that  preserves
+also first argument indexing.
+
+<p>
+Let   P be  a definite  program  and Cont  a  new
+variable. Let  T and E = p(T<sub>1</sub>,...,T<sub>n</sub>) be  two 
+expressions.<a href="#tthFtNtAAB" name=tthFrefAAB><sup>1</sup></a> We  denote by
+<font face=symbol>y</font
+>(E,T) the expression p(T<sub>1</sub>,...,T<sub>n</sub>,T). Starting with the clause
+
+<p>
+<tt>(C)</tt>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A :- B<sub>1</sub>,B<sub>2</sub>,...,B<sub>n</sub>.
+
+<p>
+ we construct the clause
+
+<p>
+<tt>(C')</tt>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font face=symbol>y</font
+>(A,Cont) :- <font face=symbol>y</font
+>(B<sub>1</sub>,<font face=symbol>y</font
+>(B<sub>2</sub>,...,<font face=symbol>y</font
+>(B<sub>n</sub>,Cont))).
+                         
+<p>
+The set P<font face=symbol>¢</font
+> of all clauses <tt>C'</tt> obtained from the clauses of P is called
+the binarization of P. 
+
+<p>
+The following example shows the result of this
+transformation on the well-known `naive reverse' program:
+
+<p>
+
+<pre>
+   app([],Ys,Ys,Cont):-true(Cont).
+   app([A|Xs],Ys,[A|Zs],Cont):-app(Xs,Ys,Zs,Cont).
+                                  
+   nrev([],[],Cont):-true(Cont).
+   nrev([X|Xs],Zs,Cont):-nrev(Xs,Ys,app(Ys,[X],Zs,Cont)).
+</pre>
+
+<p>
+ These transformations preserve a strong operational equivalence with the
+original program with respect to the LD resolution rule which
+is <em>reified</em> in the syntactical structure of the resulting program.
+
+<p>
+Note that each resolution step of an LD derivation on a definite program P
+can be mapped to an SLD-resolution step of the binarized program P<font face=symbol>¢</font
+>.
+Let G be an atomic goal and G<font face=symbol>¢</font
+> = <font face=symbol>y</font
+>(G,true). Then, computed answers obtained
+querying P with G are the same as those obtained by querying P' with G'.
+
+<p>
+Notice that the equivalence between the binary version and
+the original program
+can also be explained in terms of fold/unfold transformations
+as suggested by [<a href="#proietti:pers1" name=CITEproietti:pers1>7</a>].
+
+<p>
+Clearly, continuations become explicit in the binary version of the program.
+We will devise a technique to access and manipulate them in an intuitive
+way, by modifying Jinni 2000's binarization preprocessor.
+
+<p>
+        <H2><A NAME="tth_sEc3">
+3</A>&nbsp;&nbsp;Binarization based compilation</H2>
+
+<p>
+      <H3><A NAME="tth_sEc3.1">
+3.1</A>&nbsp;&nbsp;Virtualisation of meta-predicates</H3>
+
+<p>
+Note that the first step of the transformation simply wraps metavariables inside a new predicate <tt>call/1</tt>. The second step adds continuations as last arguments of each predicate and a new predicate <tt>true/1</tt> to deal with unit clauses. During this step the arity of all predicates
+increases by 1 so that for instance <tt>call/1</tt> becomes <tt>call/2</tt>.
+Although we can add clauses that describe how they work on the set of all the functors occurring in the program, in practice it is simpler and more efficient to treat them as built-ins [<a href="#Tarau91:JAP" name=CITETarau91:JAP>8</a>]. Our current implementation actually performs their execution inline but still has to look up in a hash-table to transform the term to which a meta-variable points, to its corresponding predicate-entry. As this happens only when we reach a `fact' in the original program, it has relatively little impact on performance. Note however that it can be done in part at compile time,
+by specializing the source program with respect to some known
+continuations.
+
+<p>
+      <H3><A NAME="tth_sEc3.2">
+3.2</A>&nbsp;&nbsp;Inline compilation of built-ins</H3>
+
+<p>
+Demoen and Mari&#235;n pointed out in [<a href="#Demoen91:RU" name=CITEDemoen91:RU>3</a>] that a more implementation oriented view of binary programs can be very useful: a binary program is simply one that does not need an environment in the WAM. This allows inline code generation for built-ins occurring immediately after the head.
+Inline expansion of builtins
+contributes signifcantly to Jinni 2000's speed and
+allows last call optimisation for frequently occurring
+linear recursive predicates exactly as it happens in
+conventional WAMs.
+
+<p>
+      <H3><A NAME="tth_sEc3.3">
+3.3</A>&nbsp;&nbsp;Early term construction vs. late term construction</H3>
+
+<p>
+In procedural and functional languages featuring only deterministic
+calls it makes sense to avoid eager early structure creation. The
+WAM [<a href="#WA83" name=CITEWA83>15</a>] 
+follows this trend based on the argument that most logic programs
+are deterministic and therefore calls and structure creation in logic
+programming languages should follow this model.
+A more careful analysis suggests that the choice between
+
+<UL>
+<p>
+  
+<li> late and repeated construction (standard WAMs with AND-stack)
+  
+<li> eager early construction (once) and reuse on demand as in BinWAM
+</UL>
+<p>
+will favor different programming styles.
+Let's note at this point that the WAM's (common sense) 
+assumptions are subject to the following paradox:
+
+<p>
+
+<UL>
+<li> If a program is mostly deterministic then it will tend
+to fail only in the guards (shallow backtracking). 
+In this case, when a predicate succeeds, all structures
+specified in the body of a selected
+clause will eventually get created.
+By postponing this, the WAM will be only as good as 
+doing it eagerly upon entering the clause (as in BinWAM).
+
+<li>
+<p>
+If the program is mostly nondeterministic
+then late and repeated construction (WAM) is not better than 
+eager early creation (BinWAM) which is done only once,
+because it implies more work on backtracking.
+While the BinWAM will only undo bindings to variables
+in the binarized body represented on the heap, a conventional
+WAM will repeatedly push/pop to its environment stack.
+
+<p>
+</UL>This explains in part why (against all obvious intuitions),
+a standard AND-stack based WAM
+is not necessarily faster than a properly implemented 
+BinWAM&nbsp;<a href="#tthFtNtAAC" name=tthFrefAAC><sup>2</sup></a>.
+
+<p>
+      <H3><A NAME="tth_sEc3.4">
+3.4</A>&nbsp;&nbsp;A simplified run-time system</H3>
+
+<p>
+A simplified OR-stack having the layout shown 
+in figure&nbsp;<A href="#stack">1</A> is used only for (1-level)
+choice point creation in nondeterministic predicates.
+
+<p>
+
+<p><A NAME="tth_fIg1">
+</A> 
+<center>
+<TaBle border>
+<tr><td>P <font face=symbol>Þ</font
+> </td><td>next clause address </td>
+<tr><td>H <font face=symbol>Þ</font
+> </td><td>saved top of the heap </td>
+<tr><td>TR <font face=symbol>Þ</font
+> </td><td>saved top of the trail </td>
+<tr><td>A<sub>N+1</sub> <font face=symbol>Þ</font
+> </td><td>continuation argument register </td>
+<tr><td>A<sub>N</sub> <font face=symbol>Þ</font
+> </td><td>saved argument register N </td>
+<tr><td>... </td><td>... </td>
+<tr><td>A<sub>1</sub> <font face=symbol>Þ</font
+> </td><td>saved argument register 1 </td><tr><td></TaBle>
+ <br>
+<p><br>
+<p>
+ <center>      Figure 1: Jinni 2000's OR-stack. <A NAME="stack">
+</A></center>
+</center>
+<p>
+<p>As a consequence, the heap consumption of the program goes up, although in some special cases, partial evaluation at source level can deal with the problem [<a href="#Demoen90:KUL" name=CITEDemoen90:KUL>2</a>,<a href="#Neum92" name=CITENeum92>6</a>], showing again that a heap-only approach is not necessarily worse. As automating these source-level transformations needs global compilation and possibly some help from programmer declared pragmas, we wanted to ensure good performance for our engine without counting on them.
+
+<p>
+      <H3><A NAME="tth_sEc3.5">
+3.5</A>&nbsp;&nbsp;A simplified clause selection mechanism</H3>
+As the compiler works on a clause-by-clause basis, it is the responsibility of the emulator to index clauses and link the code. It uses a global  &lt; key,key &gt;  <font face=symbol>®</font
+> value hash table seen as an abstract multipurpose <em>dictionary</em>. A one byte mark-field is used to distinguish between load-time use and run-time use and for fast clean-up. We found that sharing of the global dictionary, although somewhat slower than the small key <font face=symbol>®</font
+> value hashing tables injected into the code-space of the standard WAM, simplifies the implementation and makes it easier to switch to better indexing techniques in the future. The same table is used by the run-time system to get the addresses of meta-predicates, to perform first argument indexing and is offered to the user as entry point to a blackboard containing logically behaving global terms.
+This high level of code reuse contributes significantly to the small size and indirectly to the overall speed of Jinni 2000.
+
+<p>
+Predicates are classified as <em>single-clause</em>, <em>deterministic</em> and <em>nondeterministic</em>. At this time only predicates having all first-argument functors distinct are detected as deterministic. Although this is definitely a <em>RISCy</em> approach to indexing, we found that for predicates having a more general distribution of first-arguments, a source-to-source transformation can be used. In the future we plan to integrate typical uses of CUT and arithmetic tests in this indexing scheme and extended it with ML-style `pattern matching' compilation that generates decision trees.
+
+<p>
+Indexing of deterministic predicates is done by a unique SWITCH
+instruction. If the first argument dereferences to a non-variable, SWITCH either fails or finds the 1-word address of the unique matching clause in the global hash-table, using the <em>predicate</em> and the <em>functor of the first argument</em> as a 2-word key. A specialized JUMP-IF instruction deals with the frequent case of 2 clause deterministic predicates. To reduce the interpretation overhead SWITCH and JUMP_IF are combined with the preceding EXECUTE and the following GET_STRUCTURE<a href="#tthFtNtAAD" name=tthFrefAAD><sup>3</sup></a> instruction, giving EXEC_SWITCH and EXEC_JUMP_IF. This allows not only to avoid dereferencing the first argument twice, but also reduces branching that breaks the processor's pipeline. Note that the basic difference with the WAM is the absence of intensive tag analysis. This is related also to our different low-level data-representation.
+
+<p>
+        <H2><A NAME="tth_sEc4">
+4</A>&nbsp;&nbsp;Data representation</H2>
+
+<p>
+      <H3><A NAME="tth_sEc4.1">
+4.1</A>&nbsp;&nbsp;Tag-on-pointer versus tag-on-data</H3>
+When describing the data in a cell with a tag we have basically 2 possibilities. We can put a tag in the same cell as the address of the data or near the data itself. The first possibility, probably most popular among WAM implementors, allows one to check the tag before deciding <em>if</em> and <em>how</em> it has to be processed. We choose the second possibility initially on purely <em>aesthetic</em> grounds while our engine had only 6 instructions. As we became aware that with good indexing unifications are more often intended to succeed and move data around than as a clause selection mechanism, WAM's <em>preemptive</em> tag checking lost some of its potential value. This also justifies why we have not implemented traditional WAMs <tt>SWITCH_ON_TAG</tt> instruction.
+
+<p>
+We found it very convenient to precompute a functor in the code-space as a word of the form <tt>&lt;arity,symbol-number,tag&#62;</tt> and then simply compare it with objects on the heap or in registers at 1-cycle cost instead of comparing the tags, finding out that they are almost always the same, then compare the functor-name and find out that they are also the same and finally compare the arities with a costly if-logic. Therefore we kept our unusual <em>tag-on-data</em> representation, that also has the advantage of consuming less tag bits. Up to now, we have only 3 different tags, implemented on 2 bits and still there's a 4-th tag available for future use.
+
+<p>
+A seemingly not so important (but potentially costly) point is related to the layout of the fields inside the word. We describe it as it helps to compare our implementation with WAMs having a less efficient low-level data representation. We choosed to put most frequently used data at the end of the word, the next frequently used one at the beginning of the word and finally the less frequently used in the middle. Even on byte addressable machines it is a good idea to fetch the whole data in a register and than get the lower bits with a <em>small</em> mask and the upper bits with a right shift in 1 cycle. It is less efficient to get the bits at left with a mask, as a huge mask needs two instructions on most RISCs to be loaded in a register.
+
+<p>
+With this representation a functor fits completely in one word:
+
+<p>
+<font size="-1">
+<center>
+<TaBle border>
+<tr><td>arity </td><td>symbol-number </td><td>2-bit tag </td></TaBle>
+ <br>
+<p><br>
+<p>
+</center></font>By choosing TAG=0 for variables and having only 2-bit tags, every memory address (C pointer) looks like a logical variable. This gives a very low overhead and less error-prone integration  of C code in the engine and it has, on architectures where indexed indirect addressing is not for free, a positive impact on performance.
+
+<p>
+      <H3><A NAME="tth_sEc4.2">
+4.2</A>&nbsp;&nbsp;Term compression</H3>
+If a term has a last argument containing a functor, with our tag-on-data representation we can avoid the extra pointer from the last argument to
+the functor cell and simply make them collapse. Obviously the unification algorithm must take care of this case, but the space savings are important, especially in the case of lists which become contiguous vectors with their N-th element directly addressable at offset <tt>2*sizeof(term)*N+1</tt> bytes from the beginning of the list, as shown in figure <A href="#list">2</A>.
+
+<p>
+
+<p><A NAME="tth_fIg2">
+</A> 
+<center>
+<TaBle border>
+<tr><td>&#183; </td><td>a </td><td>&#183; </td><td>b </td><td>&#183; </td><td>c </td><td>&#183; </td><td>[] </td></TaBle>
+ <br>
+<p><br>
+<p>
+ <center>      Figure 2: List compression. <A NAME="list">
+</A></center>
+</center>
+<p>
+<p>
+<p><A NAME="tth_fIg3">
+</A> 
+<center>
+<blockquote>
+<OL type="1">
+<li><font size="-2"> t/2 1 </b><font face=symbol>®</font
+> t/2 2 </b><font face=symbol>®</font
+> t/2 3 n/0
+</font>
+<p>
+
+<li><font size="-2"> t/2 1 <font face=symbol>¯</font
+>
+
+<p>
+ t/2 2 <font face=symbol>¯</font
+>
+
+<p>
+ t/2 3 n/0
+
+<p>
+ <br> t/2 1 t/2 2 t/2 3 n/0
+</font>
+<p>
+</OL></blockquote> <center>      Figure 3: Term compression. <A NAME="tc">
+</A></center>
+</center>
+<p>
+<p>The effect of this <em>last argument overlapping</em> on
+<tt>t(1,t(2,t(3,n)))</tt> is represented in figure&nbsp;<A href="#tc">3</A>.
+
+<p>
+This representation also reduces the space consumption for lists and other `chained functors' to values similar or better than in the case of conventional WAMs. We refer to [<a href="#Tarau93:comp" name=CITETarau93:comp>13</a>] for the details of the term-compression related optimizations of Jinni 2000.
+
+<p>
+        <H2><A NAME="tth_sEc5">
+5</A>&nbsp;&nbsp;Optimizing the run-time system</H2>
+
+<p>
+      <H3><A NAME="tth_sEc5.1">
+5.1</A>&nbsp;&nbsp;Reducing the interpretation overhead</H3>
+One can argue that the best way to reduce the interpretation overhead is by not doing it at all. However, most of the native code compilers we know of have a <em>compact-code</em> option that is actually emulated WAM. And being the most practical in term of compilation-time and code-size, this mode is used by the Prolog developer most of the time, except for the final product. On the other hand, some of the techniques that follow can be used to eliminate tests and jumps so they can be useful also in native code generation.
+
+<p>
+       <H4><A NAME="tth_sEc5.1.1">
+5.1.1</A>&nbsp;&nbsp;Instruction-compression and case-overlapping.</H4>
+It happens very often that a sequence of consecutive instructions share some WAM state information. For example two consecutive unify instructions have the same mode as they correspond to arguments of the same structure. Moreover, due to our very simple instruction set, some instructions have only a few possible other instructions that can follow them. For example, after an EXECUTE instruction, we can have a single, a deterministic or a nondeterministic clause. It makes sense to specialize the EXECUTE instruction with respect to what has to be done in each case. This gives, in the case of calls to deterministic predicates the instructions EXEC_SWITCH and EXEC_JUMP_IF as mentioned in the section on indexing. On the other hand, some instructions are simply so small that just dispatching them can cost more than actually performing the associated WAM-step. 
+This in itself is a reason to compress two or more instructions taking less than a word in one. Again, having a small initial instruction set avoids combinatorial explosion in this case. For example, by compressing our UNIFY instructions and their WRITE-mode specializations, we get the following 8 new instructions:
+ 
+<p>
+
+<pre>
+UNIFY_VARIABLE_VARIABLE
+WRITE_VARIABLE_VARIABLE
+UNIFY_VALUE_VALUE
+WRITE_VALUE_VALUE
+UNIFY_VARIABLE_VALUE
+WRITE_VARIABLE_VALUE
+UNIFY_VALUE_VARIABLE
+WRITE_VALUE_VARIABLE
+</pre>
+
+<p>
+This gives, in the case of the binarized version of the recursive clause of append/3 the following code:
+
+<p>
+
+<pre>
+append([A|Xs],Ys,[A|Zs],Cont):-append(Xs,Ys,Zs,Cont).
+
+TRUST_ME_ELSE */4,     % keeps also the arity = 4
+GET_STRUCTURE X1, ./2
+UNIFY_VAR_VAR X5, A1
+GET_STRUCTURE X3, ./2
+UNIFY_VAL_VAR X5, A3
+EXEC_JUMP_IF  append/4 % actually the address of append/4
+</pre>
+
+<p>
+The choice of candidates for instruction compression is based on
+low level profiling (instruction frequencies) and possibility of sharing of common work by two successive instructions and frequencies
+of functors with various arities. 
+This justifies the choice of instructions like
+UNIFY_VARIABLE_VARIABLE.
+
+<p>
+To emphasize some instruction compression possibilities
+not so obvious in the case of standard WAM let's show the Jinni 2000 versus
+SICStus code for the clause:
+
+<p>
+<font size="-1">
+<pre>
+a(X,Z):-b(X,Y),c(Y,Z). =&#62;binary form=&#62; a(X,Z,C):-b(X,Y,c(Y,Z,C)).
+
+SICSTUS Prolog                 Jinni 2000
+
+clause(a/2/1,                  a/3:
+   [ifshallow                  PUT_STRUCTURE    X4&lt;-c/3
+   ,neck(2)                    WRITE_VAR_VAL    X5,X2
+   ,else                       WRITE_VALUE      X3
+   ,endif                      MOVE_REG         X2&lt;-X5
+   ,allocate                   MOVE_REG         X3&lt;-X4
+   ,get_y_variable(1,1)        EXECUTE          b/3
+   ,put_y_variable(0,1)
+   ,init([])                      Jinni 2000 1.71
+   ,call(b/2,2)                        
+   ,put_y_unsafe_value(0,0)    PUT_WRITE_VAR_VAL  X4&lt;-c/3, X5,X2
+   ,put_y_value(1,1)           WRITE_VALUE        X3
+   ,deallocate                 MOVE_REGx2         X2&lt;-X5, X3&lt;-X4
+   ,execute(c/2)]).            EXECUTE            b/3
+</pre>
+</font>
+<p>
+Clearly, combinatorial explosion due to the elaborate case analysis (safe vs. unsafe, x-variable vs. y-variable) makes the job of advanced instruction
+compression tedious in the case of standard WAM&nbsp;<a href="#tthFtNtAAE" name=tthFrefAAE><sup>4</sup></a>. 
+Moreover, in
+the case of an emulated engine just decoding the
+<tt>init</tt>, <tt>allocate</tt>, <tt>deallocate</tt> and
+<tt>call</tt> instructions costs more than Jinni 2000's simple <tt>PUT_STRUCTURE</tt> and
+<tt>WRITE_VAR_VAL</tt> and their straightforward IF-less work on
+copying 3 heap cells from the registers. 
+
+<p>
+Jinni 2000  also integrates the preceding GET_STRUCTURE instruction into the double UNIFY instructions and the preceding PUT_STRUCTURE into the double WRITE instructions (starting from version 1.71).
+This gives another 16 instructions but it covers a large majority of uses of GET_STRUCTURE and PUT_STRUCTURE. Reducing interpretation overhead on those critical, high frequency instructions definitely contributes to the speed of our emulator. As a consequence, in the frequent case of structures of arity=2 (lists included), 
+mode-related IF-logic is completely eliminated.
+The impact of this optimization can be seen clearly
+on the <b>NREV</b> benchmark (we refer to the section on
+performance evaluation).
+
+<p>
+Moreover, in the case of native code, reordering of Jinni 2000's
+<tt>PUT_STRUCTURE</tt> + <tt>WRITE</tt> groups can be very useful in slot-filling and more intricate super-scalar processing related instruction scheduling. On the other hand, the presence of environments in conventional WAM limits those reordering optimizations to one chunk. 
+A very straightforward
+compilation to C [<a href="#tdb95" name=CITEtdb95>12</a>] and the possibility of
+optimized `burst-mode' structure creation
+in PUT instructions are
+a direct consequence of binarization
+and would be harder to
+apply to AND-stack based traditional WAMs,
+which exhibit much less uniform instruction patterns.
+
+<p>
+Other Prologs also do instruction compression, and it is not unusual to hear about engines having 1000 instructions or more. Therefore this optimization is quite common. However, we found out that simplifying the unification instructions of the BinWAM allows for very `general-purpose' instruction compression. Conventional WAMs often limit this kind of optimization to lists. One can find out about the impact of this by changing the list-constructor of the NREV benchmark.
+Overall, in a simplified engine instruction compression can be made more `abstract' and therefore with fewer compressed instructions we can hit a statistically more relevant part of the code. In Jinni 2000, for instance, arithmetic expressions or programs manipulating binary trees will benefit from our compression strategy while this may not be the case with conventional WAMs, unless they duplicate their (already) baroque list-instruction optimizations for arbitrary structures. 
+<p>
+An other point is that instruction compression is usually applied inside a procedure. As Jinni 2000 has a unique primitive EXECUTE instruction instead of standard WAM's CALL, ALLOCATE, DEALLOCATE, EXECUTE, PROCEED we can afford to do instruction compression across procedure boundaries with very little increase in code size due to relatively few different ways to combine control instructions.
+Inter-procedural instruction compression can be seen as a kind of `hand-crafted' <em>partial evaluation</em> at Java level, intended to optimize the main loop of the WAM-emulator. This can be seen as a special case of the <em>call forwarding</em> technique used in the implementation of <tt>jc</tt>
+[<a href="#dg92a" name=CITEdg92a>4</a>,<a href="#kdb94a" name=CITEkdb94a>1</a>].
+It has the same effect as <em>partial evaluation</em> at source level which also eliminates procedure calls.
+At the global level, knowledge about possible continuations can also remove the run-time effort of address look-up for meta-predicates and useless trailing and dereferencing.
+
+<p>
+<em>Case-overlapping</em> is a well-known technique that saves code-size in the emulator. Note that we can share within the main <tt>switch</tt> statement of the emulator a <tt>case</tt> when an instruction is a specialization of its predecessor, based on the well known property of the <tt>case</tt> statement in C, that in the absence of a <tt>break;</tt> or <tt>continue;</tt> control flows from a <tt>case</tt> label to the next. It is a 0-cost operation. The following example, from our emulator, shows how we can share the code between EXEC_SWITCH and EXEC.
+
+<p>
+
+<pre>
+          case EXEC_SWITCH:
+            .........
+          case SWITCH:
+            .........
+          break;
+</pre>
+
+<p>
+Note that instructions like EXEC_SWITCH or EXEC_JUMP_IF have actually a global compilation flavor as they exploit knowledge about the procedure which is called. Due to the very simple initial instruction set of the Jinni 2000
+engine these WAM-level code transformations are performed in C at load-time
+with no visible penalty on compilation time.
+
+<p>
+Finally, we can often apply both instruction compression and case-overlapping to further reduce the space requirements. As compressed WRITE-instructions are still just special cases of corresponding compressed UNIFY-instructions we
+have:
+
+<p>
+
+<pre>
+          case UNIFY_VAR_VAL:
+            .........
+          case WRITE_VAR_VAL:
+            .........
+          break;
+</pre>
+ 
+<p>
+       <H4><A NAME="tth_sEc5.1.2">
+5.1.2</A>&nbsp;&nbsp;The benefits of two-stream sequences for free.</H4>
+Notice that for GET instructions we have the benefits of
+separate READ and WRITE streams
+(for instance, avoidance of mode checking)
+on some high frequency
+instructions without actually incurring the compilation complexity
+and emulation overhead in generating them.
+As terms of depth 1 and functors of low arity
+dominate statistically Prolog programs,
+we can see that our instruction compression scheme actually
+behaves as if two separate instruction streams were
+present, most of the time!
+
+<p>
+        <H2><A NAME="tth_sEc6">
+6</A>&nbsp;&nbsp;Conclusion</H2>
+The simplicity Jinni 2000's basic instruction set due to its specialization to binary programs allowed us to apply low level optimizations not easily available on standard WAM. Based on  virtualization of demo-predicates at WAM-level [<a href="#Tarau91:RU" name=CITETarau91:RU>9</a>] that largely eliminate the overhead of metaprogramming introduced by binarization, the Jinni 2000 engine has proven itself as a viable simpler alternative to standard WAM. This is especially true in a Java-emulated WAM's where simplification of the instruction set has a very positive impact on limiting the interpretation overhead.
+
+<p>
+<H2>References</H2>
+<DL compact>
+
+<p>
+<dt>[<a href="#CITEkdb94a" name=kdb94a>1</a>]</dt><dd>
+K.&nbsp;De&nbsp;Bosschere, S.&nbsp;Debray, D.&nbsp;Gudeman, and S.&nbsp;Kannan.
+ Call Forwarding: A Simple Interprocedural Optimization
+  Technique for Dynamically Typed Languages.
+ In <em>Proceedings of the 21st ACM SIGPLAN-SIGACT Symposium on
+  Principles of Programming Languages (POPL)</em>, pages 409-420, Portland/USA,
+  Jan. 1994. ACM.
+
+<p>
+<dt>[<a href="#CITEDemoen90:KUL" name=Demoen90:KUL>2</a>]</dt><dd>
+B.&nbsp;Demoen.
+ On the Transformation of a Prolog program to a more efficient
+  Binary program.
+ Technical Report 130, K.U.Leuven, Dec. 1990.
+
+<p>
+<dt>[<a href="#CITEDemoen91:RU" name=Demoen91:RU>3</a>]</dt><dd>
+B.&nbsp;Demoen and A.&nbsp;Mari&#235;n.
+ Implementation of Prolog as binary definite Programs.
+ In A.&nbsp;Voronkov, editor, <em>Logic Programming, RCLP Proceedings</em>,
+  number 592 in Lecture Notes in Artificial Intelligence, pages 165-176,
+  Berlin, Heidelberg, 1992. Springer-Verlag.
+
+<p>
+<dt>[<a href="#CITEdg92a" name=dg92a>4</a>]</dt><dd>
+D.&nbsp;Gudeman, K.&nbsp;De&nbsp;Bosschere, and S.&nbsp;Debray.
+ <tt>jc</tt>: An Efficient and Portable Sequential Implementation
+  of Janus.
+ In K.&nbsp;Apt, editor, <em>Joint International Conference and Symposium
+  on Logic Programming</em>, pages 399-413, Washington, Nov. 1992. MIT press.
+
+<p>
+<dt>[<a href="#CITELL87" name=LL87>5</a>]</dt><dd>
+J.&nbsp;Lloyd.
+ <em>Foundations of Logic Programming</em>.
+ Symbolic computation - Artificial Intelligence. Springer-Verlag,
+  Berlin, 1987.
+ Second edition.
+
+<p>
+<dt>[<a href="#CITENeum92" name=Neum92>6</a>]</dt><dd>
+U.&nbsp;Neumerkel.
+ <em>Specialization of Prolog Programs with Partially Static Goals
+  and Binarization</em>.
+ Phd thesis, Technische Universit&#228;t Wien, 1992.
+
+<p>
+<dt>[<a href="#CITEproietti:pers1" name=proietti:pers1>7</a>]</dt><dd>
+M.&nbsp;Proietti.
+ On the definition of binarization in terms of fold/unfold., June
+  1994.
+ Personal Communication.
+
+<p>
+<dt>[<a href="#CITETarau91:JAP" name=Tarau91:JAP>8</a>]</dt><dd>
+P.&nbsp;Tarau.
+ A Simplified Abstract Machine for the Execution of Binary
+  Metaprograms.
+ In <em>Proceedings of the Logic Programming Conference'91</em>, pages
+  119-128. ICOT, Tokyo, 7 1991.
+
+<p>
+<dt>[<a href="#CITETarau91:RU" name=Tarau91:RU>9</a>]</dt><dd>
+P.&nbsp;Tarau.
+ Program Transformations and WAM-support for the Compilation
+  of Definite Metaprograms.
+ In A.&nbsp;Voronkov, editor, <em>Logic Programming, RCLP Proceedings</em>,
+  number 592 in Lecture Notes in Artificial Intelligence, pages 462-473,
+  Berlin, Heidelberg, 1992. Springer-Verlag.
+
+<p>
+<dt>[<a href="#CITETarau90:PLILP" name=Tarau90:PLILP>10</a>]</dt><dd>
+P.&nbsp;Tarau and M.&nbsp;Boyer.
+ Elementary Logic Programs.
+ In P.&nbsp;Deransart and J.&nbsp;Maluszy\'nski, editors, <em>Proceedings of
+  Programming Language Implementation and Logic Programming</em>, number 456 in
+  Lecture Notes in Computer Science, pages 159-173. Springer, Aug. 1990.
+
+<p>
+<dt>[<a href="#CITEpt93b" name=pt93b>11</a>]</dt><dd>
+P.&nbsp;Tarau and K.&nbsp;De&nbsp;Bosschere.
+ Memoing with Abstract Answers and Delphi Lemmas.
+ In Y.&nbsp;Deville, editor, <em>Logic Program Synthesis and
+  Transformation</em>, Springer-Verlag, pages 196-209, Louvain-la-Neuve, July
+  1993.
+
+<p>
+<dt>[<a href="#CITEtdb95" name=tdb95>12</a>]</dt><dd>
+P.&nbsp;Tarau, B.&nbsp;Demoen, and K.&nbsp;De&nbsp;Bosschere.
+ The Power of Partial Translation: an Experiment with the
+  C-ification of Binary Prolog.
+ In K.&nbsp;George, J.&nbsp;Carrol, E.&nbsp;Deaton, D.&nbsp;Oppenheim, and J.&nbsp;Hightower,
+  editors, <em>Proceedings of the 1995 ACM Symposium on Applied Computing</em>,
+  pages 152-176, Nashville, Feb. 1995. ACM Press.
+
+<p>
+<dt>[<a href="#CITETarau93:comp" name=Tarau93:comp>13</a>]</dt><dd>
+P.&nbsp;Tarau and U.&nbsp;Neumerkel.
+ Compact Representation of Terms and Instructions in the
+  BinWAM.
+ Technical Report 93-3, Dept. d'Informatique, Universit&#233; de
+  Moncton, Nov. 1993.
+ available by ftp from clement.info.umoncton.ca.
+
+<p>
+<dt>[<a href="#CITEWarren82" name=Warren82>14</a>]</dt><dd>
+D.&nbsp;H.&nbsp;D. Warren.
+ Higher-order extensions to Prolog - are they needed?
+ In D.&nbsp;Michie, J.&nbsp;Hayes, and Y.&nbsp;H. Pao, editors, <em>Machine
+  Intelligence 10</em>. Ellis Horwood, 1981.
+
+<p>
+<dt>[<a href="#CITEWA83" name=WA83>15</a>]</dt><dd>
+D.&nbsp;H.&nbsp;D. Warren.
+ An Abstract Prolog Instruction Set.
+ Technical Note 309, SRI International, Oct. 1983.
+
+<p>
+</DL><hr><H3>Footnotes:</H3>
+
+<p><a name=tthFtNtAAB></a><a href="#tthFrefAAB"><sup>1</sup></a> Atom or term.
+<p><a name=tthFtNtAAC></a><a href="#tthFrefAAC"><sup>2</sup></a> As the section about
+performance will show.
+<p><a name=tthFtNtAAD></a><a href="#tthFrefAAD"><sup>3</sup></a> well, also GET_CONSTANT, although in this case it is not worth dealing with it separately
+<p><a name=tthFtNtAAE></a><a href="#tthFrefAAE"><sup>4</sup></a> Current implementations of SICStus also
+do extensive instruction folding. They do need however
+a much larger set of folded instructions - about 256.
+This makes emulated code in SICStus 2.1_9 almost as large as native
+code and about 3-times larger than emulated Jinni 2000 code.
+<p><hr><small>File translated from T<sub><font size="-1">E</font></sub>X by <a href="http://hutchinson.belmont.ma.us/tth/">T<sub><font size="-1">T</font></sub>Hgold</a>, version 2.24.<br>On  2 May 2001, 14:04.</small>
+</HTML>

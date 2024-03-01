@@ -1,0 +1,212 @@
+<VisualStudioProject>
+    <VISUALJSHARP
+        ProjectType = "Local"
+        ProductVersion = "7.10.3077"
+        SchemaVersion = "2.0"
+    >
+        <Build>
+            <Settings
+                AssemblyKeyContainerName = ""
+                AssemblyName = "Jwam"
+                AssemblyOriginatorKeyFile = ""
+                DefaultClientScript = "JScript"
+                DefaultHTMLPageLayout = "Grid"
+                DefaultTargetSchema = "IE50"
+                OutputType = "Exe"
+                PreBuildEvent = ""
+                PostBuildEvent = ""
+                RootNamespace = ""
+                RunPostBuildEvent = "OnBuildSuccess"
+                StartupObject = ""
+            >
+                <Config
+                    Name = "Debug"
+                    BaseAddress = "285212672"
+                    ConfigurationOverrideFile = ""
+                    DefineConstants = ""
+                    DebugSymbols = "true"
+                    NoWarn = ""
+                    Optimize = "true"
+                    OutputPath = "bin\Debug\"
+                    RegisterForComInterop = "false"
+                    TreatWarningsAsErrors = "false"
+                    WarningLevel = "2"
+                    AdditionalOptions = ""
+                />
+                <Config
+                    Name = "Release"
+                    BaseAddress = "285212672"
+                    ConfigurationOverrideFile = ""
+                    DefineConstants = ""
+                    DebugSymbols = "false"
+                    NoWarn = ""
+                    Optimize = "true"
+                    OutputPath = "bin\Release\"
+                    RegisterForComInterop = "false"
+                    TreatWarningsAsErrors = "false"
+                    WarningLevel = "2"
+                    AdditionalOptions = ""
+                />
+            </Settings>
+            <References>
+                <Reference
+                    Name = "vjslib"
+                    AssemblyName = "vjslib"
+                    HintPath = "..\..\..\WINDOWS\Microsoft Visual JSharp .NET\Framework\v1.0.4205\vjslib.dll"
+                />
+                <Reference
+                    Name = "System"
+                    AssemblyName = "System"
+                    HintPath = "..\..\..\WINDOWS\Microsoft.NET\Framework\v1.0.3705\System.dll"
+                />
+                <Reference
+                    Name = "System.XML"
+                    AssemblyName = "System.Xml"
+                    HintPath = "..\..\..\WINDOWS\Microsoft.NET\Framework\v1.0.3705\System.XML.dll"
+                />
+                <Reference
+                    Name = "System.Data"
+                    AssemblyName = "System.Data"
+                    HintPath = "..\..\..\WINDOWS\Microsoft.NET\Framework\v1.0.3705\System.Data.dll"
+                />
+            </References>
+        </Build>
+        <Files>
+            <Include>
+                <File
+                    RelPath = "bp.exe"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "csyn.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "dbak.bat"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "eval.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "funs.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "go.bat"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "jgo.bat"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_aig.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_all.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_and_eq.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_and_xor.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_impl.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_impl_eq0.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_land1.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_leq.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_leq1.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_less.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_lnand1.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_lnor.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_lnor1.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_lor1.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_nand.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_nand1.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_nor.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "lib_nor0.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "notes.txt"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "README.txt"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "syn.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "syn3d.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "tests.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "tools.pro"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "ttbits.pro"
+                    BuildAction = "None"
+                />
+            </Include>
+        </Files>
+    </VISUALJSHARP>
+</VisualStudioProject>
+

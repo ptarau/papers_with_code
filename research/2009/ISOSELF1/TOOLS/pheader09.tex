@@ -1,0 +1,83 @@
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{url}
+\usepackage{verbatim} 
+\usepackage{listings}
+\lstloadlanguages{Prolog}
+% parameters in this will be overriden by same for {code}
+% so this will look the same - except that it will not be treated as code
+\lstnewenvironment{codex}
+    {\lstset{}%
+      \csname lst@SetFirstLabel\endcsname}
+    {\csname lst@SaveFirstLabel\endcsname}
+    \lstset{
+      basicstyle=\large\ttfamily,
+      flexiblecolumns=false,
+      basewidth={0.5em,0.45em},
+      literate={+}{{$+$}}1         
+    }    
+\lstnewenvironment{code}
+    {\lstset{}%
+      \csname lst@SetFirstLabel\endcsname}
+    {\csname lst@SaveFirstLabel\endcsname}
+    \lstset{
+      basicstyle=\small\ttfamily,
+      flexiblecolumns=false,
+      basewidth={0.5em,0.45em},
+      literate={+}{{$+$}}1 {*}{{$*$}}1 {=}{{$=$}}1
+               {>}{{$>$}}1 {<}{{$<$}}1
+               {<-}{{$\leftarrow$}}2
+               {|}{{$\mid$}}1               
+    }
+\newtheorem{prop}{Proposition}
+\newtheorem{df}{Definition}
+
+\newcommand{\BI}[0]{\begin{itemize}}
+\newcommand{\EI}[0]{\end{itemize}}
+\newcommand{\I}[0]{\item}
+\newcommand{\BE}[0]{\begin{enumerate}}
+\newcommand{\EE}[0]{\end{enumerate}}
+\newcommand{\PP}[0]{ \vskip 0.6cm }
+\newcommand{\BX}[0]{\begin{codex}}
+\newcommand{\EX}[0]{\end{codex}}
+\newcommand{\BV}[0]{\begin{verbatim}}
+\newcommand{\EV}[0]{\end{verbatim}}
+
+\def \bscale1 {0.25}
+\def \bscale {0.25}
+
+% \FIG{Label}{Title}[scale]{file.suf}
+\newcommand{\FIG}[4]{
+\begin{figure}[htbp]
+\centering
+{\includegraphics[scale=#3]{./figs/#4}}
+\caption{#2}
+\label{#1}
+\end{figure}
+}
+
+% \HFIGS{Label}{Title}{Title1}{Title2}{PNG1}{PNG2}
+\newcommand{\HFIGS}[6]{
+\begin{figure}[htbp]
+  \centering
+  \subfloat[#3]{
+    {\includegraphics[scale=0.60]{./figs/#5}}}   
+  \subfloat[#4]{
+    {\includegraphics[scale=0.60]{./figs/#6}}}
+  \caption{#2}
+  \label{#1}
+\end{figure}
+}
+
+% \VFIGS{Label}{Title}{Title1}{Title2}{PNG1}{PNG2}
+\newcommand{\VFIGS}[6]{
+\begin{figure}[htbp]
+  \begin{center}
+    {\includegraphics[scale=0.40]{./figs/#5}}
+    {\includegraphics[scale=0.40]{./figs/#6}}
+  \caption{#2: {\em #3} and {\em #4}}
+  \label{#1}
+  \end{center}
+\end{figure}
+}

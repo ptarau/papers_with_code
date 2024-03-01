@@ -1,0 +1,42 @@
+Agent Programming: form the Bazar to the Cathedral
+
+Abstract:
+
+We argue that the bazar looking landscape of
+message passing agent programming constructs 
+should evolve into a more structured blackboard
+based and inference enabled component technology.
+
+Introduction
+
+The first thing that strikes someone looking into
+KQML-style agent scripts is the tediousness of
+communication between agents - reminding the 
+colorful chaos and redundancy of a bazaar
+where everyone tries to explain, argue and
+negotiate instead of actually getting 
+business done. Message passing based agent
+communication is dominated by frivolous
+exchanges focusing on the protocol
+instead of the work to be performed.
+
+Inference and wisdom hint towards cathedrals
+
+Excessive communication is often an indication of
+limited intelligence and automation. Inferential
+mechanisms will enable agents to avoid asking each
+other the obvious - very much like wise people do.
+This also means that autonomous search mechanisms,
+associative processing of events and data records
+is needed. And well known contexts, which reify
+intelligence in their structure - cathedrals
+with crisp architectural rules - meant to keep
+components wise and mostly silent - are the natural
+replacement of obnoxious agent bazars. 
+
+The means
+
+A distributed agent architecture like Jinni 2002
+providing blackboards and object oriented program
+structuring together with strong inferential
+capabilities coming from logic programming.

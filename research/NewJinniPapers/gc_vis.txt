@@ -1,0 +1,55 @@
+Data Visualisation and Data Mining Techniques
+for Designing Optimal Memory Managment Strategies
+of Java based Prolog Runtime Systems
+
+Abstract:
+
+We design a set of tools to visualize
+key data structures involved in implementing
+optimal memory managment for an all-dynamic
+Java based Prolog runtime system. With
+their help, we analyze statistical
+and graph-theoretical properties of
+Prolog data areas and design heuristics
+for adaptive GC and optimal dynamic
+array management.
+
+We also describe our experience with the use of
+data mining techniques for extracting patterns
+which predict effectively best strategies for
+effectiveness of combined adaptive garbage
+collection and dynamic array algorithms. 
+
+Introduction
+
+Visualizing Density of Live Data 
+
+Visualizing the Reachability Graph
+
+Collecting Statistical Data
+
+More relevant:
+
+- number of shrinks by gc
+- density before GC
+
+Less relevant:
+- average length of variable chains
+- forward, backward, inter/intra-segment references
+
+Finding Optimal Incremental GC points
+
+Learning from Past Executions
+
+- collect stats on post fact need of
+  doing: gc, expand, shrink
+- runtime statistics database
+- visualisation (animation) of the stats database
+- use datamining techniques to extract
+  correlations
+
+Adaptive Memory Managment Strategies
+
+Related work
+
+Conclusion

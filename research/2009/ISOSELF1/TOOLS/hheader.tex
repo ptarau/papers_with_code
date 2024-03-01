@@ -1,0 +1,86 @@
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{url}
+\usepackage{verbatim} 
+\usepackage{listings}
+\lstloadlanguages{Haskell}
+% parameters in this will be overriden by same for {code}
+% so this will look the same - except that it will not be treated as code
+\lstnewenvironment{codex}
+    {\lstset{}%
+      \csname lst@SetFirstLabel\endcsname}
+    {\csname lst@SaveFirstLabel\endcsname}
+    \lstset{
+      basicstyle=\large\ttfamily,
+      flexiblecolumns=false,
+      basewidth={0.5em,0.45em},
+      literate={+}{{$+$}}1         
+    }    
+\lstnewenvironment{code}
+    {\lstset{}%
+      \csname lst@SetFirstLabel\endcsname}
+    {\csname lst@SaveFirstLabel\endcsname}
+    \lstset{
+      basicstyle=\small\ttfamily,
+      flexiblecolumns=false,
+      basewidth={0.5em,0.45em},
+      literate={+}{{$+$}}1 {/}{{$/$}}1 {*}{{$*$}}1 {=}{{$=$}}1
+               {>}{{$>$}}1 {<}{{$<$}}1 {\\}{{$\lambda$}}1
+               {\\\\}{{\char`\\\char`\\}}1
+               {->}{{$\rightarrow$}}2 {>=}{{$\geq$}}2 {<-}{{$\leftarrow$}}2
+               {<=}{{$\leq$}}2 {=>}{{$\Rightarrow$}}2 
+               {>>}{{>>}}2 {>>=}{{>>=}}2
+               {|}{{$\mid$}}1               
+    }
+\newtheorem{prop}{Proposition}
+\newtheorem{df}{Definition}
+
+\newcommand{\BI}[0]{\begin{itemize}}
+\newcommand{\EI}[0]{\end{itemize}}
+\newcommand{\I}[0]{\item}
+\newcommand{\BE}[0]{\begin{enumerate}}
+\newcommand{\EE}[0]{\end{enumerate}}
+\newcommand{\PP}[0]{ \vskip 0.6cm }
+\newcommand{\BX}[0]{\begin{codex}}
+\newcommand{\EX}[0]{\end{codex}}
+\newcommand{\BV}[0]{\begin{verbatim}}
+\newcommand{\EV}[0]{\end{verbatim}}
+    
+\def \bscale1 {0.50}
+\def \bscale {0.25}
+
+% \FIG{Label}{Title}{PNG}
+\newcommand{\FIG}[3]{
+\begin{figure}[htbp]
+\centering
+\scalebox{\bscale1}{\includegraphics*[bb=0pt 0pt 800pt 800pt]{./figs/#3.png}}
+\caption{#2}
+\label{#1}
+\end{figure}
+}
+
+% \HFIGS{Label}{Title}{Title1}{Title2}{PNG1}{PNG2}
+\newcommand{\HFIGS}[6]{
+\begin{figure}[htbp]
+  \centering
+  \subfloat[#3]{
+    {\scalebox{\bscale}{\includegraphics*[bb=0pt 0pt 800pt 800pt]{./figs/#5.png}}}}   
+  \subfloat[#4]{
+    {\scalebox{\bscale}{\includegraphics*[bb=0pt 0pt 800pt 800pt]{./figs/#6.png}}}}
+  \caption{#2}
+  \label{#1}
+\end{figure}
+}
+
+% \VFIGS{Label}{Title}{Title1}{Title2}{PNG1}{PNG2}
+\newcommand{\VFIGS}[6]{
+\begin{figure}[htbp]
+  \begin{center}
+    {\scalebox{\bscale}{\includegraphics*[bb=0pt 0pt 800pt 800pt]{./figs/#5.png}}}
+    {\scalebox{\bscale}{\includegraphics*[bb=0pt 0pt 800pt 800pt]{./figs/#6.png}}}
+  \caption{#2: {\em #3} and {\em #4}}
+  \label{#1}
+  \end{center}
+\end{figure}
+}

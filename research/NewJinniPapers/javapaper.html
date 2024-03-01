@@ -1,0 +1,856 @@
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+           "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<META NAME="GENERATOR" CONTENT="TtHgold 2.24">
+                                                                        
+<title> 
+  A Most Specific Method Finding Algorithm for Reflection 
+  Based Dynamic Prolog-to-Java Interfaces</title>
+ 
+<H1 align=center>
+  A Most Specific Method Finding Algorithm for Reflection 
+  Based Dynamic Prolog-to-Java Interfaces </H1>
+
+<p>
+
+<H3 align=center>
+ Satyam Tyagi,
+ Paul Tarau
+ </H3>
+
+<p>
+    Department of Computer Science<br>
+   University of North Texas<br>
+   P.O. Box 311366<br>
+   Denton, Texas 76203<br>
+   E-mail: <em>{tyagi,tarau}@cs.unt.edu</em><br>
+
+<p>
+
+<H3 align=center> </H3>
+
+<p>
+
+<H3 align=center> </H3>
+
+
+<H2> Abstract</H2>
+In the context of direct and reflection based extension mechanisms
+for the Jinni 2000 Java based Prolog system, we discuss the design and 
+the implementation of a reflection based
+Prolog to Java interface. While the presence of dynamic type information
+on both the Prolog and the Java sides allows us to automate data
+conversion between method parameters, the presence of subtyping and 
+method overloading makes finding the most specific
+method corresponding to a Prolog call pattern fairly difficult.
+We describe a run-time algorithm which closely mimics Java's own
+compile-time method dispatching mechanism and provides
+accurate handling of overloaded methods beyond the reflection
+package's limitations. As an application of our interfacing
+technique, a complete GUI library is built in Prolog using
+only 10 lines of application specific Java code.
+
+<p>
+<p> <b>Keywords:</b> <em>Java based Language Implementation, Prolog to Java Interface, 
+Method Signatures, Dynamic Types, Method Overloading, Most Specific Method, Reflection</em>
+
+<p>
+        <H2><A NAME="tth_sEc1">
+1</A>&nbsp;&nbsp;Introduction</H2>
+
+<p>
+In this paper, we discuss the extension of the Jinni 2000 Java based
+Prolog system [<a href="#tarau:shaker" name=CITEtarau:shaker>6</a>,<a href="#tarau:cl2000" name=CITEtarau:cl2000>8</a>] with a reflection based generic Java Interface.
+After overviewing the Jinni architecture we
+describe the Prolog API (Application Programmer Interface) used to invoke Java code
+and the mapping mechanism between Prolog terms and their
+Java representations. We next discuss the implementation of  a reflection based
+Prolog-to-Java interface. We will overcome some key
+limitations of Java's Reflection package (a Java API
+which accesses Java objects and classes dynamically). 
+The main problem comes from the fact that reflection does its work at run time.
+Although the called classes have been compiled - the invoking code needs to
+determine a (possibly overloaded) method's signature dynamically - something 
+that Java itself does through fairly extensive compile time analysis. 
+First, we discuss the desired functionality 
+provided by Java at compile time and explain it through a simple example.
+Subsequently, we provide the algorithm behind our implementation, which achieves at 
+runtime the functionality that Java provides at compile time. We
+also show  some nice properties of our algorithm such as low 
+computational complexity. Finally we describe an example application (a GUI for Jinni) 
+developed almost completely in Prolog using the reflection API. 
+
+<p>
+
+<b>The Method Signature Problem&nbsp;&nbsp;</b>
+Most modern 
+languages support method overloading (the practice of having more than one 
+method with same name). In Java this also interacts
+with the possibility of having some methods located in super classes 
+on the inheritance chain. 
+On a call to an overloaded method, the resolution of which method is to be invoked is based
+on the method signature. Method signature is defined as the name of the
+method, its parameter types and its return type<a href="#tthFtNtAAB" name=tthFrefAAB><sup>1</sup></a>.
+
+<p>
+<em>The problem initially seems simple: just look for the methods with the same name as call, 
+number and type of parameters as the arguments in the call and pick that method.</em>
+
+<p>
+The actual problem arises because Java allows <em>method invocation type 
+conversion</em>. In other words this means that we are not looking for an exact
+match in the type of a parameter and the corresponding argument, but we say it is
+a match if the type of argument can be converted to the type of a corresponding parameter
+by method invocation conversion [<a href="#javaspec" name=CITEjavaspec>2</a>]. Apparently, this also does not seem to be 
+very complicated: we just check if the argument type converts to the corresponding parameter
+type or not. The problem arises because we may find several such matches and
+we have to search among these matches the <b>most specific method</b> - as Java
+does through compile time analysis. If such a method
+exists, then that is the one we invoke. However, should this search fail,
+an error has to be reported 
+stating that no single method can be classified as the most specific method.
+
+<p>
+This paper will propose a comprehensive solution to this problem, in the context
+of the automation of type conversions in Jinni 2000's bidirectional Prolog to Java interface.
+
+<p>
+        <H2><A NAME="tth_sEc2">
+2</A>&nbsp;&nbsp;The Jinni Architecture</H2>
+
+<p>
+Jinni 2000 consists of a combination of fast WAM based Prolog engines
+using integer arrays for WAM data areas together with a Java class based
+term hierarchy - on which runs a lightweight Java based Interpreter,
+interoperating with the internal tagged integer based WAM representation,
+through an automated bidirectional data conversion mechanism.
+
+<p>
+Jinni's Java interface is more flexible and uses programmer- friendly
+Java class hierarchy of its interpreted Kernel Prolog [<a href="#tarau:cl2000" name=CITEtarau:cl2000>8</a>] engines,
+instead of the high performance but fairly complex integer
+based term representations of its WAM based BinProlog-style
+engines [<a href="#tdb95rev" name=CITEtdb95rev>9</a>].
+
+<p>
+In this section we will explain the mapping from Prolog term 
+types to Java classes.
+
+<p>
+
+<p><A NAME="tth_fIg1">
+</A> 
+<center></center> <center>      Figure 1: Java Classes of Prolog Term Hierarchy</center><A NAME="hierarchy">
+</A>
+<p>
+<p>
+      <H3><A NAME="tth_sEc2.1">
+2.1</A>&nbsp;&nbsp;The Term Hierarchy</H3>
+The base class is <b>Term</b> which has two subclasses: <b>Var</b> and <b>NonVar</b>. The <b>NonVar</b>
+class is in turn extended by <b>Num</b>, <b>JavaObject</b> and <b>Const</b>. Num is extended
+by <b>Integer</b> and <b>Real</b>. <b>Term</b> represents the generic Prolog term which is a
+finite tree with unification operation distributed across data types - in
+a truly object oriented style [<a href="#tarau:shaker" name=CITEtarau:shaker>6</a>]. The <b>Var</b> class represents a Prolog variable. The 
+<b>Integer</b> and <b>Real</b> are the Prolog Numbers. <b>Const</b> represents all symbolic Prolog constants,
+with the compound term (called <em>functor</em> in Prolog) constructor class <b>Fun</b> 
+designed as an extension of <b>Const</b>.
+
+<p>
+<b>JavaObject</b> is also a subclass of <b>Const</b> which unifies only with itself<a href="#tthFtNtAAC" name=tthFrefAAC><sup>2</sup></a>
+and is used like a wrapper around Objects in Java to represent Prolog predicates.
+
+<p>
+      <H3><A NAME="tth_sEc2.2">
+2.2</A>&nbsp;&nbsp;The Builtin Registration Mechanism</H3>
+Jinni's Builtins class is a specialized subclass of Java's Hashtable class.
+Every new component we add to Jinni 2000 can provide its own builtin predicates
+ as a subclass  of the Builtins class. Each added component will have many
+predicates, which are to be stored in this Hashtable mapping their Prolog representation
+ to their Java code, for fast lookup.  Let us assume the Prolog predicate's name
+is <em>prologName</em> and the corresponding Java classes name is <em>javaName</em>.
+We make a class called <em>javaName</em> which extends FunBuiltin (a descendant of 
+Term with which we represent a Prolog functor (compound term). It accepts a string (the functor's name)
+and an integer in its constructor (arity). 
+When we call the <b>register</b> method of the
+appropriate descendant of the Builtins class, a 
+new Hashtable entry is generated with the supplied  <em>prologName</em> 
+and the arity as key and <em>javaName</em> as its value. Whenever the Prolog predicate <em>prologName</em>
+with appropriate arity is called, we can look up in constant time which class (<em>javaName</em>) 
+actually implements the <b>exec</b> method of the builtin predicate in Java.
+Each component extending the Builtins class will bring new such predicates and they 
+will be added to the inherited Hashtable with the mechanism described above - and therefore
+will be usable as Prolog builtins as if they were part of the Jinni 2000 kernel.
+
+<p>
+      <H3><A NAME="tth_sEc2.3">
+2.3</A>&nbsp;&nbsp;The Builtin Execution Mechanism</H3>
+The descendents of the <b>FunBuiltin</b> class implement builtins which pass parameters, 
+while the descendents of the <b>ConstBuiltin</b> class implment parameterless builtins.
+Both <b>FunBuiltin</b> and <b>ConstBuiltin</b> have an abstract method called <b>exec</b> to be
+be implemented by the descendent  <em>javaName</em> class. This is the method that is actually 
+mapped to the Prolog builtin predicate with <em>prologName</em> and gets invoked on execution 
+of the predicate. The <b>exec</b> method implemented by the <em>javaName</em> class
+will get arguments (<b>Term</b> and its subclasses) from the predicate instance using  
+<b>getArg</b> methods and will descover their dynamic through a specialized method.
+Once we have the arguments and know their
+types we can do the required processing. The <b>putArg</b> method, used
+to return or check values, uses the <b>unify</b> method of 
+Terms and its subclasses to communicate with the actual (possible variable)
+predicate arguments. 
+On success this method returns <b>1</b>. If putArg does not fail for any
+argument the exec method returns <b>1</b>, which is interpreted as a 
+<b>success</b> by Prolog. If at least one unification fails we return <b>0</b>, which is 
+interpreted as a <b>failure</b> by Prolog. We call this mapping a <em>conventional builtin</em> 
+as this looks like a builtin from Prolog side, which is known at compile time and
+can be seen as part of the Prolog kernel.
+
+<p>
+        <H2><A NAME="tth_sEc3">
+3</A>&nbsp;&nbsp;The reflection based Jinni 2000 Java Interface API</H2>
+Our reflection based Jinni 2000 Java Interface API is provided through
+a surprisingly small number of conventional Jinni builtins. This property
+is shared with the JIPL [<a href="#JIPL" name=CITEJIPL>3</a>] interface from C-based Prologs to Java.
+The similarity comes ultimately from the fact that Java's reflection
+package exhibits to Java the same view provided to C functions by JNI - the Java 
+Native Interface:<br><br>
+<b>new_java_class(+'ClassName',-Class).</b><br>
+
+<p>
+This takes in as first argument the name of the class as a constant. If
+a class with that name is found it loads the class and a handle to this
+class is returned in the second argument wrapped inside our <em>JavaObject</em>. 
+Now this handle can be used to instantiate objects.<br><br>
+<b>new_java_obj(+Class,-Obj):-new_java_obj(Class,new,Obj).</b><br>
+<b>new_java_obj(+Class,+new(parameters),-Obj).</b><br>
+
+<p>
+This takes in as the first argument a Java <b>class</b> wrapped inside our <em>JavaObject</em>.
+In the case of a <em>constructor</em> with parameters, the second argument consists of <b>new</b> and parameters 
+(Prolog numeric or string constants or other objects wrapped as <em>JavaObjects</em>) for the
+constructor. As with ordinary methods, the (most specific constructor) corresponding to the argument types 
+is searched and invoked.
+This returns a handle to the new object thus created again wrapped in <em>JavaObject</em> in the 
+last argument of the predicate.  If the second parameter is missing then the void constructor 
+is invoked. The handle returned can be used to invoke methods:
+<b>invoke_java_method( +Object, +methodname(parameters), -ReturnValue).</b>
+
+<p>
+This takes in as the first argument a Java class's instantiated
+object (wrapped in <em>JavaObject</em>), and the method name with parameters (these
+can again be numerical or, string constants or objects wrapped as <em>JavaObjects</em>) in the second
+argument. If we find such an (accesible and unambigously most specific)
+ method for the given object, then that method
+is invoked and the return value is put in the last argument. If the return
+value is a number or a string constant it is returned as a Prolog number
+or constant else it is returned wrapped as a <em>JavaObject</em>.
+
+<p>
+<em>If we wish to invoke static methods the first argument needs to be a class 
+wrapped in JavaObject - otherwise the calling mechanis is the same</em>
+
+<p>
+The mapping of datatypes between Prolog and Java looks like this:
+
+<p><A NAME="tth_tAb1">
+</A> 
+<p>
+
+<center>
+
+<TaBle>
+<tr><td align="center"><b>Java</b> </td><td><b>Prolog</b></td>
+<tr><td align="center"></td>
+<tr><td align="center">int</td>
+<tr><td align="center">maybe (short,long) </td><td>Integer</td>
+<tr><td align="center">double</td>
+<tr><td align="center">maybe (float) </td><td>Real</td>
+<tr><td align="center">java.lang.String </td><td>Const</td>
+<tr><td align="center">any other Object </td><td>JavaObject is</td>
+<tr><td align="center"></td><td>a bound variable,</td>
+<tr><td align="center"></td><td>which unifies only</td>
+<tr><td align="center"></td><td>with itself
+</td></TaBle>
+
+<p>
+ <center>      Table 1: Data Conversion</center>
+</center>  
+<p>
+<p>        <H2><A NAME="tth_sEc4">
+4</A>&nbsp;&nbsp;The details of implementation</H2>
+
+      <H3><A NAME="tth_sEc4.1">
+4.1</A>&nbsp;&nbsp;Creating a class</H3>
+The reflection package uses the Java reflection API to load Java classes
+at runtime, instantiate their objects and invoke methods of both classes
+and objects. The Java Reflection <em>Class.forName("classname")</em> method is used to 
+create a class at runtime. In case an exception occurs, an error message stating the
+exception is printed out and a <b>0</b> is returned, which is interpreted as a
+<b>failure</b> by Prolog. The error message printing can be switched on/off by
+using a flag.
+ 
+<p>
+This is interfaced with Prolog using the conventional  Builtin extension mechanism
+getting the first argument passed as a Prolog constant seen by Java as a String.
+After this, the Java side processing is done and the handle to the required class is obtained.
+Finally this handle wrapped as a <em>JavaObject</em> is returned in the second argument.<br><br>
+<b>Example:</b><br>
+<em>new_java_class('java.lang.String',S)</em><br>
+<b>Output:</b><br>
+<em>S=JavaObject(java.lang.Class_623467)</em>
+
+<p>
+      <H3><A NAME="tth_sEc4.2">
+4.2</A>&nbsp;&nbsp;Instantiating an Object</H3>
+First of all, the arguments of a constructor are converted into a list, then
+parsed in Prolog and provided to Java as <em>JavaObjects</em>. Then each one
+is extracted individually. If the parameter list is empty then a
+special token is passed instead of the JavaObject, which tells the program, that 
+a void constructor is to be used to instantiate a new object from the class. 
+This is done by invoking the given class' <em>newInstance()</em> method, which returns the
+required object.
+
+<p>
+If the argument list is not empty, the class (dynamic type) of the objects on the argument
+list is determined using the <em>getClass()</em> method and stored in an array.
+This array is  used to search the required constructor for the given
+class using the <em>getConstructor(parameterTypes)</em> method. Once the
+constructor is obtained, its <em>newInstance(parameterList)</em> method is invoked
+to obtain the required object. The exception mechanism is exactly the
+same as for creating a new class as explained above. 
+
+<p>
+This also uses the conventional Builtin extension mechanism to interface with Java, therefore 
+Objects are wrapped as <em>JavaObjects</em>. Prolog <b>Integers</b> are mapped to Java <b>int</b> and 
+Prolog's <b>Real</b> type becomes Java <b>double</b>. The reverse mapping from
+Java is slightly different as <b>long</b>, <b>int</b>, <b>short</b> are mapped to Prolog's
+<b>Int</b>, which holds its data in a <b>long</b> field and the <b>float</b> and <b>double</b>
+types are mapped to Prolog's Real (which holds is data in adouble field). Java
+Strings are mapped to Prolog constants and vice versa (this is symmetric).<br><br>
+<b>Example:</b><br>
+<em>new_java_obj(S,new(hello),Mystring)</em><br>
+<b>Output:</b><br>
+<em>MyString=JavaObject(java.lang.String_924598)</em>
+
+<p>
+      <H3><A NAME="tth_sEc4.3">
+4.3</A>&nbsp;&nbsp;Invoking a method</H3>
+The method invoking mechanism is very similar to the object instantiation
+mechanism. The mapping of datatypes remains the same. The exception mechanism is also
+exactly same as that of constructing objects and classes.
+
+<p>
+First we determine the class of the given object. The
+getConstructor method is replaced by <em>getMethod(methodName, parameterTypes)</em>
+except that it takes in as the first argument a method name. Once the
+method is determined, its return type is determined using the
+<em>getReturnType().getName()</em> for the mapping of Prolog and Java datatypes
+following the convention described earlier. If the return type is void the
+value returned to Prolog will be the constant 'void'. To invoke the
+required method (<em>the method we wish to invoke</em>) we call the obtained method's 
+<em>invoke.(Object, parameterList)</em>
+method and will return after conversion the return value for the given method.
+
+<p>
+To invoke static methods, first we determine whether the object passed as the
+first argument is an instance of the class <b>Class</b>. If so, this is taken to be the
+class whose method is to be searched, and the call to invoke looks like 
+<em>invoke.(null, parameterList)</em><br><br>
+<b>Example</b><br>
+<em>invoke_java_method(Mystring,length,R)</em><br>
+<b>Output:</b><br>
+<em>R=5</em><br>
+<b>Example</b><br>
+<em>invoke_java_method(Mystring,toString,NewR)</em><br>
+<b>Output:</b><br>
+<em>NewR=hello</em>
+
+<p>
+        <H2><A NAME="tth_sEc5">
+5</A>&nbsp;&nbsp;Limitations of Reflection</H2>
+An important limitation of the reflection mechanism is that when we are
+searching for a method or a constructor for a given class using the given
+parameter types. The reflection package looks for exact matches. That means
+if we have an object of class Sub and we pass it to a method, which
+accepts as argument an object of class Super, which is Sub's super-class,
+we are able to invoke such a method in normal Java, but in case of reflection 
+our search for such a method would fail and we would be unable to 
+invoke this method. The same situation occurs in the case for an  accepting an
+<b>interface</b> method,  which actually means accepting all objects implementing the
+<b>interface</b>. 
+The problem arises in the first place because method could be overloaded
+and Java decides, which method to call amongst overloaded methods at compile-time
+and not at runtime. We discuss in the next section how the
+Java compiler decides, which method  to call at compile time.
+
+<p>
+        <H2><A NAME="tth_sEc6">
+6</A>&nbsp;&nbsp;Java Compile Time Solution</H2>
+The steps involved in the determination of which method to call once we supply
+the object whose method is to be invoked and the argument types.
+
+      <H3><A NAME="tth_sEc6.1">
+6.1</A>&nbsp;&nbsp;Finding the Applicable Methods</H3>
+The methods that are applicable have the following two properties:
+
+<UL>
+<p>
+
+<li> The name of the method is same as the call and the number of parameters is same 
+as the arguments in the method call.
+
+<li> The type of each argument can be converted to the type of corresponding parameter
+by method invocation conversion.
+</UL>
+<p>
+This broadly means that either the parameter's class is the same as 
+the corresponding argument's Class, or that it is on the inheritance chain built from the argument's 
+class upto <b>Object</b>. If parameter is an <b>interface</b>, the argument implements 
+that interface. We refer to [<a href="#javaspec" name=CITEjavaspec>2</a>] for a detailed description of this mechanism.
+
+      <H3><A NAME="tth_sEc6.2">
+6.2</A>&nbsp;&nbsp;Finding the Most Specific Method</H3>
+Informally, <b>method1</b> is more specific than <b>method2</b> if any 
+invocation handled by <b>method1</b> can also be handled by <b>method2</b>.
+
+<p>
+More precisely, if the parameter types of method1 are M<sub>11</sub> to M<sub>1n</sub> and 
+parameter types of method2 are M<sub>21</sub> to M<sub>2n</sub> method1 is more specific
+then method2 if M<sub>1j</sub> can be converted to M<sub>2j</sub> for all<b>j</b> from <b>1</b> to <b>n</b>
+by method invocation conversion.
+
+<p>
+      <H3><A NAME="tth_sEc6.3">
+6.3</A>&nbsp;&nbsp;Overloading Ambiguity</H3>
+In case no method is found to be most specific then method invocation is ambiguous 
+and a compile time error occurs.<br><br>
+Example:<br>
+Consider class A superclass of B and two methods with name m.<br><br>
+<em>m(A,B)</em><br>
+<em>m(B,A)</em><br><br>
+Now an invocation which can cause the ambiguity is.<br><br>
+<em>m(instance of B, instance of B)</em><br>
+
+<p>
+In this case both method are applicable but neither is the most specific as
+<em>m(instance of A,instance of B)</em> can be handled only by first one while
+<em>m(instance of B,instance of A)</em> can be handled only by second one i.e.
+either of the method's all parameters can not be converted to other's
+by method invocation conversion.
+
+<p>
+      <H3><A NAME="tth_sEc6.4">
+6.4</A>&nbsp;&nbsp;Example: Method Resolution at Compile time</H3>
+Method resolution takes place at compile time in Java and is 
+dependent on the code which, calls the method. This becomes clear from the 
+following example.
+
+<p>
+Consider two classes Super and Sub where Super is superclass of Sub. Also 
+consider class A with a method m and class Test with a method test, the code
+for the classes looks like this:<br><br>
+<b>Super.java</b>
+
+<pre>
+public class Super {}
+</pre>
+<b>Sub.java</b>
+
+<pre>
+public class Sub extends Super {}
+</pre>
+<b>A.java</b>
+
+<pre>
+public class A {
+  public void m(Super s) { System.out.println("super");}
+}
+</pre>
+<b>Test.java</b>
+
+<pre>
+public class Test {
+  public static void test(){
+    A a=new A();
+    a.m(new Sub());
+  }
+}
+</pre>
+On invocation of method <em>test()</em> of class <b>Test</b>, method <em>m(Super)</em> of class <b>A</b> is
+invoked and <b>super</b> is printed out. Let's assume that we change the definition of the
+class <b>A</b> and overload the method <em>m(Super)</em> with method <em>m(Sub)</em> such that <b>A</b>
+looks like this:<br><br>
+<b>A.java</b>
+
+<pre>
+public class A {
+  public void m(Super s) {System.out.println("super");}
+  public void m(Sub s) {System.out.println("sub");}
+}
+</pre>
+If we recompile, and run our test method again, we expect <b>sub</b> to be printed out
+since <em>m(Sub)</em> is more specific than <em>m(Super)</em> but actually <b>super</b> is printed 
+out. The fact is method resolution is done when we are compiling the file containing the
+method call and when we compiled the class Test we had the older version of class A and Java had
+done resolution based on that class A. We can get the expected output by recompiling class
+Test, which now views the newer version of class A and does the resolution according to that,
+and hence we get the expected output <b>sub</b>.
+
+<p>
+        <H2><A NAME="tth_sEc7">
+7</A>&nbsp;&nbsp;Finding a Most Specific Method at Runtime</H2>
+We will follow a simple algorithm. Let's assume that the  number of methods which are accessible 
+and have same name and number of parameters as the call is <b>M</b> (small constant) and
+the number of arguments in the call is <b>A</b> (a small constant). Let us assume that the maximum inheritance depth of 
+the class of an argument from Object down to itself in the class hierarchy tree is <b>D</b>  (a small constant) 
+It can be trivially shown that the complexity of our algorithm is bounded by <b>O(M * A * D)</b>.
+Our algorithm mimics exactly the functionality of Java and the following example would 
+run exactly the same on both Java and our interface, the only difference being that since Java does 
+the resolution at compile time, in case of an ambiguous call Java would report a compile time error 
+while we do the same thing at runtime and hence, throw an exception with
+appropriate error message. So if class A looks like this:<br><br>
+<b>A.java</b>
+
+<pre>
+public class A {
+  public void m(Super s1,Sub s2) {System.out.println("super");}
+  public void m(Sub s1, Super s2) {System.out.println("sub");}
+}
+</pre>
+and the class Test looks like this:
+<b>Test.java</b>
+
+<pre>
+public class Test {
+  public static void test(){
+    A a=new A();
+    a.m(new Sub(),new Sub());
+  }
+}
+</pre>
+ then Java will  not compile class <b>Test</b> and give an error message. In our case there is no such
+thing as the class <b>Test</b>, but the equivalent of the above code would look like follows:
+
+<pre>
+new_java_class('A',Aclass),
+new_java_obj(Aclass,Aobject),
+new_java_class('Sub',Subclass),
+new_java_obj(Subclass,Subobject1),
+new_java_obj(Subclass,Subobject2),
+invoke_java_method(Aobject,m(Subobject1,Subobject2),Return).
+</pre>
+The result will be an ambiguous exception message and the goal failing with <b>no</b>.
+
+<p>
+
+<b>Our Algorithm&nbsp;&nbsp;</b> We will now describe our algorithm in detail:
+
+<p>
+<font size="-1">
+<pre>
+CorrectMethodCaller(methodName, Arguments[ ] /*Size A*/)
+1.  Method = get_exact_match_reflection(methodName,Arguments[ ])
+2.  If Method != null
+3.    return invoke(Method,Arguments[ ])          
+4.  MethodArray[ ] = get_methods(methodName,A) /*Size M*/
+5.  MethodParameterDistanceArray[ ][ ] = {infinity} /*Size M*A*/
+6.  For m = 0 to M
+7.    MethodParameterArray[m][ ] = 
+        MethodArray[m].get_method_parameters() /*Size M*A*/
+/*Finds distances of method parameters from the arguments 
+  and stores in the array*/
+8.  For a = 0 to A do   
+9.    DistnceCounter = 0  
+10.   While Arguments[a].type != null do /*Loops over D*/
+11.     For methods m = 0 to M do
+12.       If MethodParameterArray[m][a] == the Arguments[a].type
+13.         MethodParameterDistanceArray[m][a] = DistanceCounter
+14.       Arguments[a].type = Super(Arguments[a].type)
+15.       DistanceCounter = DistanceCounter + 1.
+/*Find the method with minimum distance of parameters from arguments*/
+16. Minimum = infinity
+17. For m = 0 to M do
+18.   Sum = 0
+19.   For a = 0 to A do
+20.     Sum = Sum + MethodParameterDistanceArray[m][a]	
+21.   If Sum &lt; Minimum
+22.     mChosen = m
+/*Check if our selection is correct*/
+23. For m = 0 to M do
+24.   If m == mChosen
+25.     continue
+/*Skip those methods in which atleast one parameter never occurs 
+  in the inheritance hierarchy from the argument to Object*/
+26.   For a = 0 to A do
+27.     If MethodParameterDistanceArray[m][a] == infinity break
+28.   If a &lt; A cotinue
+/*Check if "most specific method condition" is violated by mChosen*/
+29.   For a = 0 to A do
+30.     If MethodParameterDistanceArray[m][a] &lt; 
+          MethodParameterDistanceArray[mChosen][a]
+31.       Throw ambiguous exception
+32. return invoke(MethodArray[mChosen],Arguments[ ])
+</pre></font>
+
+<p>
+        <H2><A NAME="tth_sEc8">
+8</A>&nbsp;&nbsp;An example application/GUI using reflection API</H2>
+
+
+<p><A NAME="tth_fIg2">
+</A> 
+<p>
+
+<center></center> <center>      Figure 2: Screenshot of Prolog IDE written in Prolog</center><A NAME="tyagi_ide">
+</A>
+<p>
+<p>
+This GUI has almost completely been implemented in Prolog using the
+reflection API. A special builtin which, allows us to redirect output to a
+string is used to interface default Prolog i/o to textfield/textarea etc.
+The total Java code is less than 10 lines. Jinni provides, on the Java
+side, a simple mechanism to call Prolog <em>Init.jinni(``Prolog command'')</em>. Since
+we do not have references to different objects in the Java code, but everything is in the
+Prolog code, we need a mechanism to communicate between Java's action-listener and Prolog.
+Jinni's Linda blackboards have been used for this purpose [<a href="#tarau:dipcl99" name=CITEtarau:dipcl99>5</a>,<a href="#tarau:paam99" name=CITEtarau:paam99>7</a>]. 
+Whenever an action takes place the Java side calls Jinni and does a out with a number for type 
+of action on the blackboard by calling something like <em>Init.jinni(``out(a(1))'')</em>. On the Prolog side we 
+have a thread waiting on the blackboard for input by doing an <em>in(a(X))</em>. After the out 
+variable <b>X</b> gets unified with <b>1</b> and depending on this value, Prolog takes the 
+appropriate action and again waits for a new input. Hence, we can make action events 
+such as button clicks communicate with Prolog. The code for button ``send'' in 
+the Appendix B shows exactly how this is done.
+
+<p>
+        <H2><A NAME="tth_sEc9">
+9</A>&nbsp;&nbsp;Related Work</H2>
+Here we discuss a few other approaches followed for interfacing Prolog to Java
+using reflection or  the Java Native Interface (JNI), and also a Scheme interface to Java using reflection.
+First, Kprolog's JIPL package provides an interesting API from Java to a C-based Prolog and 
+has a more extensive API for getting and setting fields. It also maps C-arrays
+to lists. The Kprolog's JIPL has dynamic type inference for objects, but the problem of method 
+signature determination and overloading has not been considered in the package [<a href="#JIPL" name=CITEJIPL>3</a>].
+
+<p>
+SICStus Prolog actually provides two interfaces for calling Java from Prolog.
+One is the JASPER interface which uses JNI  to call Java from a C-based Prolog. 
+To obtain a method handle from the Java Native Interface requires  to 
+specify the signature of the method explicitly. So JASPER requires the
+user to specify as a string constant the signature of the method that the user wishes to call.
+This transfers the burden of finding the correct method to the user [<a href="#sics" name=CITEsics>4</a>],
+who therefore needs to know how to specify (sometimes intricate) method signatures as Strings.
+
+<p>
+SICStus Prolog also has another interesting interface for calling Java from Prolog as
+a Foreign Resource. When using this interface the user is required to first declare the
+method which he wants to call and only then can the user invoke it. Declaring a method requires the 
+user to explicitly state the ClassName, MethodName, Flags, and its Return Type and Argument Types 
+and map it to a Prolog predicate. Now the Prolog predicate can be used directly. This feature
+makes the Java method call look exactly like a Prolog builtin predicate at runtime - which
+keeps the underlying Java interface transparent to, for instance, a user of a library. 
+(<em>This is very much similar to our old Builtin Registration and Execution mechanism,
+with one difference: here registration or declaration is on the Prolog side, while we were
+doing the same on Java side - for catching all errors at compile time.</em>) 
+The interface still requires the programmer to explicitly specify types and 
+other details as  the exact method signature [<a href="#sics" name=CITEsics>4</a>].
+
+<p>
+Kawa Scheme also uses Java reflection to call Java from Scheme. To invoke a method in
+Kawa Scheme one  needs to specify the class, method, return type and argument types.
+This gives a handle to call the method. Now the user can supply arguments and can call this method.
+Again, the burden of selecting the method is left to the user as he specifies the method signature
+[<a href="#kawa" name=CITEkawa>1</a>].
+
+<p>
+In our case, like JIPL and unlike other interfaces, we infer Java types from Prolog's dynamic
+types. But unlike JIPL, and like with approaches explicitely specifying signatures, we are able to call methods
+where the argument type is not exactly same as the parameter type. Hence, our approach mimics Java
+exactly. The functionality is complete and the burden of specifying argument types is
+taken away from the user.
+
+<p>
+        <H2><A NAME="tth_sEc10">
+10</A>&nbsp;&nbsp;Future Work</H2>
+Future work includes  extending our API, as currently we do not support
+getting and setting fields and arrays. Another interesting direction which is a consequence
+of the development of a reflection based API, is the ability to quickly integrate Java applications.
+We have shown the power of the API with the simple GUI application. Such
+applications can be built either completely in Java with an API based on  methods to be
+called from Prolog, or almost completely in Prolog using only the standard
+packages of Java.
+
+<p>
+Jinni 2000 has support for <em>plugins</em> such as different
+Network Layers (TCP-IP and multicast sockets, RMI, CORBA) 
+and a number applications such as Teleteaching, Java3D animation tolkit developped with its
+conventional builtin interface. New applications and plugins can now be added by
+writing everything in Prolog while using various Java libraries. Arguably,
+the main advantage of such an interface is that it requires a minimal learning effort
+from the programmer.
+
+<p>
+        <H2><A NAME="tth_sEc11">
+11</A>&nbsp;&nbsp;Conclusion</H2>
+We have described a new reflection based
+Prolog to Java interface which takes advantage of implicit
+dynamic type information on both the Prolog and the Java sides.
+Our interface has allowed to automate data
+conversion between overloaded method parameters,
+through a new algorithm which finds the most specific
+method corresponding to a Prolog call.
+The resulting run-time reflective method dispatching mechanism provides
+accurate handling of overloaded methods beyond the reflection
+package's limitations, and is powerful enough to support
+building a complete GUI library mostly in Prolog, with 
+only a few lines of application specific Java code.
+
+<p>
+The ideas behind our interfacing technique are not specific to
+Jinni 2000 - they can be reused in improving C-based Prolog-to-Java
+interfaces like JIPL or Jasper or even Kawa's Scheme interface. Actually
+our work is reusable for any languages with dynamic types,
+interfacing to Java, as our work can be seen as just 
+making Java's own Reflection package more powerful.
+
+<p>
+<font size="-1"><H2>References</H2>
+<DL compact>
+
+<p>
+<dt>[<a href="#CITEkawa" name=kawa>1</a>]</dt><dd>
+P.&nbsp;Bothner.
+ Kawa, the Java based Scheme system.
+ Technical report, 1999.
+ Available from http://www.delorie.com/gnu/docs/kawa/kawa_toc.html.
+
+<p>
+<dt>[<a href="#CITEjavaspec" name=javaspec>2</a>]</dt><dd>
+J.&nbsp;Gosling, B.&nbsp;Joy, and G.&nbsp;Steele.
+ <em>The Java Language Specification, Second Edition</em>.
+ Java Series. Addison-Wesley, 1999.
+ ISBN:0-201-31008-2.
+
+<p>
+<dt>[<a href="#CITEJIPL" name=JIPL>3</a>]</dt><dd>
+N.&nbsp;Kino.
+ Plc.java: JIPL class source.
+ Technical report, KLS Research Labs, 1997.
+ Available from http://www.kprolog.com/jipl/index_e.html.
+
+<p>
+<dt>[<a href="#CITEsics" name=sics>4</a>]</dt><dd>
+SICStus Support.
+ Manual document of SICStus Prolog.
+ Tecnical report, Swedish Institute of Computer Science, May 2000.
+ Available from
+  http:://www.sics.se/isl/sicstus/docs/latest/html/docs.html.
+
+<p>
+<dt>[<a href="#CITEtarau:dipcl99" name=tarau:dipcl99>5</a>]</dt><dd>
+P.&nbsp;Tarau.
+ A Logic Programming Based Software Architecture for Reactive
+  Intelligent Mobile Agents.
+ In P.&nbsp;Van&nbsp;Roy and P.&nbsp;Tarau, editors, <em>Proceedings of
+  DIPLCL'99</em>, Las Cruces, NM, Nov. 1999.
+ http://www.binnetcorp.com/wshops/ICLP99DistInetWshop.html.
+
+<p>
+<dt>[<a href="#CITEtarau:shaker" name=tarau:shaker>6</a>]</dt><dd>
+P.&nbsp;Tarau.
+ Inference and Computation Mobility with Jinni.
+ In K.&nbsp;Apt, V.&nbsp;Marek, and M.&nbsp;Truszczynski, editors, <em>The Logic
+  Programming Paradigm: a 25 Year Perspective</em>, pages 33-48. Springer, 1999.
+ ISBN 3-540-65463-1.
+
+<p>
+<dt>[<a href="#CITEtarau:paam99" name=tarau:paam99>7</a>]</dt><dd>
+P.&nbsp;Tarau.
+ Intelligent Mobile Agent Programming at the Intersection of Java and
+  Prolog.
+ In <em>Proceedings of The Fourth International Conference on The
+  Practical Application of Intelligent Agents and Multi-Agents</em>, pages
+  109-123, London, U.K., 1999.
+
+<p>
+<dt>[<a href="#CITEtarau:cl2000" name=tarau:cl2000>8</a>]</dt><dd>
+P.&nbsp;Tarau.
+ Fluents: A Refactoring of Prolog for Uniform Reflection and
+  Interoperation with External Objects.
+ In J.&nbsp;Lloyd, editor, <em>Proceedings of CL'2000</em>, London, July
+  2000.
+ to appear at Springer-Verlag.
+
+<p>
+<dt>[<a href="#CITEtdb95rev" name=tdb95rev>9</a>]</dt><dd>
+P.&nbsp;Tarau, K.&nbsp;De&nbsp;Bosschere, and B.&nbsp;Demoen.
+ Partial Translation: Towards a Portable and Efficient Prolog
+  Implementation Technology.
+ <em>Journal of Logic Programming</em>, 29(1-3):65-83, Nov. 1996.
+
+<p>
+</DL></font>
+<H2>Appendix A: Example of Prolog code for the Reflection Based Jinni GUI</H2>
+ <font size="-1">
+<p>
+
+<pre>
+/* builds a simple IDE with GUI components*/
+jinni_ide:- 
+  new_java_class('JinniTyagiFrame',JTF),
+  new_java_obj(JTF,new('Satyam Tyagi'),NF),
+  invoke_java_method(NF,show,_Ans),
+  new_java_class('java.awt.Label',L),
+  new_java_obj(L,new('?-'),NL),
+  invoke_java_method(NL,setBounds(30,50,20,30),_A4),
+  invoke_java_method(NF,add(NL),_C4),
+  new_java_class('java.awt.TextField',TF),
+  new_java_obj(TF,new('type Prolog query here'),NTF),
+  invoke_java_method(NTF,setBounds(50,50,300,30),_A1),
+  invoke_java_method(NF,add(NTF),_C1),
+  new_java_class('java.awt.Button',B),
+  new_java_obj(B,new('Send'),NB),
+  invoke_java_method(NB,setBounds(400,50,50,30),_A3),
+  invoke_java_method(NF,add(NB),_C3),
+  invoke_java_method(NB,addActionListener(NF),_B4),
+  new_java_class('java.awt.TextArea',TA),
+  new_java_obj(TA,new('results displayed here'),NTA),
+  invoke_java_method(NTA,setBounds(50,100,500,250),_A2),
+  invoke_java_method(NF,add(NTA),_C2),
+  bg(the_loop(NTA,NTF)). % code not shown for the_loop/2
+</pre>
+</font>
+<p>
+
+<H2>Appendix B: Java code for the Send Button in the Reflection Based Jinni GUI</H2>
+<font size="-1">
+<p>
+
+<pre>
+import java.awt.*;
+import java.awt.event.*;
+import tarau.jinni.*;
+
+public class  JinniTyagiFrame extends Frame implements ActionListener{
+        public JinniTyagiFrame(String name) {
+                super(name);
+                setLayout(null);
+                resize(600,400);
+        }
+
+        public void actionPerformed(ActionEvent ae){
+                String click=ae.getActionCommand();
+                if(click.equals("Send")){
+                        Init.askJinni("out(a(1))");
+                }
+        }
+
+}
+</pre>
+</font>
+<p>
+<hr><H3>Footnotes:</H3>
+
+<p><a name=tthFtNtAAB></a><a href="#tthFrefAAB"><sup>1</sup></a>  In resolving the method
+call Java ignores the return type.
+<p><a name=tthFtNtAAC></a><a href="#tthFrefAAC"><sup>2</sup></a> Modulo Java's <em>equals</em> relation.
+<p><hr><small>File translated from T<sub><font size="-1">E</font></sub>X by <a href="http://hutchinson.belmont.ma.us/tth/">T<sub><font size="-1">T</font></sub>Hgold</a>, version 2.24.<br>On  6 Jun 2001, 10:03.</small>
+</HTML>

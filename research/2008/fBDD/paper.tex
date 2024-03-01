@@ -1,0 +1,895 @@
+% PADL'09
+\pdfoutput=1
+\documentclass[]{INCLUDES/llncs}
+\usepackage{dcpic,pictexwd}
+\input TOOLS/hheader.tex
+
+\begin{document}
+
+\title{
+  %Declarative Combinatorics:
+  Ranking and Unranking Functions for BDDs and MTBDDs with Applications to
+  Circuit Minimization
+  % and Random Test Generation
+  }
+
+\author{Paul Tarau\inst{1} \and Brenda Luderman\inst{2}}
+\institute{
+   {Department of Computer Science and Engineering}\\
+   {University of North Texas}\\
+   {Denton, Texas}\\
+   {\em tarau@cs.unt.edu}\\
+\and
+   {ACES CAD}\\
+   {Lewisville, Texas, USA}\\
+   {\em brenda.luderman@gmail.com}\\
+}
+\maketitle
+
+\date{}
+
+\begin{abstract}
+We describe Haskell implementations of 
+combinatorial generation algorithms
+with focus on boolean functions and
+logic circuit representations.
+Using {\em pairing} and {\em unpairing} functions on natural
+number representations of truth tables, we derive 
+an encoding for Binary Decision Diagrams (BDDs) with the unique property 
+that its boolean evaluation faithfully mimics
+its structural conversion to a natural number
+through recursive application of a matching pairing function.
+We then use this result to derive {\em ranking} and {\em unranking}
+functions for BDDs and reduced BDDs.
+Finally, a generalization of the encoding 
+techniques to Multi-Terminal BDDs and an application 
+to BDD minimization are described.
+
+The paper is organized as a self-contained literate Haskell program,
+available at \url{http://logic.csci.unt.edu/tarau/research/2008/fBDD.zip}.
+
+{\em 
+{\bf Keywords:}
+binary decision diagrams,
+encodings of boolean functions,
+pairing/unpairing functions,
+ranking/unranking functions for BDDs and MTBDDs,
+computational mathematics in Haskell
+}
+\end{abstract}
+
+\section{Introduction}
+
+This paper is an exploration with functional programming tools of {\em ranking}
+and {\em unranking} problems on Binary Decision Diagrams. The paper is part
+of a larger effort to cover in a declarative programming 
+paradigm some fundamental combinatorial generation and boolean function
+manipulation algorithms along the lines of Knuth's recent
+work \cite{knuth06draft}.
+
+The paper is organized as follows:
+
+Sections \ref{bits} and \ref{bdds} overview efficient evaluation of boolean
+formulae in Haskell using bitvectors represented as arbitrary length integers
+and Binary Decision Diagrams (BDDs).
+Section \ref{pairings} introduces pairing/unpairing
+functions acting directly on bitlists.
+Section \ref{encbdd} introduces a novel BDD encoding (based on our unpairing
+functions) and discusses the surprising equivalence between boolean evaluation of BDDs
+and the inverse of our encoding.
+Section \ref{rank} describes {\em ranking} and {\em unranking}
+functions for BDDs and reduced BDDs.
+Section \ref{gen} extends our techniques to BDDs with arbitrary variable
+order and Multi-Terminal BDDs and
+applications to BDD-based circuit minimization and generation of random test
+data.
+Sections \ref{related} and \ref{concl}
+discuss related work, future work and conclusions.
+
+\begin{comment}
+\begin{code}
+module BDD where
+import Data.List
+import Data.Bits
+import Data.Array
+import Random
+\end{code}
+\end{comment}
+
+\section{Evaluation of Boolean 
+Functions with Bitvector Operations}\label{bits}
+
+Evaluation of a boolean function can be performed one 
+bit at a time as in the function {\tt if\_then\_else}
+\begin{code}
+if_then_else 0 _ z = z
+if_then_else 1 y _ = y
+\end{code}
+Unfortunately this does not take advantage of the ability of modern hardware to
+perform such operations one word a time - with the instant benefit of a
+speed-up proportional to the word size.
+An alternate representation, adapted
+from \cite{knuth06draft} uses integer encodings 
+of $2^n$ bits for each boolean variable $x_0,\ldots,x_{n-1}$. 
+Bitvector operations are used to evaluate all
+value combinations at once.
+
+\begin{prop}
+Let $x_k$ be a variable for $0 \leq k<n$
+where $n$ is the number of distinct variables in a 
+boolean expression. Then column $k$ of the truth table
+represents, as a bitstring, the natural number:
+
+\begin{equation} \label{var}
+x_k={(2^{2^n}-1)}/{(2^{2^{n-k-1}}+1)} 
+\end{equation}
+\end{prop}
+
+\noindent For instance, if $n=2$, the formula computes 
+$x_0=3=[0,0,1,1]$ and $x_1=5=[0,1,0,1]$.
+
+The following functions, working with arbitrary length bitstrings are
+used to evaluate the [0..n-1] variables $x_k$ with formula \ref{var} and map the
+constant {\tt 1} to the bitstring of length $2^n$, {\tt 111..1}:
+\begin{code}
+var_n n k = var_mn (bigone n) n k
+var_mn mask n k = mask `div` (2^(2^(n-k-1))+1)
+bigone nvars = 2^2^nvars - 1
+\end{code}
+Variables representing such bitstring-truth tables 
+(seen as {\em projection functions}) 
+can be combined with the usual bitwise integer operators, 
+to obtain new bitstring truth tables, 
+encoding all possible value combinations of their arguments.
+Note that the constant $0$ is represented as $0$ while the constant $1$
+is represented as $2^{2^n}-1$, corresponding to a column in
+the truth table containing ones exclusively.
+
+\section{Binary Decision Diagrams} \label {bdds}
+
+We have seen that Natural Numbers in $[0..{2^{2^n}-1}]$ can be used as
+representations of truth tables defining $n$-variable boolean functions.
+A binary decision diagram (BDD) \cite{bryant86graphbased} is an ordered binary 
+tree obtained from a boolean function, by assigning its variables, one at a time, 
+to {\tt 0}  (right branch) and {\tt 1} (left branch). 
+
+The construction is known as Shannon expansion \cite{shannon_all}, and is
+expressed as a decomposition of a function in two {\em cofactors}, $f[x
+\leftarrow 0]$ and $f[x \leftarrow 1]$
+
+\begin{equation}
+f(x)= (\bar{x} \wedge f[x \leftarrow 0]) \vee (x \wedge f[x \leftarrow 1])
+\end{equation}
+
+\noindent where $f[x \leftarrow a]$ is computed 
+by uniformly substituting $a$ for $x$ in $f$. Note that by using the more
+familiar boolean {\tt if-the-else} function, the Shannon expansion can also
+ be expressed as:
+
+\begin{equation}
+f(x) = if~x~then~f[x \leftarrow 1]~else~f[x \leftarrow 0]
+\end{equation}
+
+Alternatively, we observe that the Shannon expansion
+can be directly derived from a $2^n$ size truth table, 
+using bitstring operations on encodings of its $n$ variables.
+Assuming that the first column of a truth table corresponds to 
+variable $x$, $x=0$ and $x=1$ mask out, respectively, 
+the upper and lower half of the truth table.
+
+{\em Seen as an operation on bitvectors, the Shannon expansion 
+(for a fixed number of variables) defines a bijection associating 
+a pair of natural numbers (the cofactor's truth tables) 
+to a natural number (the function's truth table), 
+i.e. it works as a {\em unpairing function}.}
+
+\section{Pairing/Unpairing} \label{pairings}
+
+Let $Nat$ denote the set of natural numbers (0 included). A {\em pairing
+function} is an isomorphism $f:Nat \times Nat \rightarrow Nat$. 
+Its inverse is called an {\em unpairing function}.
+
+We introduce here an unusually simple pairing function 
+(also mentioned in \cite{pigeon}, p.142).
+The function {\tt bitpair} works by splitting a 
+number's big endian bitstring
+representation into odd and even bits, 
+while its inverse {\tt bitunpair}
+blends the odd and even bits back together.
+
+\begin{code}
+type Nat = Integer
+data Nat2 = P Nat Nat deriving (Eq,Ord,Read,Show)
+
+bitpair ::  Nat2 -> Nat
+bitpair (P i j) = 
+  set2nat ((evens i) ++ (odds j)) where
+    evens x = map (2*) (nat2set x)
+    odds y = map succ (evens y)
+
+bitunpair :: Nat->Nat2  
+bitunpair n = P (f xs) (f ys) where 
+  (xs,ys) = partition even (nat2set n)
+  f = set2nat . (map (`div` 2))
+\end{code}
+The functions {\tt set2nat} and {\tt nat2set} convert to/from
+natural numbers to lists of exponents of 2 representing positions of
+bits=1.
+\begin{code}  
+nat2set n | n>=0 = nat2exps n 0 where
+  nat2exps 0 _ = []
+  nat2exps n x = 
+    if (even n) then xs else (x:xs) where
+      xs=nat2exps (n `div` 2) (succ x)
+
+set2nat ns = sum (map (2^) ns)  
+\end{code}
+
+The transformation of the bitlists
+is shown in the following example 
+with bitstrings aligned:
+\begin{codex}
+*BDD> bitunpair 2008
+  (60,26)
+
+-- 2008:[0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1]
+--   60:[      0,    1,    1,    1,    1]
+--   26:[   0,    1,    0,    1,    1   ]
+\end{codex}
+
+\section{Pairing Functions and Encodings of Binary Decision Diagrams}
+\label{encbdd}
+
+We show in this section that a Binary Decision Diagram ($BDD$)
+representing the same logic function as an $n$-variable $2^n$ bit truth
+table can be obtained by applying {\tt bitunpair} recursively to {\tt tt}.
+More precisely, we show that applying this {\em unfolding} operation
+results in a complete binary tree of depth $n$ representing
+a $BDD$ that returns {\tt tt} when evaluated applying
+its boolean operations.
+
+The binary tree type {\tt BT} has the constants {\tt
+B0} and {\tt B1} as leaves representing the boolean values $0$ and $1$.
+Internal nodes (that represent {\tt if-then-else} decision points), 
+are marked with the constructor {\tt D}. 
+We also add integers, representing logic
+variables, ordered identically in each
+branch, as first arguments of {\tt D}. 
+The two other arguments are subtrees 
+that represent {\tt THEN} 
+and {\tt ELSE} branches:
+\begin{code}
+data BT a = B0 | B1 | D a (BT a) (BT a) deriving (Eq,Ord,Read,Show)
+\end{code}
+
+The constructor {\tt BDD} wraps together a 
+tree of type {\tt BT} and the number of logic
+variables occurring in it.
+\begin{code}
+data BDD a = BDD a (BT a) deriving (Eq,Ord,Read,Show)
+\end{code}
+
+\subsection{Unfolding natural numbers to binary trees with {\tt bitunpair}}
+The following functions apply {\tt bitunpair} recursively, 
+on a Natural Number {\tt tt}, 
+seen as an $n$-variable $2^n$ bit truth table, 
+to build a complete binary tree of depth $n$, 
+that we represent using the {\tt BDD} data type. 
+\begin{code}
+unfold_bdd :: Nat2 -> BDD Nat
+unfold_bdd (P n tt) = BDD n bt where 
+  bt=if tt<max then shf bitunpair n tt
+     else error 
+       ("unfold_bdd: last arg "++ (show tt)++
+       " should be < " ++ (show max))
+     where max = 2^2^n
+
+  shf _ n 0 | n<1 =  B0
+  shf _ n 1 | n<1 =  B1
+  shf f n tt = D k (shf f k tt1) (shf f k tt2) where
+    k=pred n
+    P tt1 tt2=f tt
+\end{code}
+The examples below
+show results returned by {\tt unfold\_bdd} 
+for the $2^{2^n}$ truth tables associated to $n$ variables,
+for $n=2$:
+\begin{codex}
+ BDD 2 (D 1 (D 0 B0 B0) (D 0 B0 B0))
+ BDD 2 (D 1 (D 0 B1 B0) (D 0 B0 B0))
+ BDD 2 (D 1 (D 0 B0 B0) (D 0 B1 B0))
+ ...
+ BDD 2 (D 1 (D 0 B1 B1) (D 0 B1 B1))
+\end{codex}
+Note that no boolean operations have been performed so far
+and that we still have to prove that such
+trees actually represent BDDs associated to truth tables.
+
+\subsection{Folding binary trees to natural numbers with {\tt bitpair}}
+One can ``evaluate back'' the binary tree of data type BDD,
+by using the pairing function {\tt bitpair}.  
+The inverse of {\tt unfold\_bdd} is implemented as follows:
+\begin{code}
+fold_bdd :: BDD Nat -> Nat2
+fold_bdd (BDD n bt) = 
+  P n (rshf bitpair bt) where
+    rshf rf B0 = 0
+    rshf rf B1 = 1
+    rshf rf (D _ l r) = 
+      rf (P (rshf rf l) (rshf rf r))
+\end{code}
+Note that this is a purely structural operation
+and that integers in first argument position
+of the constructor {\tt D} are actually ignored.
+
+The two bijections, inverses of each other, work as follows:
+\begin{codex}
+*BDD>unfold_bdd (P 3 42)
+  BDD 3 
+    (D 2 
+      (D 1 (D 0 B0 B0) 
+           (D 0 B0 B0)) 
+      (D 1 (D 0 B1 B1) 
+           (D 0 B1 B0)))
+
+*BDD>fold_bdd it
+  42
+\end{codex}
+
+\subsection{Boolean Evaluation of BDDs}
+Practical uses of BDDs involve reducing them by
+sharing nodes and eliminating identical
+branches \cite{bryant86graphbased}.
+Note that in this case {\tt bdd2nat} 
+might give a different result as it computes
+different pairing operations. 
+Fortunately,
+we can try to fold the binary tree 
+back to a natural number
+by evaluating it as a boolean
+function.
+
+The function {\tt eval\_bdd} describes the $BDD$ evaluator:
+\begin{code}
+eval_bdd (BDD n bt) = eval_with_mask (bigone n) n bt
+ 
+eval_with_mask m _ B0 = 0 
+eval_with_mask m _ B1 = m
+eval_with_mask m n (D x l r) = 
+  ite_ (var_mn m n x) 
+         (eval_with_mask m n l) 
+         (eval_with_mask m n r) 
+\end{code}
+
+The {\em projection functions} {\tt var\_mn} defined in section \ref{bits}
+can be combined with the usual bitwise integer operators, 
+to obtain new bitstring truth tables, 
+encoding all possible value combinations of their arguments.
+Note that the constant $0$ evaluates to $0$ while the constant $1$
+is evaluated as $2^{2^n}-1$ by the function {\tt bigone}.
+
+The function {\tt ite\_} used in {\tt eval\_with\_mask} 
+implements the boolean function  {\tt if x then t else e}
+using arbitrary length bitvector operations:
+\begin{code}
+ite_ x t e = ((t `xor` e).&.x) `xor` e
+\end{code}
+
+\noindent {\em 
+As the following example shows, it turns out that
+boolean evaluation {\tt eval\_bdd}
+faithfully emulates {\tt fold\_bdd}!
+}
+
+\begin{codex}
+*BDD> unfold_bdd (P 3 42)
+BDD 3 (D 2 (D 1 (D 0 B0 B0) (D 0 B0 B0)) 
+           (D 1 (D 0 B1 B1) (D 0 B1 B0)))
+*BDD> eval_bdd it
+42
+\end{codex}
+
+\subsection{The Equivalence}
+We now state the surprising (and new!) result
+that boolean evaluation and structural transformation with
+repeated application of
+{\em pairing}
+produce the same result:
+
+\begin{prop} \label{tt}
+The complete binary tree of depth $n$, obtained by recursive 
+applications of {\tt bitunpair} on a truth table $tt$
+computes an (unreduced) BDD, that, when evaluated, 
+returns the truth table, i.e.
+\begin{equation}
+fold\_bdd \circ unfold\_bdd \equiv id
+\end{equation}
+
+\begin{equation}
+eval\_bdd \circ unfold\_bdd \equiv id
+\end{equation}
+\end{prop}
+\begin{proof} The function {\tt unfold\_bdd} builds a
+binary tree by splitting the bitstring $tt \in [0..2^n-1]$ up to depth $n$. 
+Observe that this corresponds to the Shannon expansion \cite{shannon_all} of the
+formula associated to the truth table, using variable order $[n-1,...,0]$.
+Observe that the effect of {\tt bitunpair} is the same as
+\begin{itemize}
+  \item the effect of {\tt var\_mn m n (n-1)} 
+     acting as a mask selecting the left branch, and
+\item 
+     the effect of its complement, acting as a mask selecting the right
+     branch.
+\end{itemize}
+Given that $2^n$ is the double of $2^{n-1}$, the same invariant holds at each
+step, as the bitstring length of the truth table reduces to half. 
+\end{proof}
+We can thus assume from now on, that the BDD data type defined in
+section \ref{encbdd} actually represents BDDs mapped one-to-one to truth tables
+given as natural numbers.
+
+\section{Ranking and Unranking of BDDs} \label{rank}
+
+One more step is needed to extend the mapping between $BDDs$ with $n$
+variables to a bijective mapping from/to $Nat$: 
+we will have to ``shift towards infinity'' 
+the starting point of each new block\footnote{defined by the same number of
+variables} of BDDs in $Nat$ as BDDs of larger and larger sizes are enumerated.
+
+First, we need to know by how much - so we count the number
+of boolean functions with up to $n$ variables.
+\begin{code}
+bsum 0 = 0
+bsum n | n>0 = bsum1 (n-1)
+
+bsum1 0 = 2
+bsum1 n | n>0 = bsum1 (n-1)+ 2^2^n
+\end{code}
+The stream of all such sums can now be generated as usual\footnote{{\tt bsums}
+is sequence A060803 in The On-Line Encyclopedia of Integer
+Sequences, \url{http://www.research.att.com/~njas/sequences}}:
+\begin{code}
+bsums = map bsum [0..]
+\end{code}
+\begin{codex}
+*BDD> genericTake 7 bsums
+  [0,2,6,22,278,65814,4295033110]
+\end{codex}
+
+What we are really interested in, is decomposing {\tt n} into
+the distance {\tt n-m} to the
+last {\tt bsum} {\tt m} smaller than {\tt n},
+and the index that generates the sum, {\tt k}.
+\begin{code}
+to_bsum n = (k,n-m) where 
+  k=pred (head [x|x<-[0..],bsum x>n])
+  m=bsum k
+\end{code}
+{\em Unranking} of an arbitrary BDD is now easy - the index {\tt k}
+determines the number of variables and {\tt n-m} determines
+the rank. Together they select the right BDD
+with {\tt unfold\_bdd} and {\tt bdd}.
+\begin{code}
+nat2bdd n = unfold_bdd (P k n_m)
+  where (k,n_m)=to_bsum n
+\end{code}
+{\em Ranking} of a BDD is even easier: we shift its rank
+within the set of BDDs with {\tt nv} 
+variables, by the value {\tt (bsum nv)} that
+counts the ranks previously assigned.
+\begin{code}
+bdd2nat bdd@(BDD nv _) =  ((bsum nv)+tt) where
+  P _ tt =fold_bdd bdd
+\end{code}
+As the following example shows,
+{\tt bdd2nat}
+implements the inverse of
+{\tt nat2bdd}.
+\begin{codex}
+*BDD> nat2bdd 42
+BDD 3 (D 2 (D 1 (D 0 B0 B1) (D 0 B1 B0)) 
+           (D 1 (D 0 B0 B0) (D 0 B0 B0)))
+*BDD> bdd2nat it
+42
+\end{codex}
+
+We can now repeat the {\em ranking} function construction for {\tt eval\_bdd}:
+\begin{code}
+ev_bdd2nat bdd@(BDD nv _) = (bsum nv)+(eval_bdd bdd)
+\end{code}
+We can confirm that {\tt ev\_bdd2nat} also acts as an inverse to
+{\tt nat2bdd}:
+\begin{codex}
+*BDD> ev_bdd2nat (nat2bdd 2008)
+2008
+\end{codex}
+
+\subsection{Reducing the $BDDs$}
+We sketch here a simplified reduction mechanism for BDDs
+eliminating identical branches. Note that the general
+mechanism involves DAGs and provides also node sharing
+\cite{bryant86graphbased}.
+
+The function {\tt bdd\_reduce} reduces a $BDD$ by collapsing identical 
+left and right subtrees, and the function {\tt bdd} 
+associates this reduced form to $n \in Nat$.
+\begin{code}
+bdd_reduce (BDD n bt) = BDD n (reduce bt) where
+  reduce B0 = B0
+  reduce B1 = B1
+  reduce (D _ l r) | l == r = reduce l
+  reduce (D v l r) = D v (reduce l) (reduce r)
+
+unfold_rbdd = bdd_reduce . unfold_bdd  
+\end{code}
+
+The results returned by {\tt unfold\_rbdd} for {\tt n=2} are:
+\begin{codex}
+  BDD 2 (C 0)
+  BDD 2 (D 1 (D 0 (C 1) (C 0)) (C 0))
+  BDD 2 (D 1 (C 0) (D 0 (C 1) (C 0)))
+  BDD 2 (D 0 (C 1) (C 0))
+  ...
+  BDD 2 (D 1 (D 0 (C 0) (C 1)) (C 1))
+  BDD 2 (C 1)
+\end{codex}
+We can now define the {\em unranking} operation on reduced BDDs
+\begin{code}
+nat2rbdd = bdd_reduce . nat2bdd 
+\end{code}
+
+To be able to compare its space complexity
+with other representations we define 
+a size operation on a BDD as follows:
+\begin{code}
+bdd_size (BDD _ t) = 1+(size t) where
+  size B0 = 1
+  size B1 = 1
+  size (D _ l r) = 1+(size l)+(size r)
+\end{code}
+
+\section{Generalizing BDD ranking/unrankig functions} \label{gen}
+
+\subsection{Encoding BDDs with Arbitrary Variable Order}
+While the encoding built around the equivalence described in Prop. \ref{tt}
+between bitwise pairing/unpairing operations and boolean decomposition
+is arguably as simple and elegant as possible, it is useful
+to parametrize BDD generation with respect to an arbitrary
+variable order. This is of particular importance when using
+BDDs for circuit minimization, as different variable orders
+can make circuit sizes flip from linear to exponential in
+the number of variables \cite{bryant86graphbased}.
+
+Given a permutation of $n$ variables represented as
+natural numbers in $[0..n-1]$ and a truth table
+$tt \in [0..2^{2^n}-1]$ we can define: 
+\begin{code}
+to_bdd vs tt | 0<=tt && tt <= m = 
+  BDD n (to_bdd_mn vs tt m n) where
+    n=genericLength vs
+    m=bigone n
+to_bdd _ tt = error 
+   ("bad arg in to_bdd=>" ++ (show tt)) 
+\end{code}
+where the function {\tt to\_bdd\_mn} recurses over
+the list of variables {\tt vs} and applies
+Shannon expansion \cite{shannon_all},
+expressed as bitvector operations. This computes the cofactor functions
+$f1$ and $f0$, to be used as {\tt then} and {\tt else}
+branches, when evaluating back the BDD to a truth table
+with if-the-else functions.
+\begin{code}
+to_bdd_mn []      0 _ _ = B0
+to_bdd_mn []      _ _ _ = B1
+to_bdd_mn (v:vs) tt m n = D v l r where
+  cond=var_mn m n v
+  f0= (m `xor` cond) .&. tt
+  f1= cond .&. tt 
+  l=to_bdd_mn vs f1 m n
+  r=to_bdd_mn vs f0 m n
+\end{code}
+\begin{prop}
+The function {\tt to\_bdd} builds an (unreduced) BDD corresponding
+to a truth table {\tt tt} for variable order {\tt vs} that returns
+{\tt tt}, when evaluated as a boolean function.
+\end{prop}
+We can reduce the resulting BDDs, and convert back from BDDs and reduced BDDs to
+truth tables with boolean evaluation: 
+\begin{code}
+to_rbdd vs tt = bdd_reduce (to_bdd vs tt)
+from_bdd bdd = eval_bdd bdd
+\end{code}
+
+Finally, we can, obtain an optimal BDD expressing a logic function of $n$
+variables given as a truth table as follows:
+\begin{code}
+search_bdd minORmax n tt = snd $ foldl1 minORmax 
+ (map (sized_rbdd tt) (all_permutations n)) where
+    sized_rbdd tt vs = (bdd_size b,b) where 
+      b=to_rbdd vs tt
+ 
+all_permutations n = permute [0..n-1] where
+
+  permute [] = [[]]
+  permute (x:xs) = [zs| ys<-permute xs, zs<-insert x ys]
+
+  insert a [] = [[a]]
+  insert a (x:xs) = (a:x:xs):[(x:ys) | ys<-(insert a xs)]
+\end{code}
+%$
+The function {\tt search\_bdd min}
+can be used for multilevel 
+boolean formula minimization on functions with
+up to 6-7 arguments.
+\begin{codex}
+*BDD> search_bdd min 3 42
+BDD 3 (D 2 B0 (D 0 B1 (D 1 B1 B0)))
+*BDD> search_bdd min 4 2008
+BDD 4 (D 0 (D 3 (D 1 B0 B1) (D 2 B0 B1)) 
+           (D 3 (D 1 B1 B0) (D 1 (D 2 B1 B0) B0)))
+*BDD> search_bdd min 3 2008
+BDD 7 (D 1 (D 2 (D 4 (D 3 (D 0 (D 5 ...
+      ... (D 0 (D 5 B0 B1) B0)))))
+*BDD> bdd_size it
+110
+\end{codex}
+
+Let us consider the classic problem of synthesizing a half adder, composed
+of an XOR (\verb~^~) and an AND  (\verb~*~) function.
+
+It is interesting to see how the BDD minimization algorithm compares with
+``perfect circuits'' provided by an exact synthesizer 
+as the one described in \cite{iclp07,cf08}.
+The output of the exact synthesizer uses a graph representation where
+the 4-th argument names the output connection: 
+\begin{codex}
+?- syn([ite],[0,1],[ite(A,B^C,B*C)]).
+[TTs = [22],MG = 24]
+syn(3,24,[ite],[0,1],[22]).
+[0,0,0]:0
+[0,0,1]:0
+[0,1,0]:0
+[0,1,1]:1
+[1,0,0]:0
+[1,0,1]:1
+[1,1,0]:1
+[1,1,1]:0
+
+[A,B,C]:
+   [ite(A,0,1,D),
+    ite(D,0,B,E),
+    ite(B,D,A,F),
+    ite(C,F,E,G)] = [G]:[22].
+\end{codex}
+Note that 4 {\tt ITE} gates (2-1 mux with 1-0 selection lines) are used
+to combine the {\tt XOR} and {\tt AND} functions into a single output
+function, with the upper half of the truth table representing
+the {\tt AND} and the lower half representing the {\tt XOR}.
+
+When running {\tt to\_min\_bdd} on the 3-variable function 22 representing as a
+natural number the truth table of our our half adder, we obtain:
+\begin{codex}
+*BDD> search_bdd min 3 22
+BDD 3 (D 0 (D 1 (D 2 B0 B1) 
+                (D 2 B1 B0)) 
+           (D 1 (D 2 B1 B0) 
+                 B0))
+\end{codex}
+Assuming the sharing of the two {\tt (D 2 B1 B0)} nodes we
+can see that while we do not obtain the exact minimum of 4 in this case,
+we get close enough (5 gates). The diagrams  in Fig. \ref{ite} show the
+actual circuits, with variables {\tt 0,1,2} renamed as {\tt A,B,C} for easier
+comparison.
+
+\HFIGS{ite}
+{Binary decision diagrams associated to half adder 
+$ITE(A \oplus B,A \wedge B)$} 
+{As minimal BDDs (exact synthesis)} 
+{As minimal ROBDDs}{ite4}{ite5}
+
+\subsection{Multi-Terminal Binary Decision Diagrams (MTBDD)} \label{multi}
+MTBDDs \cite{DBLP:journals/fmsd/FujitaMY97,CBGP08} are a natural generalization
+of BDDs allowing non-binary values as leaves.
+Such values are typically 
+bitstrings representing the outputs
+of a multi-terminal boolean function,
+encoded as unsigned integers.
+
+We shall now describe an encoding of $MTBDDs$
+that can be extended to ranking/unranking functions,
+in a way similar to $BDDs$ as shown in section \ref{rank}.
+
+Our {\tt MTBDD} data type is a binary tree like the one used for $BDDs$,
+parameterized by two integers {\tt m} and {\tt n}, indicating
+that an MTBDD represents a function from $[0..n-1]$ to $[0..m-1]$,
+or equivalently, an $n$-input/$m$-output boolean function.
+
+\begin{code}   
+data MT a = L a | M a (MT a) (MT a) 
+             deriving (Eq,Ord,Read,Show)
+data MTBDD a = MTBDD a a (MT a) deriving (Show,Eq)
+\end{code}
+
+The function  {\tt to\_mtbdd} creates,
+from a natural number tt representing a truth table,
+an MTBDD representing
+functions of type $N \rightarrow M$ with $M=[0..2^m-1], N=[0..2^n-1]$.
+Similarly to a BDD, it is represented as binary tree 
+of $n$ levels, except that its leaves are in $[0..{2^m}-1]$.
+\begin{code}
+to_mtbdd m n tt = MTBDD m n r where 
+  mlimit=2^m
+  nlimit=2^n
+  ttlimit=mlimit^nlimit
+  r=if tt<ttlimit 
+    then (to_mtbdd_ mlimit n tt)
+    else error 
+      ("bt: last arg "++ (show tt)++
+      " should be < " ++ (show ttlimit))
+\end{code}
+Given that correctness of the range of
+{\tt tt} has been checked, the function {\tt to\_mtbdd\_} 
+applies {\tt bitunpair} 
+recursively up to depth $n$, where
+leaves in range $[0..mlimit-1]$ are created.
+\begin{code}  
+to_mtbdd_ mlimit n tt|(n<1)&&(tt<mlimit) = L tt
+to_mtbdd_ mlimit n tt = (M k l r) where 
+   P x y=bitunpair tt
+   k=pred n
+   l=to_mtbdd_ mlimit k x
+   r=to_mtbdd_ mlimit k y
+\end{code}
+Converting back from $MTBDDs$ to natural numbers is
+basically the same thing as for $BDDs$, except that
+assertions about the range of leaf data are enforced.
+\begin{code}
+from_mtbdd (MTBDD m n b) = from_mtbdd_ (2^m) n b
+
+from_mtbdd_ mlimit n (L tt)|(n<1)&&(tt<mlimit)=tt
+from_mtbdd_ mlimit n (M _ l r) = tt where 
+   k=pred n
+   x=from_mtbdd_ mlimit k l
+   y=from_mtbdd_ mlimit k r
+   tt=bitpair (P x y)
+\end{code}
+The following examples show that {\tt to\_mtbdd} and {\tt from\_mtbdd}
+are indeed inverses values in $[0..2^n-1] \times [0..2^m-1]$. 
+\begin{codex}
+>to_mtbdd 3 3 2008
+  MTBDD 3 3 
+    (M 2 
+      (M 1 
+         (M 0 (L 2) (L 1)) 
+         (M 0 (L 2) (L 1))) 
+      (M 1 
+         (M 0 (L 2) (L 0)) 
+         (M 0 (L 1) (L 1))))
+
+>from_mtbdd it
+2008
+
+>mprint (to_mtbdd 2 2) [0..3]
+  MTBDD 2 2 
+    (M 1 (M 0 (L 0) (L 0)) (M 0 (L 0) (L 0)))
+  MTBDD 2 2 
+    (M 1 (M 0 (L 1) (L 0)) (M 0 (L 0) (L 0)))
+  MTBDD 2 2 
+    (M 1 (M 0 (L 0) (L 0)) (M 0 (L 1) (L 0)))
+  MTBDD 2 2 
+    (M 1 (M 0 (L 1) (L 0)) (M 0 (L 1) (L 0)))
+\end{codex}
+
+\subsection{Generating Random BDDs and MTBDDs}
+Random generation of BDDs and MTBDDs have practical uses
+in testing and benchmarking of various electronic design
+automation tools and methodologies.
+
+Deriving mechanisms for uniform generation of random instances
+is a classic application of ranking/unranking functions.
+Given a one-to-one mapping to $Nat$ it reduces
+to the simpler problem of uniform generation of
+natural numbers.
+
+After customizing Haskell's library random generator
+\begin{code}
+nrandom_nats smallest largest n seed= 
+  genericTake n 
+    (randomRs (smallest,largest) (mkStdGen seed))
+\end{code}
+one can define:
+\begin{code}
+nrandom converter smallest largest n seed =
+  map converter (nrandom_nats smallest largest n seed)
+\end{code}
+
+To generate 3 small instances of reduced BDD mapped to
+natural numbers from 10 to 20 one can write:
+\begin{codex}
+*BDD> nrandom nat2rbdd 10 20 3 77
+[ BDD 2 (D 1 (D 0 B1 B0) B1),
+  BDD 2 (D 1 (D 0 B0 B1) B1),
+  BDD 2 (D 0 B0 B1)]
+\end{codex}
+
+To generate an instance of a random 3-in/3-out MTBDD mapped to
+natural numbers from 1000 to 2000 one can write:
+\begin{codex}  
+*BDD> head $ nrandom (to_mtbdd 3 3) 1000 2000 1 1
+MTBDD 3 3 (M 2 (M 1 (M 0 (L 2) (L 1)) (M 0 (L 2) (L 1))) 
+          (M 1 (M 0 (L 0) (L 1)) (M 0 (L 0) (L 1))))  
+\end{codex}
+%$
+One can see the average size reduction from
+BDDs to reduced BDDs with something like:
+\begin{codex}
+*BDD> sum $ map bdd_size $ nrandom nat2bdd 1000 2000 10 7
+320
+*BDD> sum $ map bdd_size $ nrandom nat2rbdd 1000 2000 10 7
+194
+\end{codex}
+Or, one can see the size reductions due to trying
+all possible variable orders on random BDDs (in the case of 100 random 4 and 5
+variable functions):
+\begin{codex}
+*BDD> sum $ map bdd_size (nrandom (search_bdd max 4) 0 (2^2^4-1) 100 77)
+2384
+*BDD> sum $ map bdd_size (nrandom (search_bdd min 4) 0 (2^2^4-1) 100 77)
+1744
+*BDD> sum $ map bdd_size (nrandom (search_bdd max 5) 0 (2^2^5-1) 100 77)
+4812
+*BDD> sum $ map bdd_size (nrandom (search_bdd min 5) 0 (2^2^5-1) 100 77)
+3432
+\end{codex}
+Such results are useful in evaluating the pros/cons of various circuit
+minimization strategies. 
+Needless to say, one might notice the compactness and elegance of a
+declarative language like Haskell for such ad-hoc tasks, 
+recommending it as a powerful scripting language for 
+electronic design automation tools.
+
+\section{Related work} \label{related}
+Pairing functions have been used for work on decision problems as early 
+as \cite{robinson50}. 
+
+BDDs are the dominant boolean function representation in
+the field of circuit design automation
+\cite{DBLP:journals/jcsc/MeinelT99}.
+
+Besides their uses in circuit design automation,
+MTBDDs have been used in model-checking and
+verification of arithmetic circuits \cite{DBLP:journals/fmsd/FujitaMY97,CBGP08}.
+
+BDDs have also been used in a Genetic Programming context
+\cite{DBLP:conf/ices/SakanashiHIK96}
+as a representation of evolving individuals subject to crossovers 
+and mutations expressed as structural transformations.
+
+\section{Conclusion and Future Work} \label{concl}
+The surprising connection of bitstring based pairing/unpairing functions and
+to BDDs came out as the indirect result of implementation
+work on a number of practical applications.
+Our initial interest has been triggered by applications of the 
+encodings to combinational circuit synthesis \cite{iclp07,cf08}
+and ongoing work on genetic programming algorithms.
+
+We have found such encodings interesting as uniform 
+building blocks for Genetic Programming applications.
+In a Genetic Programming context \cite{koza92}, 
+the bijections between bitvectors/natural numbers 
+on one side, and trees/graphs representing BDDs on the other side, 
+suggest exploring the mapping and its action on various
+transformations as a phenotype-genotype connection. 
+Given the connection between BDDs to
+boolean and finite domain constraint solvers
+it would be interesting to explore in that context,
+efficient succinct data representations
+derived from our BDD encodings.
+
+%\newpage
+%\bibliographystyle{plain}
+%\bibliographystyle{plainnat}
+\bibliographystyle{abbrv}
+\bibliography{INCLUDES/theory,tarau,INCLUDES/proglang,INCLUDES/biblio,INCLUDES/syn}
+
+\end{document}

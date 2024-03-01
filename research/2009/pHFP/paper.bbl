@@ -1,0 +1,102 @@
+\begin{thebibliography}{10}
+
+\bibitem{abian78}
+Alexander Abian and Samuel Lamacchia.
+\newblock On the consistency and independence of some set-theoretical
+  constructs.
+\newblock {\em Notre Dame Journal of Formal Logic}, X1X(1):155--158, 1978.
+
+\bibitem{ackencoding}
+Wilhelm~Friedrich Ackermann.
+\newblock {Die Widerspruchsfreiheit der allgemeinen Mengenlhere}.
+\newblock {\em Mathematische Annalen}, (114):305--315, 1937.
+
+\bibitem{avigad97}
+Jeremy Avigad.
+\newblock {The Combinatorics of Propositional Provability}.
+\newblock In {\em ASL Winter Meeting}, San Diego, January 1997.
+
+\bibitem{dovier00comparing}
+Agostino Dovier, Carla Piazza, and Alberto Policriti.
+\newblock {Comparing Expressiveness of Set Constructor Symbols}.
+\newblock In {\em Frontiers of Combining Systems}, pages 275--289, 2000.
+
+\bibitem{Goedel:31}
+K.~G\"{o}del.
+\newblock \"{U}ber formal unentscheidbare {S\"{a}tze der Principia Mathematica
+  und verwandter Systeme I}.
+\newblock {\em Monatshefte f\"{u}r Mathematik und Physik}, 38:173--198, 1931.
+
+\bibitem{conf/icalp/HartmanisB74}
+Juris Hartmanis and Theodore~P. Baker.
+\newblock On simple goedel numberings and translations.
+\newblock In Jacques Loeckx, editor, {\em ICALP}, volume~14 of {\em Lecture
+  Notes in Computer Science}, pages 301--316. Springer, 1974.
+
+\bibitem{DBLP:journals/jfp/Hutton99}
+Graham Hutton.
+\newblock {A Tutorial on the Universality and Expressiveness of Fold}.
+\newblock {\em J. Funct. Program.}, 9(4):355--372, 1999.
+
+\bibitem{kaye07}
+Richard Kaye and Tin~Lock Wong.
+\newblock {On Interpretations of Arithmetic and Set Theory}.
+\newblock {\em Notre Dame J. Formal Logic Volume}, 48(4):497--510, 2007.
+
+\bibitem{knuth06draft}
+Donald Knuth.
+\newblock {The Art of Computer Programming, Volume 4, draft}, 2006.
+\newblock http://www-cs-faculty.stanford.edu/$\sim$knuth/taocp.html.
+
+\bibitem{knuth_art_1997-1}
+Donald~E. Knuth.
+\newblock {\em The art of computer programming, volume 2 (3rd ed.):
+  seminumerical algorithms}.
+\newblock Addison-Wesley Longman Publishing Co., Inc., Boston, MA, USA, 1997.
+
+\bibitem{DBLP:journals/dmtcs/MantaciR01}
+Roberto Mantaci and Fanja Rakotondrajao.
+\newblock A permutations representation that knows what "eulerian" means.
+\newblock {\em Discrete Mathematics {\&} Theoretical Computer Science},
+  4(2):101--108, 2001.
+
+\bibitem{conf/mfcs/MartinezM03}
+Conrado Martinez and Xavier Molinero.
+\newblock Generic algorithms for the generation of combinatorial objects.
+\newblock In Branislav Rovan and Peter Vojtas, editors, {\em MFCS}, volume 2747
+  of {\em Lecture Notes in Computer Science}, pages 572--581. Springer, 2003.
+
+\bibitem{DBLP:conf/fpca/MeijerH95}
+Erik Meijer and Graham Hutton.
+\newblock {Bananas in Space: Extending Fold and Unfold to Exponential Types}.
+\newblock In {\em FPCA}, pages 324--333, 1995.
+
+\bibitem{DBLP:journals/jct/MeirMM83}
+Amram Meir, John~W. Moon, and Jan Mycielski.
+\newblock {Hereditarily Finite Sets and Identity Trees}.
+\newblock {\em J. Comb. Theory, Ser. B}, 35(2):142--155, 1983.
+
+\bibitem{DBLP:conf/types/Paulson94}
+Lawrence~C. Paulson.
+\newblock {A Concrete Final Coalgebra Theorem for ZF Set Theory}.
+\newblock In Peter Dybjer, Bengt Nordstr{\"o}m, and Jan~M. Smith, editors, {\em
+  TYPES}, volume 996 of {\em Lecture Notes in Computer Science}, pages
+  120--139. Springer, 1994.
+
+\bibitem{DBLP:journals/tplp/PiazzaP04}
+Carla Piazza and Alberto Policriti.
+\newblock {Ackermann Encoding, Bisimulations, and OBDDs}.
+\newblock {\em TPLP}, 4(5-6):695--718, 2004.
+
+\bibitem{finitemath}
+Moto-o Takahashi.
+\newblock {A Foundation of Finite Mathematics}.
+\newblock {\em Publ. Res. Inst. Math. Sci.}, 12(3):577--708, 1976.
+
+\bibitem{arxiv:fISO}
+Paul Tarau.
+\newblock {Declarative Combinatorics: Isomorphisms, Hylomorphisms and
+  Hereditarily Finite Data Types in Haskell}, January 2009.
+\newblock http://arXiv.org/abs/0808.2953, unpublished draft, 104 pages.
+
+\end{thebibliography}

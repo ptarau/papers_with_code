@@ -1,0 +1,110 @@
+\begin{thebibliography}{10}
+
+\bibitem{journals/fuin/CegielskiRV07}
+CŽgielski, P., Richard, D., Vsemirnov, M.:
+\newblock On the additive theory of prime numbers.
+\newblock Fundam. Inform. \textbf{81}(1-3) (2007)  83--96
+
+\bibitem{CP2005}
+Crandall, R., Pomerance, C.:
+\newblock Prime Numbers--a Computational Approach. Second edn.
+\newblock Springer, New York (2005)
+
+\bibitem{riemannPrimes}
+Riemann, B.:
+\newblock Ueber die anzahl der primzahlen unter einer gegebenen gr\"{o}sse.
+\newblock Monatsberichte der Berliner Akademie (November 1859)
+
+\bibitem{VTW86}
+van~de Lune, J., te~Riele, H.J.J., Winter, D.T.:
+\newblock On the zeros of the {Riemann} zeta function in the critical strip,
+  iv.
+\newblock Math. Comp. \textbf{46}(174) (1986)  667--681
+
+\bibitem{conf/stoc/Miller75}
+Miller, G.L.:
+\newblock Riemann's hypothesis and tests for primality.
+\newblock In: STOC, ACM (1975)  234--239
+
+\bibitem{chaitinRiemann}
+Chaitin, G.:
+\newblock Thoughts on the riemann hypothesis.
+\newblock Math. Intelligencer \textbf{26}(1) (2004)  4--7
+
+\bibitem{BBC1999}
+Borwein, J.M., Bradley, D.M., Crandall, R.E.:
+\newblock Computational strategies for the {R}iemann zeta function.
+\newblock J. Comput. Appl. Math. \textbf{121}(1--2) (2000)  247--296 Numerical
+  analysis in the 20th century, Vol.\ I, Approximation.
+
+\bibitem{sac09fISO}
+Tarau, P.:
+\newblock {Isomorphisms, Hylomorphisms and Hereditarily Finite Data Types in
+  Haskell}.
+\newblock In: {Proceedings of ACM SAC'09}, Honolulu, Hawaii, ACM (March 2009)
+  1898--1903
+
+\bibitem{pigeon}
+Pigeon, S.:
+\newblock Contributions \`{a} la compression de donn\'{e}es.
+\newblock Ph.d. thesis, Universit\'{e} de Montr\'{e}al, Montr\'{e}al (2001)
+
+\bibitem{DBLP:journals/tit/Pippenger05}
+Pippenger, N.:
+\newblock The average amount of information lost in multiplication.
+\newblock IEEE Transactions on Information Theory \textbf{51}(2) (2005)
+  684--687
+
+\bibitem{Riesel63}
+Riesel, H.:
+\newblock A factor of the {Fermat} number {$F_{19}$}.
+\newblock Math. Comp. \textbf{17} (1963)  458
+
+\bibitem{Keller83}
+Keller, W.:
+\newblock Factors of {Fermat} numbers and large primes of the form $k\cdot 2^n
+  +1$.
+\newblock Math. Comp. \textbf{41} (1983)  661--673
+
+\bibitem{arxiv:fISO}
+Tarau, P.:
+\newblock {Declarative Combinatorics: Isomorphisms, Hylomorphisms and
+  Hereditarily Finite Data Types in Haskell} (January 2009)
+  http://arXiv.org/abs/0808.2953, unpublished draft, 104 pages.
+
+\bibitem{robinson50}
+Robinson, J.:
+\newblock General recursive functions.
+\newblock Proceedings of the American Mathematical Society \textbf{1}(6) (dec
+  1950)  703--718
+
+\bibitem{robinsons68b}
+Robinson, J.:
+\newblock Finite generation of recursively enumerable sets.
+\newblock Proceedings of the American Mathematical Society \textbf{19}(6) (dec
+  1968)  1480--1486
+
+\bibitem{DBLP:journals/tcs/CegielskiR01}
+C{\'e}gielski, P., Richard, D.:
+\newblock Decidability of the theory of the natural integers with the cantor
+  pairing function and the successor.
+\newblock Theor. Comput. Sci. \textbf{257}(1-2) (2001)  51--77
+
+\bibitem{DBLP:conf/ipps/Rosenberg02a}
+Rosenberg, A.L.:
+\newblock Efficient pairing functions - and why you should care.
+\newblock International Journal of Foundations of Computer Science
+  \textbf{14}(1) (2003)  3--17
+
+\bibitem{Young98}
+Young, J.:
+\newblock Large primes and {Fermat} factors.
+\newblock Math. Comp. \textbf{67}(244) (1998)  1735--1738
+
+\bibitem{Riesel85}
+Riesel, H.:
+\newblock Prime Numbers and Computer Methods for Factorization. Volume~57 of
+  Progress in Mathematics., Boston, MA (1985) Current edition is
+  \cite{Riesel94}.
+
+\end{thebibliography}

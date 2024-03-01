@@ -1,0 +1,419 @@
+This is pdfTeXk, Version 3.1415926-1.40.9 (Web2C 7.5.7) (format=pdflatex 2008.8.22)  2 MAR 2009 16:10
+entering extended mode
+ %&-line parsing enabled.
+**paper.tex
+(./paper.tex
+LaTeX2e <2005/12/01>
+Babel <v3.8l> and hyphenation patterns for english, usenglishmax, dumylang, noh
+yphenation, german-x-2008-06-18, ngerman-x-2008-06-18, ancientgreek, ibycus, ar
+abic, basque, bulgarian, catalan, pinyin, coptic, croatian, czech, danish, dutc
+h, esperanto, estonian, farsi, finnish, french, galician, german, ngerman, mono
+greek, greek, hungarian, icelandic, indonesian, interlingua, irish, italian, la
+tin, mongolian, mongolian2a, bokmal, nynorsk, polish, portuguese, romanian, rus
+sian, sanskrit, serbian, slovak, slovenian, spanish, swedish, turkish, ukenglis
+h, ukrainian, uppersorbian, welsh, loaded.
+(./INCLUDES/llncs.cls
+
+LaTeX Warning: You have requested document class `INCLUDES/llncs',
+               but the document class provides `llncs'.
+
+Document Class: llncs 2004/08/17 v2.14 
+ LaTeX document class for Lecture Notes in Computer Science
+(/usr/local/texlive/2008/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2005/09/16 v1.4f Standard LaTeX document class
+(/usr/local/texlive/2008/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2005/09/16 v1.4f Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/usr/local/texlive/2008/texmf-dist/tex/latex/tools/multicol.sty
+Package: multicol 2006/05/18 v1.6g multicolumn formatting (FMi)
+\c@tracingmulticols=\count87
+\mult@box=\box26
+\multicol@leftmargin=\dimen103
+\c@unbalance=\count88
+\c@collectmore=\count89
+\doublecol@number=\count90
+\multicoltolerance=\count91
+\multicolpretolerance=\count92
+\full@width=\dimen104
+\page@free=\dimen105
+\premulticols=\dimen106
+\postmulticols=\dimen107
+\multicolsep=\skip43
+\multicolbaselineskip=\skip44
+\partial@page=\box27
+\last@line=\box28
+\mult@rightbox=\box29
+\mult@grightbox=\box30
+\mult@gfirstbox=\box31
+\mult@firstbox=\box32
+\@tempa=\box33
+\@tempa=\box34
+\@tempa=\box35
+\@tempa=\box36
+\@tempa=\box37
+\@tempa=\box38
+\@tempa=\box39
+\@tempa=\box40
+\@tempa=\box41
+\@tempa=\box42
+\@tempa=\box43
+\@tempa=\box44
+\@tempa=\box45
+\@tempa=\box46
+\@tempa=\box47
+\@tempa=\box48
+\@tempa=\box49
+\c@columnbadness=\count93
+\c@finalcolumnbadness=\count94
+\last@try=\dimen108
+\multicolovershoot=\dimen109
+\multicolundershoot=\dimen110
+\mult@nat@firstbox=\box50
+\colbreak@box=\box51
+)
+\c@chapter=\count95
+LaTeX Font Info:    Redeclaring math symbol \Gamma on input line 360.
+LaTeX Font Info:    Redeclaring math symbol \Delta on input line 361.
+LaTeX Font Info:    Redeclaring math symbol \Theta on input line 362.
+LaTeX Font Info:    Redeclaring math symbol \Lambda on input line 363.
+LaTeX Font Info:    Redeclaring math symbol \Xi on input line 364.
+LaTeX Font Info:    Redeclaring math symbol \Pi on input line 365.
+LaTeX Font Info:    Redeclaring math symbol \Sigma on input line 366.
+LaTeX Font Info:    Redeclaring math symbol \Upsilon on input line 367.
+LaTeX Font Info:    Redeclaring math symbol \Phi on input line 368.
+LaTeX Font Info:    Redeclaring math symbol \Psi on input line 369.
+LaTeX Font Info:    Redeclaring math symbol \Omega on input line 370.
+\tocchpnum=\dimen111
+\tocsecnum=\dimen112
+\tocsectotal=\dimen113
+\tocsubsecnum=\dimen114
+\tocsubsectotal=\dimen115
+\tocsubsubsecnum=\dimen116
+\tocsubsubsectotal=\dimen117
+\tocparanum=\dimen118
+\tocparatotal=\dimen119
+\tocsubparanum=\dimen120
+\@tempcntc=\count96
+\fnindent=\dimen121
+\c@@inst=\count97
+\c@@auth=\count98
+\c@auco=\count99
+\instindent=\dimen122
+\authrun=\box52
+\authorrunning=\toks14
+\tocauthor=\toks15
+\titrun=\box53
+\titlerunning=\toks16
+\toctitle=\toks17
+\c@theorem=\count100
+\c@case=\count101
+\c@conjecture=\count102
+\c@corollary=\count103
+\c@definition=\count104
+\c@example=\count105
+\c@exercise=\count106
+\c@lemma=\count107
+\c@note=\count108
+\c@problem=\count109
+\c@property=\count110
+\c@proposition=\count111
+\c@question=\count112
+\c@solution=\count113
+\c@remark=\count114
+\headlineindent=\dimen123
+)
+(./TOOLS/dcpic.sty
+Package DCpic 2002/05/16 v4.0
+\aux=\count115
+\auxa=\count116
+\auxb=\count117
+\m=\count118
+\n=\count119
+\x=\count120
+\y=\count121
+\xl=\count122
+\yl=\count123
+\d=\count124
+\dnm=\count125
+\xa=\count126
+\xb=\count127
+\xmed=\count128
+\xc=\count129
+\xd=\count130
+\ya=\count131
+\yb=\count132
+\ymed=\count133
+\yc=\count134
+\yd=\count135
+\expansao=\count136
+\tipografo=\count137
+\distanciaobjmor=\count138
+\tipoarco=\count139
+\caixa=\box54
+\caixaaux=\box55
+\xaux=\count140
+\yaux=\count141
+\guardaauxa=\count142
+\alt=\count143
+\larg=\count144
+\prof=\count145
+\auxqx=\count146
+\auxqy=\count147
+) (/usr/local/texlive/2008/texmf-dist/tex/generic/pictex/pictexwd.sty
+(/usr/local/texlive/2008/texmf-dist/tex/generic/pictex/prepictex.tex)
+(/usr/local/texlive/2008/texmf-dist/tex/generic/pictex/pictexwd.tex)
+(/usr/local/texlive/2008/texmf-dist/tex/generic/pictex/postpictex.tex)
+(/usr/local/texlive/2008/texmf-dist/tex/generic/pictex/picmore.tex)
+(/usr/local/texlive/2008/texmf-dist/tex/generic/pictex/piccorr.sty))
+(./TOOLS/jhheader.tex
+(/usr/local/texlive/2008/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/local/texlive/2008/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks21
+)
+(/usr/local/texlive/2008/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2006/02/20 v1.0o Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/local/texlive/2008/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/usr/local/texlive/2008/texmf/tex/latex/config/graphics.cfg
+File: graphics.cfg 2007/01/18 v1.5 graphics configuration of teTeX/TeXLive
+)
+Package graphics Info: Driver file: pdftex.def on input line 90.
+
+(/usr/local/texlive/2008/texmf-dist/tex/latex/pdftex-def/pdftex.def
+File: pdftex.def 2008/07/16 v0.04k Graphics/color for pdfTeX
+\Gread@gobject=\count163
+))
+\Gin@req@height=\dimen201
+\Gin@req@width=\dimen202
+)
+(/usr/local/texlive/2008/texmf-dist/tex/latex/subfig/subfig.sty
+Package: subfig 2005/06/28 ver: 1.3 subfig package
+
+(/usr/local/texlive/2008/texmf-dist/tex/latex/caption/caption.sty
+Package: caption 2008/04/01 v3.1h Customizing captions (AR)
+
+(/usr/local/texlive/2008/texmf-dist/tex/latex/caption/caption3.sty
+Package: caption3 2008/03/20 v3.1h caption3 kernel (AR)
+\captionmargin=\dimen203
+\captionmargin@=\dimen204
+\captionwidth=\dimen205
+\caption@indent=\dimen206
+\caption@parindent=\dimen207
+\caption@hangindent=\dimen208
+Package caption Info: Unknown document class (or package),
+(caption)             standard defaults will be used on input line 1024.
+)
+
+Package caption Warning: Unsupported document class (or package) detected,
+(caption)                usage of the caption package is not recommended.
+
+Package caption Info: \@makecaption = \long macro:#1#2->\vskip \abovecaptionski
+p \sbox \@tempboxa {{\bfseries #1.} #2}\ifdim \wd \@tempboxa >\hsize {\bfseries
+ #1.} #2\par \else \global \@minipagefalse \hb@xt@ \hsize {\hfil \box \@tempbox
+a \hfil }\fi \vskip \belowcaptionskip .
+\c@ContinuedFloat=\count164
+)
+\c@KVtest=\count165
+\sf@farskip=\skip71
+\sf@captopadj=\dimen209
+\sf@capskip=\skip72
+\sf@nearskip=\skip73
+\c@subfigure=\count166
+\c@subfigure@save=\count167
+\c@lofdepth=\count168
+\c@subtable=\count169
+\c@subtable@save=\count170
+\c@lotdepth=\count171
+\sf@top=\skip74
+\sf@bottom=\skip75
+) (/usr/local/texlive/2008/texmf-dist/tex/latex/ltxmisc/url.sty
+\Urlmuskip=\muskip10
+Package: url 2006/04/12  ver 3.3  Verb mode for urls, etc.
+)
+(/usr/local/texlive/2008/texmf-dist/tex/latex/tools/verbatim.sty
+Package: verbatim 2003/08/22 v1.5q LaTeX2e package for verbatim enhancements
+\every@verbatim=\toks22
+\verbatim@line=\toks23
+\verbatim@in@stream=\read1
+)
+(/usr/local/texlive/2008/texmf-dist/tex/latex/listings/listings.sty
+\lst@mode=\count172
+\lst@gtempboxa=\box62
+\lst@token=\toks24
+\lst@length=\count173
+\lst@currlwidth=\dimen210
+\lst@column=\count174
+\lst@pos=\count175
+\lst@lostspace=\dimen211
+\lst@width=\dimen212
+\lst@newlines=\count176
+\lst@lineno=\count177
+\lst@maxwidth=\dimen213
+
+(/usr/local/texlive/2008/texmf-dist/tex/latex/listings/lstmisc.sty
+File: lstmisc.sty 2007/02/22 1.4 (Carsten Heinz)
+\c@lstnumber=\count178
+\lst@skipnumbers=\count179
+\lst@framebox=\box63
+)
+(/usr/local/texlive/2008/texmf-dist/tex/latex/listings/listings.cfg
+File: listings.cfg 2007/02/22 1.4 listings configuration
+))
+Package: listings 2007/02/22 1.4 (Carsten Heinz)
+
+(/usr/local/texlive/2008/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2004/09/05 1.3 listings language file
+)
+(/usr/local/texlive/2008/texmf-dist/tex/latex/listings/lstlang2.sty
+File: lstlang2.sty 2004/09/05 1.3 listings language file
+)
+\c@prop=\count180
+\c@conj=\count181
+\c@fact=\count182
+\c@df=\count183
+\c@lem=\count184
+\c@ex=\count185
+)
+(./paper.aux)
+\openout1 = `paper.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+ (/usr/local/texlive/2008/texmf-dist/tex/context/base/supp-pdf.tex
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count186
+\scratchdimen=\dimen214
+\scratchbox=\box64
+\nofMPsegments=\count187
+\nofMParguments=\count188
+\everyMPshowfont=\toks25
+\MPscratchCnt=\count189
+\MPscratchDim=\dimen215
+\MPnumerator=\count190
+\everyMPtoPDFconversion=\toks26
+)
+Package caption Info: Begin \AtBeginDocument code.
+Package caption3 Info: subfig package 1.2 or 1.3 is loaded.
+LaTeX Info: Redefining \subref on input line 15.
+Package caption Info: listings package is loaded.
+Package caption Info: End \AtBeginDocument code.
+\c@lstlisting=\count191
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 16.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 16.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <9> on input line 74.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 74.
+ [1
+
+{/usr/local/texlive/2008/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+[2] [3] [4] <./figs/isof2.pdf, id=30, 329.23pt x 224.84pt>
+File: ./figs/isof2.pdf Graphic file (type pdf)
+
+<use ./figs/isof2.pdf> [5 <./figs/isof2.pdf>] [6]
+<./figs/isof14.pdf, id=46, 849.1725pt x 596.2275pt>
+File: ./figs/isof14.pdf Graphic file (type pdf)
+ <use ./figs/isof14.pdf>
+[7]
+Overfull \hbox (21.42218pt too wide) in paragraph at lines 438--439
+[][][] 
+ []
+
+[8 <./figs/isof14.pdf>]
+Overfull \hbox (26.14713pt too wide) in paragraph at lines 439--440
+[][][] 
+ []
+
+
+Overfull \hbox (30.87207pt too wide) in paragraph at lines 449--450
+[][][][] 
+ []
+
+
+Overfull \hbox (11.97229pt too wide) in paragraph at lines 460--461
+[][][] 
+ []
+
+
+Overfull \hbox (16.69724pt too wide) in paragraph at lines 461--462
+[][][][] 
+ []
+
+[9] [10] (./paper.bbl
+Underfull \hbox (badness 10000) in paragraph at lines 17--21
+[]\OT1/cmr/m/n/9 Tarau, P.:  Declar-a-tive Com-bi-na-torics: Iso-mor-phisms, Hy
+-lo-mor-
+ []
+
+
+Underfull \hbox (badness 4144) in paragraph at lines 17--21
+\OT1/cmr/m/n/9 phisms and Hered-i-tar-ily Fi-nite Data Types in Haskell (Jan-ua
+ry 2009)
+ []
+
+[11]
+Underfull \hbox (badness 10000) in paragraph at lines 145--148
+[]\OT1/cmr/m/n/9 Conal El-liott:  Data.Bijections Haskell Mod-ule.
+ []
+
+) (./iso0.tex [12] [13]) [14] (./paper.aux) ) 
+Here is how much of TeX's memory you used:
+ 4551 strings out of 493886
+ 62983 string characters out of 1151099
+ 198938 words of memory out of 3000000
+ 7795 multiletter control sequences out of 10000+50000
+ 8315 words of font info for 30 fonts, out of 3000000 for 5000
+ 714 hyphenation exceptions out of 8191
+ 45i,9n,42p,255b,1455s stack positions out of 5000i,500n,10000p,200000b,50000s
+</usr/local/texlive/2008/texmf-dis
+t/fonts/type1/bluesky/cm/cmbx10.pfb></usr/local/texlive/2008/texmf-dist/fonts/t
+ype1/bluesky/cm/cmbx12.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/blue
+sky/cm/cmbx9.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmm
+i10.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmmi7.pfb></
+usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmmi9.pfb></usr/local/
+texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmr10.pfb></usr/local/texlive/20
+08/texmf-dist/fonts/type1/bluesky/cm/cmr5.pfb></usr/local/texlive/2008/texmf-di
+st/fonts/type1/bluesky/cm/cmr6.pfb></usr/local/texlive/2008/texmf-dist/fonts/ty
+pe1/bluesky/cm/cmr7.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky
+/cm/cmr9.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmsy10.
+pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmsy7.pfb></usr/
+local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmsy9.pfb></usr/local/texl
+ive/2008/texmf-dist/fonts/type1/bluesky/cm/cmti10.pfb></usr/local/texlive/2008/
+texmf-dist/fonts/type1/bluesky/cm/cmti9.pfb></usr/local/texlive/2008/texmf-dist
+/fonts/type1/bluesky/cm/cmtt10.pfb></usr/local/texlive/2008/texmf-dist/fonts/ty
+pe1/bluesky/cm/cmtt9.pfb>
+Output written on paper.pdf (14 pages, 242024 bytes).
+PDF statistics:
+ 135 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 131072)
+ 11 words of extra memory for PDF output out of 10000 (max. 10000000)
+

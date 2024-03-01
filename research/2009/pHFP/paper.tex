@@ -1,0 +1,658 @@
+% ICLP'09 submission 82
+\pdfoutput=1
+\documentclass[]{INCLUDES/llncs}
+\input TOOLS/pheader09.tex
+
+\begin{document}
+
+\title{
+  Declarative Combinatorics: Ranking and Unranking of Hereditarily Finite
+  Permutations }
+
+\author{Paul Tarau}
+\institute{
+   Department of Computer Science and Engineering\\
+   University of North Texas\\
+   %P.O. Box 311366\\
+   %Denton, Texas 76203\\
+   {\em E-mail: tarau@cs.unt.edu}
+}
+\maketitle
+\date{}
+
+\begin{abstract}
+Sets represent ``content'' in a pure way - order is immaterial. Permutations
+represent ``order'' in a pure way - what is actually ordered is immaterial.
+The paper will show that a similar ``fractal'' structure is shared when natural
+number encodings of both sets and permutations are expanded recursively.
+
+Starting from encodings for finite permutations 
+based on Lehmer codes and factoradics, we derive through a 
+process similar to Ackermann's encoding of
+hereditarily finite sets, an encoding of 
+{\em hereditarily finite permutations}.
+
+The paper is organized as a self-contained literate Prolog program  available 
+at \url{http://logic.cse.unt.edu/tarau/research/2009/pHFP.zip}.
+
+{\em Keywords:}
+logic programming and computational mathematics,
+hereditarily finite permutations, 
+encodings of permutations, factoradics
+ranking/unranking bijections,
+Ackermann's encoding of hereditarily finite sets
+
+\end{abstract}
+
+\section{Introduction}
+
+This paper is an exploration with logic programming tools of {\em ranking} and
+{\em unranking} problems on finite permutations and their related
+hereditarily finite universe. The practical expressiveness of logic programming
+languages (in particular Prolog) are put at test in the process. The paper is part
+of a larger effort to cover in a declarative programming 
+paradigm, arguably more elegantly, some fundamental combinatorial generation 
+algorithms along the lines of \cite{knuth06draft}.
+
+The paper is organized
+as follows: section \ref{unrank} introduces generic 
+ranking/unranking functions, section \ref{ack} introduces
+ Ackermann's encoding in the more general case 
+when {\em urelements} are present.
+Ranking/unranking of permutations and Hereditarily Finite
+Permutations as well as Lehmer codes and factoradics are covered in 
+section \ref{perm}. Sections \ref{related} and \ref{concl}
+discuss related work, future work and conclusions.
+ 
+We will assume that the underlying
+Prolog system supports the usual higher order 
+function-style predicates {\tt
+call/N}, {\tt findall/3}, {\tt maplist/N}, {\tt sumlist/2} or 
+their semantic equivalents 
+and a few well known library predicates, used mostly for list processing and
+arithmetics. Arbitrary length integers are needed for 
+some of the larger examples but 
+their absence does not affect the correctness of
+the code within the integer range provided by a given Prolog implementation.
+Otherwise, the code in the paper, embedded in a literate programming LaTeX
+file, is self contained and runs under {\em SWI-Prolog}. Note also that a few
+utility predicates, not needed for following the main ideas of the paper,
+are left out from the narrative and provided in the Appendix.
+
+The paper is organized as follows: section \ref{unrank} introduces a general
+ranking/unranking framework for multiway tree data types with atoms/urelements
+and section \ref{ack} specializes it to hereditarily finite sets with
+urelements. An encoding of finite permutations is given in section \ref{perm}
+followed by the introduction of hereditarily finite permutations in section
+\ref{hfp}, the crux of the paper.
+Related work is discussed in section \ref{related}, followed by conclusions in
+section \ref{concl}.
+
+\section{Generic unranking and ranking with higher order predicates}
+\label{unrank}
+We will use, through the paper, a generic {\em multiway tree} type
+distinguishing between atoms represented as (arbitrary length) integers and
+sub-forests represented as Prolog lists.
+Atoms will be
+mapped to natural numbers in {\tt [0..Ulimit-1]}. 
+Assuming that {\tt Ulimit} is fixed, we denote $A$ the set {\tt [0..Ulimit-1]}.
+We denote $Nat$ the set of natural numbers and $T$ 
+the set of trees of type $T$ with atoms in $A$.
+\begin{df}
+A ranking function on $T$ is a bijection $T \rightarrow Nat$.
+An unranking function is a bijection $Nat \rightarrow T$.
+\end{df}
+{\em Ranking} functions can be traced back to 
+G\"{o}del numberings \cite{Goedel:31,conf/icalp/HartmanisB74} 
+associated to formulae. However, G\"{o}del numberings are typically only
+injective functions, as their use in the proofs of G\"{o}del's incompleteness
+theorems only requires injective mappings from well-formed formulae to
+numbers. Together with their inverse {\em unranking} functions
+they are also used in combinatorial and uniform random instance generation
+\cite{conf/mfcs/MartinezM03,knuth06draft} algorithms.
+
+\subsection{Unranking} As an adaptation of the {\em unfold} 
+operation \cite{DBLP:journals/jfp/Hutton99,DBLP:conf/fpca/MeijerH95}, 
+elements of $T$ will be mapped to natural numbers with a generic 
+higher order function {\tt unrank\_} parameterized by the the natural number
+{\tt Ulimit} and the transformer function {\tt F}:
+
+\begin{code}
+unrank_(Ulimit,_,N,R):-N>=0,N<Ulimit,!,R=N.
+unrank_(Ulimit,F,N,R):-N>=Ulimit,
+  N0 is N-Ulimit,
+  call(F,N0,Ns),
+  maplist(unrank_(Ulimit,F),Ns,R).
+\end{code}
+ A global constant provided by the predicate {\tt default\_ulimit},
+will be used
+through the paper to fix the default range of atoms as
+ well as a default {\tt unrank} function:
+Note also that we will use a syntactically more convenient {\tt DCG} 
+notation for functional style
+predicates, composed by chaining their arguments automatically with 
+Prolog's {\tt DCG} transformation:
+\begin{code}
+unrank(F)-->
+  default_ulimit(Ulimit),
+  unrank_(Ulimit,F).
+
+default_ulimit(L)-->{clause(ulimit(L),_)},!.
+default_ulimit(0)-->[].
+\end{code}
+Note also that {\tt default\_ulimit} provides a default global value for
+the number of atoms that can be customized with a dynamic clause {\tt ulimit/1}
+if needed.
+
+\subsection{Ranking} Similarly, as an adaptation of {\em fold}, generic inverse 
+mappings {\tt rank\_(Ulimit,G)} and {\tt rank} from $T$ to $Nat$ are defined
+as:
+\begin{code}
+rank_(Ulimit,_,N,R):-integer(N),N>=0,N<Ulimit,!,R=N.
+rank_(Ulimit,G,Ts,R):-
+  maplist(rank_(Ulimit,G),Ts,T),
+  call(G,T,R0),
+  R is R0+Ulimit.
+
+rank(G)-->
+  default_ulimit(Ulimit),
+  rank_(Ulimit,G).  
+\end{code}
+Note that the guard in the second definition simply states 
+correctness constraints ensuring 
+that atoms belong to the same set $A$ for {\tt rank\_} and {\tt unrank\_}. 
+This ensures that the following holds:
+
+\begin{prop}
+If the transformer function $F:Nat \rightarrow [Nat]$ is a bijection with
+inverse G, such that $n \geq ulimit \wedge F(n)=[n_0,...n_i,...n_k]
+\Rightarrow n_i<n$, then {\tt unrank} is a bijection from $Nat$ to $T$, 
+with inverse {\tt rank} and the recursive computations 
+of both functions terminate in a finite number of steps.
+
+\noindent {\em Proof:} by induction on the structure of $Nat$ and $T$, using the
+fact that {\tt maplist} preserves bijections.
+\end{prop}
+
+\section{Hereditarily finite sets and Ackermann's encoding} \label{ack}
+
+The universe of hereditarily finite sets is best known as a model of the 
+Zermelo-Fraenkel set theory with the axiom of infinity  replaced by its 
+negation \cite{finitemath,DBLP:journals/jct/MeirMM83}. In a logic programming
+context, it has been used for reasoning with sets, set constraints,
+hypersets and bisimulations \cite{dovier00comparing,DBLP:journals/tplp/PiazzaP04}.
+
+The universe of hereditarily finite sets is built from the empty set 
+(or a set of {\em Urelements}) 
+by successively applying powerset and set union operations.
+
+Ackermann's encoding \cite{ackencoding,abian78,kaye07,arxiv:fISO} is a bijection
+that maps hereditarily finite sets ($HFS$) to natural numbers ($Nat$) as follows:
+
+\vskip 0.5cm
+$f(x)$ = {\tt if} $x=\{\}$ {\tt then} $0$ {\tt else} $\sum_{a \in x}2^{f(a)}$
+\vskip 0.5cm
+
+Assuming $HFS$ extended with {\em Urelements} (atomic objects not having any
+elements) a generic tree representation can be used for hereditarily finite
+sets with urelements.
+
+Ackermann's encoding can be seen as the recursive application of 
+a bijection {\tt set2nat} from finite subsets of $Nat$ to $Nat$, that associates to 
+a set of (distinct!) natural numbers a (unique!) natural number
+\cite{arxiv:fISO}.
+\begin{code} 
+set2nat(Xs,N):-set2nat(Xs,0,N).
+
+set2nat([],R,R).
+set2nat([X|Xs],R1,Rn):-R2 is R1+(1<<X),set2nat(Xs,R2,Rn).
+\end{code}
+With this representation, Ackermann's encoding from $HFS$ to $Nat$ {\tt hfs2nat} 
+can be expressed in terms of our generic {\tt rank} function as:
+\begin{code}
+hfs2nat-->default_ulimit(Ulimit),hfs2nat_(Ulimit).
+
+hfs2nat_(Ulimit)-->rank_(Ulimit,set2nat).
+\end{code}
+where the constant provided by {\tt default\_ulimit} controls the
+segment {\tt [0..Ulimit-1]} of $Nat$ to be mapped to urelements. 
+For each natural number $u$ this provides a generalization of Ackermann's
+mapping, to hereditarily finite sets with urelements in $[0..u-1]$ defined as:
+\vskip 0.30cm
+$f_{u}(x)$ = 
+{\tt if} $x<u$ 
+{\tt then} $x$
+{\tt else} $u+\sum_{a\in x}2^{f_{u}(a)}$ 
+\vskip 0.30cm
+For $u=0$ this becomes Ackermann's original mapping from ``pure" hereditarily
+finite sets, all built from the empty set only, to natural numbers.
+
+To obtain the inverse of the Ackermann encoding, we first define the 
+inverse {\tt nat2set} of the bijection {\tt set2nat}. It decomposes a natural
+number $N$ into a list of exponents of 2 (seen as bit positions equaling 1 
+in $N$'s bitstring representation, in increasing order).
+\begin{code}
+nat2set(N,Xs):-nat2elements(N,Xs,0).
+
+nat2elements(0,[],_K).
+nat2elements(N,NewEs,K1):-N>0,
+  B is /\(N,1),
+  N1 is N>>1,K2 is K1+1,
+  add_el(B,K1,Es,NewEs),
+  nat2elements(N1,Es,K2).
+
+add_el(0,_,Es,Es).
+add_el(1,K,Es,[K|Es]).
+\end{code}
+The inverse of the  Ackermann encoding, with urelements in {\tt [0..Ulimit-1]}
+and {\tt Ulimit} mapped to {\tt []} follows:
+\begin{code}
+nat2hfs_(Ulimit)-->unrank_(Ulimit,nat2set).
+
+nat2hfs-->default_ulimit(Ulimit),nat2hfs_(Ulimit).
+\end{code}
+We can represent the action of a hylomorphism unfolding a natural number into
+a hereditarily finite set as a directed graph with outgoing edges
+induced by by applying the inverse of the Ackermann encoding as shown
+in Fig. \ref{f1}.
+\FIG{f1}{2008 as a HFS}{0.60}{isof1.pdf}
+Using an equivalent functional notation, the following proposition summarizes
+the results in this subsection:
+\begin{prop}
+Given id = $\lambda x.x$, the following function equivalences hold:
+
+\begin{equation}
+nat2set \circ set2nat \equiv id \equiv set2nat \circ nat2set
+\end{equation}
+
+\begin{equation}
+nat2hfs \circ hfs2nat \equiv id \equiv hfs2nat \circ nat2hfs
+\end{equation}
+\end{prop}
+
+\section{Encoding finite permutations} \label{perm}
+To obtain an encoding for finite permutations
+we will first review a ranking/unranking mechanism for permutations that
+involves an unconventional numeric representation, {\em factoradics}.
+
+\subsection{The factoradic numeral system}
+The factoradic numeral system \cite{knuth_art_1997-1} replaces digits
+multiplied by power of a base $N$ with digits that multiply successive values
+of the factorial of $N$. In the increasing order variant {\tt fr} the first
+digit $d_0$ is 0, the second is $d_1 \in \{0,1\}$ and the $N$-th is $d_N \in
+[0..N-1]$. The left-to-right, decreasing order variant {\tt fl} 
+is obtained by reversing the digits of {\tt fr}.
+\begin{codex}
+?- fr(42,R),rf(R,N).
+R = [0, 0, 0, 3, 1],
+N = 42
+
+?- fl(42,R),lf(R,N).
+R = [1, 3, 0, 0, 0],
+N = 42
+\end{codex}
+\noindent The Prolog predicate {\tt fr} handles the special case for $0$ and
+calls {\tt fr1} which recurses and divides with increasing values of N
+while collecting digits with {\tt mod}:
+\begin{code}
+% factoradics of N, right to left
+fr(0,[0]).
+fr(N,R):-N>0,fr1(1,N,R).
+   
+fr1(_,0,[]).
+fr1(J,K,[KMJ|Rs]):-K>0,KMJ is K mod J,J1 is J+1,KDJ is K // J,
+  fr1(J1,KDJ,Rs).
+\end{code}
+The reverse {\tt fl}, is obtained as follows:
+\begin{code}
+fl(N,Ds):-fr(N,Rs),reverse(Rs,Ds).
+\end{code}
+The predicate {\tt lf} (inverse of {\tt fl}) converts back to decimals by
+summing up results while computing the factorial progressively:
+\begin{code}
+lf(Ls,S):-length(Ls,K),K1 is K-1,lf(K1,_,S,Ls,[]).
+
+% from list of digits of factoradics, back to decimals
+lf(0,1,0)-->[0].
+lf(K,N,S)-->[D],{K>0,K1 is K-1},lf(K1,N1,S1),{N is K*N1,S is S1+D*N}.
+\end{code}
+Finally, {\tt rf}, the inverse of {\tt fr} is obtained by reversing {\tt fl}.
+\begin{code}
+rf(Ls,S):-reverse(Ls,Rs),lf(Rs,S).
+\end{code}
+
+\subsection{Ranking and unranking permutations of given size with Lehmer codes
+and factoradics} 
+The Lehmer code of a permutation $f$ of size $n$ is defined as the sequence
+$l(f)=(l_1(f) \ldots l_i(f) \ldots l_n(f))$ 
+where $l_i(f)$ is the number
+of elements of the set $\{j>i|f(j)<f(i)\}$
+\cite{DBLP:journals/dmtcs/MantaciR01}.
+ \begin{prop}
+ The Lehmer code of a permutation determines the permutation uniquely.
+ \end{prop} 
+The predicate {\tt perm2nth} computes a {\tt rank} 
+for a permutation {\tt Ps} of {\tt Size>0}. 
+It starts by first computing its Lehmer code {\tt Ls} with 
+{\tt perm\_lehmer}. Then  it associates a unique natural 
+number {\tt N} to {\tt Ls}, 
+by converting it with the predicate {\tt lf} 
+from factoradics to decimals. 
+Note that the Lehmer code {\tt Ls} is used as the list of digits
+in the factoradic representation.
+\begin{code}
+perm2nth(Ps,Size,N):-
+  length(Ps,Size),
+  Last is Size-1,
+  ints_from(0,Last,Is),
+  perm_lehmer(Is,Ps,Ls),
+  lf(Ls,N).
+\end{code}
+The generation of the Lehmer code is surprisingly
+simple and elegant in Prolog. We just instrument the
+usual backtracking predicate generating a permutation
+to remember the choices it makes, 
+in the auxiliary predicate {\tt select\_and\_remember}!
+\begin{code}
+% associates Lehmer code to a permutation 
+perm_lehmer([],[],[]).
+perm_lehmer(Xs,[X|Zs],[K|Ks]):-
+  select_and_remember(X,Xs,Ys,0,K),
+  perm_lehmer(Ys,Zs,Ks).
+
+% remembers selections - for Lehmer code
+select_and_remember(X,[X|Xs],Xs,K,K).
+select_and_remember(X,[Y|Xs],[Y|Ys],K1,K3):-K2 is K1+1,
+  select_and_remember(X,Xs,Ys,K2,K3).
+\end{code}  
+
+The predicate {\tt nat2perm} provides the matching {\em unranking}
+operation associating a permutation {\tt Ps} to a given {\tt Size>0} 
+and a natural number {\tt N}.
+\begin{code}
+nth2perm(Size,N, Ps):-
+  fl(N,Ls),length(Ls,L),
+  K is Size-L,
+  Last is Size-1,
+  ints_from(0,Last,Is),
+  zeros(K,Zs),
+  append(Zs,Ls,LehmerCode),
+  perm_lehmer(Is,Ps,LehmerCode).
+\end{code}
+Note also that {\tt perm\_lehmer} is used (reversibly!) this time
+to reconstruct the permutation {\tt Ps} from its Lehmer code.
+The Lehmer code is computed from the permutation's 
+factoradic representation obtained by converting {\tt N} to {\tt Ls} 
+and then padding it with {\tt 0}'s.
+One can try out this bijective mapping as follows:
+\begin{codex}
+?- nth2perm(5,42,Ps),perm2nth(Ps,Length,Nth).
+Ps = [1, 4, 0, 2, 3],
+Length = 5,
+Nth = 42
+
+?- nth2perm(8,2008,Ps),perm2nth(Ps,Length,Nth).
+Ps = [0, 3, 6, 5, 4, 7, 1, 2],
+Length = 8,
+Nth = 2008
+\end{codex}
+
+\subsection{A bijective mapping from permutations to $Nat$}
+One more step is needed to to extend the mapping between permutations of a
+given length to a bijective mapping from/to $Nat$: we will have to ``shift
+towards infinity'' the starting point of each new bloc of permutations in $Nat$
+as permutations of larger and larger sizes are enumerated.
+
+First, we need to know by how much - so we compute the sum of
+all factorials up to $N!$.
+\begin{code}
+% fast computation of the sum of all factorials up to N!
+sf(0,0).
+sf(N,R1):-N>0,N1 is N-1,ndup(N1,1,Ds),rf([0|Ds],R),R1 is R+1.
+\end{code}
+This is done by noticing that the factoradic representation of
+[0,1,1,..] does just that. The stream of all such sums can now
+be generated as usual:
+\begin{code}
+sf(S):-nat(N),sf(N,S).
+\end{code}
+What we are really interested into, is decomposing {\tt N} into
+the distance to the
+last sum of factorials smaller than {\tt N}, {\tt N\_M}
+and its index in the sum, {\tt K}.
+\begin{code}
+to_sf(N, K,N_M):-nat(X),sf(X,S),S>N,!,K is X-1,sf(K,M),N_M is N-M.
+\end{code}
+{\em Unranking} of an arbitrary permutation is now easy - the index {\tt K}
+determines the size of the permutation and {\tt N\_M} determines
+the rank. Together they select the right permutation with {\tt nth2perm}.
+\begin{code}
+nat2perm(0,[]).
+nat2perm(N,Ps):-to_sf(N, K,N_M),nth2perm(K,N_M,Ps).
+\end{code}
+{\em Ranking} of a permutation is even easier: we first compute
+its {\tt Size} and its rank {\tt Nth}, then we shift the rank by 
+the sum of all factorials up to {\tt Size}, enumerating the
+ranks previously assigned.
+\begin{code}
+perm2nat([],0).
+perm2nat(Ps,N) :-perm2nth(Ps, Size,Nth),sf(Size,S),N is S+Nth.
+\end{code}
+\begin{codex}
+?- nat2perm(2008,Ps),perm2nat(Ps,N).
+Ps = [1, 4, 3, 2, 0, 5, 6],
+N = 2008
+\end{codex}
+As finite bijections are faithfully represented by permutations,
+this construction provides a bijection from $Nat$ to 
+the set of Finite Bijections.
+\begin{prop}
+The following function equivalences hold:
+\begin{equation}
+nat2perm \circ perm2nat \equiv id \equiv perm2nat \circ nat2perm
+\end{equation}
+\end{prop}
+
+\section{Hereditarily finite permutations} \label{hfp}
+
+By using the generic {\tt unrank\_} and {\tt rank} predicates defined 
+in section \ref{unrank} we can extend the {\tt nat2perm} and {\tt perm2nat} to
+encodings of hereditarily finite permutations ($HFP$).
+\begin{code}
+nat2hfp --> default_ulimit(D),nat2hfp_(D).   
+nat2hfp_(Ulimit) --> unrank_(Ulimit,nat2perm).
+hfp2nat --> rank(perm2nat).
+\end{code}
+The encoding works  as follows:
+\begin{codex}
+?- nat2hfp(42,H),hfp2nat(H,N),write(H),nl.
+H = [[], [[], [[]]], [[[]], []], [[]], [[], [[]], [[], [[]]]]],
+N = 42
+?- nat2hfp(2008,S),write(S),nl,fail.
+[[[]], [[], [[]], [[], [[]]]], [[[]], []], [[], [[]]], [], 
+       [[], [[], [[]]], [[]]], [[[]], [], [[], [[]]]]].
+\end{codex}
+\begin{prop}
+The following function equivalences hold:
+\begin{equation}
+{nat2hfp} \circ {hfp2nat} \equiv id \equiv {hfp2nat} \circ {nat2hfp}
+\end{equation}
+\end{prop}
+
+Sets represent ``content'' in a pure way - order is immaterial. Permutations
+represent ``order'' in a pure way - what is actually ordered is immaterial.
+Let us note that a similar ``fractal'' structure is shared when natural
+number encodings of both sets and permutations are expanded recursively
+as HFSs and HFPs.
+
+As shown in Fig \ref{f3} an ordered digraph (with labels starting from 0
+representing the order of outgoing edges) can be used to represent the unfolding
+of a natural number to the associated hereditarily finite permutation.
+\FIG{f3}{2008 as a HFP}{0.60}{isof3.pdf}
+Note that as this mapping generates
+sequences where the order of the edges matters, therefore order is
+indicated by labeling the edges with integers starting from {\tt 0}.
+An interesting property of graphs associated to hereditarily finite permutations
+is that moving from a number n to its successor typically only induces a
+reordering of the labeled edges, as shown in Fig. \ref{f4}.
+\FIG{f4}{2009 as a HFP}{0.60}{isof4.pdf}
+
+It is interesting to see how ``information density'' of HFS and HFP compares.
+Intuitively that would answer the question: which is more efficient -
+codifying information as pure ``content'' or as pure ``order''?
+ 
+%In a sense they are extreme representations: sets focus exclusively on
+%``content'' while permutations focus exclusively on ``order''.
+
+Figs. \ref{f9} and \ref{isoHfsHfp17} compare sizes of HFS and HFP trees obtained from
+the same natural number up to $2^{10}$ and $2^{17}$ respectively. 
+\FIG{f9}{Comparison of curve1=HFS and curve2=HFP sizes up to
+$2^{10}$}{0.40}{isof9.pdf}
+
+\FIG{isoHfsHfp17}
+{Comparison of curve1=HFS and curve2=HFP sizes up to
+$2^{17}$}{0.40}{isoHfsHfp17.pdf}
+
+We leave the study of the relative asymptotic behavior of the two curves 
+as an example of interesting {\em open problem} derived from our data type
+hylomorphisms.
+
+
+\begin{comment}
+\section{An application: semantic steganography}
+Steganography is a technique that conceals information by adding to media
+objects like JPG files or MP3 music tracks a few bits encoding a secret message.
+While the human eye or ear usually sees no differences in the images or sounds,
+statistical techniques can be used to identify a steganographic load as a result of
+as distortions in typical distributions.
+Semantic variants of steganography also exist, for
+instance encoding a load by replacing words with their synonyms in
+a sentence or selecting or wearing a particular
+dress code in a picture or performing a particular sequence of actions
+in a clip. As they involve complex common sense knowledge processing steps such
+techniques are unlikely to be subject to statistical detection in any close
+future.
+
+Hereditarily finite permutations can provide unusually strong
+steganographic encodings without requiring 
+any change in the set of objects or events encoding the load.
+Such encoding can be achieved by
+using solely the (recursive) ordering of naturally occurring observables
+in images or texts or behaviors. And, in contrast to ``content'' order is in  a
+way invisible - it is just in the eye of the beholder.
+
+For instance the fact that on a day Alice ([]) and Bob ([[]]) visits first a
+chatroom discussing about dating in the arrival order [[]],[] then leave it in order [],[[]] and
+visit a chatroom about sport cars in arrival order [],[[]] and leave in order
+[],[[]] and then on the next day visit first the chatroom on sport cars in order [],[[]]
+leaving in order [[]],[] and then the chatroom about dating in arrival 
+order [[]],[] leaving in order [[]],[] encodes the HFP:
+\begin{code}
+secret([[[[[]],[]],[[],[[]]]],[[[],[[]]],[[],[[]]]],[],[],[[[],[[]]],[[[]],[]]]]).
+\end{code}
+
+
+Assuming both are usual visitors of the two chatrooms, well known to just talk
+as much nonsense as anyone else - no content or behavioral scanning of any of
+the chatrooms can indicate that the hereditarily finite permutation is the
+encoding of a bank account where they have deposited drug money to be
+laundered by their friend Carlos.
+
+Besides steganography, similar techniques can be used to provide invisible
+digital watermarks to assert ownership of media content.
+\end{comment}
+
+\section{Related work} \label{related}
+Natural number encodings of hereditarily finite sets have 
+triggered the interest of researchers in fields ranging from 
+axiomatic set theory and foundations of logic to 
+complexity theory and combinatorics
+\cite{finitemath,kaye07,abian78,DBLP:journals/jct/MeirMM83,avigad97}. 
+Computational and data representation aspects of Finite Set Theory 
+have been described in logic programming and theorem proving contexts 
+in \cite{dovier00comparing,DBLP:journals/tplp/PiazzaP04,DBLP:conf/types/Paulson94}. 
+While finite permutations have been used extensively in various branches of
+mathematics and computer science, we have not seen any formalization of 
+hereditarily finite permutations as such in the literature.
+
+\section{Conclusion and Future Work} \label{concl}
+
+We have shown the expressiveness of logic programming as a
+metalanguage for executable mathematics, by describing
+ranking/unranking functions
+for finite sets and permutations and by extending them in a
+generic way to hereditarily finite sets
+and hereditarily finite permutations.
+
+We also foresee interesting applications in cryptography and steganography. 
+For instance, in the case of the permutation related encodings -  something as
+simple as the order of the cities visited or the order of names 
+on a greetings card, seen as a permutation with respect to their 
+alphabetic order, can provide a steganographic encoding/decoding of a secret
+message by using predicates like {\tt nat2perm} and {\tt perm2nat}.
+
+Last but not least, the use of a logic programming language to express
+in a generic way some fairly intricate combinatorial algorithms
+predicts an interesting new application area.
+
+\bibliographystyle{plain}
+%\bibliographystyle{plainnat}
+\bibliography{INCLUDES/theory,tarau,INCLUDES/proglang,INCLUDES/biblio,INCLUDES/syn}
+
+\newpage
+\appendix
+\section{Appendix}
+To make the code in the paper fully self contained, 
+we list here some auxiliary predicates.
+
+\begin{code}
+% generates integers From..To
+ints_from(From,To,Is):-findall(I,between(From,To,I),Is).
+
+% replicates X, N times
+ndup(0, _,[]).
+ndup(N,X,[X|Xs]):-N>0,N1 is N-1,ndup(N1,X,Xs).
+  
+zeros(N,Zs):-ndup(N,0,Zs).
+
+% generator for the stream of natural numbers 0,1,2,...
+nat(0).
+nat(N):-nat(N1),N is N1+1.  
+\end{code}
+
+The following predicates print out a $HFS$ or $HFP$ with {\em Urelements}
+\begin{code}
+show_hfs(S):-gshow(S,"{,}"),nl.
+show_hfp(S):-gshow(S,"( )"),nl.
+
+gshow(0,[L,_C,R]):-put(L),put(R).
+gshow(N,_):-integer(N),N>0,!,write(N).
+gshow(Hs,[L,C,R]):-put(L),gshow_all(Hs,[L,C,R]),put(R).
+
+gshow_all([],_).
+gshow_all([H],LCR):-gshow(H,LCR).
+gshow_all([H,G|Hs],[L,C,R]):-
+  gshow(H,[L,C,R]),
+  ([C]\=="~"->put(C);true),
+  gshow_all([G|Hs],[L,C,R]).
+\end{code}
+as shown in the following examples: 
+\begin{codex}
+?- nat2hfs(2009,H),show_hfs(H).
+{{},{{},{{}}},{{{{}}}},{{{}},{{{}}}},{{},{{}},{{{}}}},
+    {{{},{{}}}},{{},{{},{{}}}},{{{}},{{},{{}}}}}
+
+?- nat2hfp(2009,H),show_hfp(H).
+((()) (() (()) (() (()))) ((()) ()) (() (())) () 
+ ((()) () (() (()))) (() (() (())) (())))
+ 
+?- assert(ulimit(4)).
+true.
+
+?- nat2hfs(2009,H),show_hfs(H).
+{{},2,{},{1},{{},1},{2},{{},2},{1,2}}
+
+?- nat2hfp(2009,H),show_hfp(H).
+(1 () 3 () (()) (() 1) 2)
+ \end{codex}
+\end{document}
