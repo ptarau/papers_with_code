@@ -1,0 +1,41 @@
+:- use_module(library(clpfd)).
+
+% Define the coloring problem
+color_graph(Graph, Colors) :-
+    % Extract the vertices from the graph
+    vertices(Graph, Vertices),
+    % Create a list of variables for the colors of each vertex
+    length(Vertices, N),
+    length(Colors, N),
+    % Each vertex must be colored with a color in the range 1..3
+    Colors ins 1..3,
+    % Apply the constraints for adjacent vertices
+    constrain(Graph, Colors),
+    % Label the variables to find a solution
+    label(Colors).
+
+% Extract the vertices from the graph
+vertices(Graph, Vertices) :-
+    findall(V, (member(edge(V, _), Graph) ; member(edge(_, V), Graph)), VerticesList),
+    sort(VerticesList, Vertices).
+
+% Apply the constraints for adjacent vertices
+constrain([], _).
+constrain([edge(V1, V2) | Edges], Colors) :-
+    nth1(V1, Colors, Color1),
+    nth1(V2, Colors, Color2),
+    Color1 #\= Color2,
+    constrain(Edges, Colors).
+
+% Example graph: a triangle (3 vertices, 3 edges)
+example_graph([
+    edge(1, 2),
+    edge(2, 3),
+    edge(3, 1)
+]).
+
+% Solve the example graph coloring problem
+solve_example :-
+    example_graph(Graph),
+    color_graph(Graph, Colors),
+    writeln(Colors).

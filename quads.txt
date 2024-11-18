@@ -1,0 +1,58 @@
+% Define the quadrilateral object
+:- object(quadrilateral).
+
+    % Public predicates for quadrilateral properties
+    :- public(area/1).
+    :- public(perimeter/1).
+    :- public(sides/1).
+
+    % Predicate to get the number of sides
+    sides(4).
+
+:- end_object.
+
+% Define the parallelogram object, which inherits from quadrilateral
+:- object(parallelogram,
+    extends(quadrilateral)).
+
+    % Additional properties specific to parallelogram
+    :- public(opposite_sides_parallel/0).
+    :- public(opposite_sides_equal/0).
+
+    % Predicate to check if opposite sides are parallel
+    opposite_sides_parallel.
+
+    % Predicate to check if opposite sides are equal
+    opposite_sides_equal.
+
+:- end_object.
+
+% Define the rectangle object, which inherits from parallelogram
+:- object(rectangle,
+    extends(parallelogram)).
+
+    % Additional properties specific to rectangle
+    :- public(all_angles_right/0).
+
+    % Predicate to check if all angles are right angles
+    all_angles_right.
+
+:- end_object.
+
+% Define the rhombus object, which inherits from parallelogram
+:- object(rhombus,
+    extends(parallelogram)).
+
+    % Additional properties specific to rhombus
+    :- public(all_sides_equal/0).
+
+    % Predicate to check if all sides are equal
+    all_sides_equal.
+
+:- end_object.
+
+% Define the square object, which inherits from both rectangle and rhombus
+:- object(square,
+    extends([rectangle, rhombus])).
+
+:- end_object.
